@@ -18,6 +18,8 @@
 | `FindEntityCommandHandler.cs` | `find_entity` | 按名查找实体并显示其节点信息 |
 | `ClearEntitiesCommandHandler.cs` | `clear_entities` | 销毁所有已生成实体 |
 | `SndCountCommandHandler.cs` | `snd_count` | 显示当前实体数量 |
+| `GetEntityDataCommandHandler.cs` | `entity_get_data` | 按名称和键读取 SND 实体数据（值及类型） |
+| `SetEntityDataCommandHandler.cs` | `entity_set_data` | 设置 SND 实体数据（自动推断类型，保留已有键的类型） |
 
 ## 命令详细
 
