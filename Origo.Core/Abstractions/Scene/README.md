@@ -31,6 +31,7 @@
 | `GetEntities()` | 枚举所有存活实体 |
 | `FindByName(name)` | 按名查找实体 |
 | `ProcessAll(delta)` | 对所有存活实体执行帧更新 |
+| `DeadByName(name)` | 按名称销毁单个实体，调用 `ISndEntity.Kill()` 后从集合移除 |
 
 ## 设计决策
 

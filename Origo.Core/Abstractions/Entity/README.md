@@ -54,7 +54,12 @@
 
 `ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess`
 
-`ISndEntity` 组合后唯一自有的成员：`string Name { get; }`——稳定的实体标识名。
+组合后自有的成员：
+
+| 成员 | 说明 |
+|------|------|
+| `Name { get; }` | 稳定的实体标识名 |
+| `Kill()` | 销毁实体，触发 BeforeDead 钩子并释放数据、节点与策略 |
 
 ## 设计决策
 

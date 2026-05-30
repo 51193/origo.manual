@@ -20,6 +20,7 @@
 | `SndCountCommandHandler.cs` | `snd_count` | 显示当前实体数量 |
 | `GetEntityDataCommandHandler.cs` | `entity_get_data` | 按名称和键读取 SND 实体数据（值及类型） |
 | `SetEntityDataCommandHandler.cs` | `entity_set_data` | 设置 SND 实体数据（自动推断类型，保留已有键的类型） |
+| `InvokeStrategyCommandHandler.cs` | `invoke_strategy` | 按实体名调用主动策略，传入可选 JSON 输入并输出返回值 |
 
 ## 命令详细
 
@@ -44,6 +45,13 @@ spawn <name> <template>
 spawn name=<name> template=<template>
 ```
 从模板生成实体。不支持混合使用位置参数和命名参数。模板通过 `SndWorld.ResolveTemplate` 解析。
+
+### invoke_strategy
+
+```
+invoke_strategy <entity> <strategy_index> [input]
+```
+按实体名查找实体，调用 `ISndActiveStrategyAccess.InvokeStrategy` 执行主动策略，输出返回值。input 可选，支持 JSON 字符串，由策略自行解析。
 
 ## 设计决策
 
