@@ -6,14 +6,18 @@
 
 SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"无状态共享"模型：策略实例在池中全局共享，不持有实例字段，所有可变状态存储在实体的 Data 中。
 
+策略分为三类：被动实体策略（帧驱动和生命周期钩子）、主动策略（外部按索引调用）、状态机策略（字符串栈状态管理）。三者共享 `BaseStrategy` + `SndStrategyPool` 基础设施，容器和管理器完全独立。
+
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
 | `BaseStrategy.cs` | 所有策略的抽象根基类 |
 | `EntityStrategyBase.cs` | 实体策略基类：8 个生命周期虚方法钩子 |
+| `ActiveStrategyBase.cs` | 主动策略基类：`Invoke(entity, ctx, input)` — 外部按索引主动调用 |
+| `ActiveStrategyManager.cs` | 单实体主动策略管理器：Dictionary 容器 + 增删 + 序列化 |
 | `SndStrategyPool.cs` | 策略池：注册、实例化、引用计数、无状态校验 |
-| `SndStrategyManager.cs` | 单实体策略管理器：增删策略 + 协调生命周期回调 |
+| `SndStrategyManager.cs` | 单实体被动策略管理器：增删策略 + 协调生命周期回调 |
 | `StrategyIndexAttribute.cs` | 策略索引声明特性：`[StrategyIndex("core.health")]` |
 
 ## 模块详解
@@ -22,8 +26,9 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 
 ```
 BaseStrategy
-├── EntityStrategyBase    (实体策略: Process, AfterSpawn, AfterLoad, AfterAdd, BeforeRemove, BeforeSave, BeforeQuit, BeforeDead)
-└── StateMachineStrategyBase  (状态机策略: OnPushRuntime, OnPushAfterLoad, OnPopRuntime, OnPopBeforeQuit)
+├── EntityStrategyBase         (被动: Process, AfterSpawn, AfterLoad, AfterAdd, BeforeRemove, BeforeSave, BeforeQuit, BeforeDead)
+├── ActiveStrategyBase         (主动: Invoke)
+└── StateMachineStrategyBase   (状态机: OnPushRuntime, OnPushAfterLoad, OnPopRuntime, OnPopBeforeQuit)
 ```
 
 ### SndStrategyPool
@@ -34,17 +39,45 @@ BaseStrategy
 - **GetStrategy<TBase>(index)**：若池中已有则复用（引用计数 +1），否则通过工厂创建
 - **ReleaseStrategy(index)**：引用计数 -1，归零时从池中移除（但工厂保留，下次可再创建）
 - **GetPriority(index)**：返回策略在实体上的执行优先级（默认 6205）
-- **策略排序**：同实体上的多个策略按优先级升序排列，同优先级按插入顺序
+- **策略排序**：仅被动实体策略按优先级升序排列，同优先级按插入顺序
 
 ### SndStrategyManager
 
-每个 `SndEntity` 持有一个 manager 实例：
+每个 `SndEntity` 持有一个 manager 实例，管理被动实体策略：
 
 - **策略列表**：`List<StrategyEntry>`（Index + EntityStrategyBase），按优先级升序插入
 - **Process**：基于快照迭代，允许 Process 中增删策略
+- **Recover**：从池获取时进行类型过滤，仅保留 `EntityStrategyBase` 子类，其余立即 `ReleaseStrategy`
 - **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略
 - **Release**：逐个 Release 池引用，然后清空列表
-- **错误回滚**：Recover（恢复策略列表）中若某策略注册失败，回滚 Release 已恢复的
+
+### ActiveStrategyManager
+
+每个 `SndEntity` 持有一个 manager 实例，管理主动策略：
+
+- **容器**：`Dictionary<string, ActiveStrategyBase>` — O(1) 按索引查找，不参与每帧遍历
+- **Recover**：从 metadata 批量恢复，进行类型过滤
+- **Add / Remove**：动态增删主动策略
+- **Invoke**：按索引查找策略实例，调用 `Invoke(entity, ctx, input)` 并返回结果
+- **序列化**：`SerializeIndices()` 返回当前持有的全部索引
+- **释放**：`ReleaseAll()` 逐个 `ReleaseStrategy`
+
+### StrategyMetaData 拆分
+
+实体元数据中的策略索引按类型分开存储：
+
+```
+StrategyMetaData
+├── EntityIndices: List<string>   (被动实体策略)
+└── ActiveIndices: List<string>   (主动策略)
+```
+
+序列化后 JSON 格式：
+```json
+{ "entity_indices": ["patrol", "idle"], "active_indices": ["query.hp"] }
+```
+
+两者在 Load / Spawn 时分别恢复，互不交叉。
 
 ### StrategyIndexAttribute
 
@@ -54,7 +87,7 @@ public class PlayerControlStrategy : EntityStrategyBase { ... }
 ```
 
 - `Index`：必填，策略在池中的唯一索引键
-- `Priority`：可选，默认 6205，决定同实体上多策略的执行顺序
+- `Priority`：可选，默认 6205，决定同实体上多被动策略的执行顺序；主动策略不参与排序
 
 ## 设计决策
 
@@ -66,9 +99,9 @@ public class PlayerControlStrategy : EntityStrategyBase { ... }
 
 同一策略可能被多个实体同时引用（如 `core.health` 策略在每个实体上都活跃）。引用计数确保只要有一个实体持有，策略就不被回收。归零时才释放，下次访问重新创建或复用。
 
-### 为什么策略执行顺序按优先级排序
+### 为什么被动和主动策略容器分离
 
-复杂实体可能有多层策略（如渲染策略需要在物理策略之后执行）。优先级提供确定性的执行顺序，避免依赖隐式的注册顺序。默认值 6205 让未声明优先级的策略居中，有足够空间向上（高优先级先执行）和向下调整。
+主动策略只需按索引查找（O(1) Dictionary），不参与每帧遍历。被动策略需要按优先级排序迭代（List）。容器分离避免遍历时的类型检查和无关数据，也给序列化提供清晰的分组边界。
 
 ### 为什么生命周期钩子全都基于快照迭代
 

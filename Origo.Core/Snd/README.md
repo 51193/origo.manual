@@ -13,13 +13,14 @@ SND（Strategy + Node + Data）实体系统的完整实现。这是 Origo 的核
 | [Entity](Entity/README.md) | 运行时实体聚合根 | SndEntity + 数据/节点/策略三个内部管理器 |
 | [Metadata](Metadata/README.md) | 实体元数据模型 | TypedData / SndMetaData / NodeMetaData / StrategyMetaData / DataMetaData |
 | [Scene](Scene/README.md) | 场景宿主与运行时门面 | SndRuntime + FullMemorySndSceneHost + MemorySndSceneHost |
-| [Strategy](Strategy/README.md) | 策略系统核心 | BaseStrategy → EntityStrategyBase → 策略池（注册/复用/引用计数/优先级） |
+| [Strategy](Strategy/README.md) | 策略系统核心 | BaseStrategy → EntityStrategyBase \| ActiveStrategyBase。策略池、双管理器（被动/主动） |
 
 ## 本层核心文件
 
 | 文件 | 职责 |
 |------|------|
 | `ISndContext.cs` | SND 上下文组合接口：继承 8 个角色接口（[详见 Abstractions/Snd](../Abstractions/Snd/README.md)） |
+| `StrategyMetaData.cs` | 策略元数据：`EntityIndices`（被动）和 `ActiveIndices`（主动）分离存储 |
 | `SndContext.cs` | 默认 ISndContext 实现（全局/流程级）|
 | `SndContextParameters.cs` | SndContext 构造参数对象 |
 | `NullSndContext.cs` | 测试用空上下文实现 |
@@ -40,9 +41,12 @@ SndEntity (聚合根)
 ├── SndNodeManager : INodeHost
 │   ├── Dictionary<string, INodeHandle> (节点存储)
 │   └── INodeFactory (节点创建，由适配层注入)
-└── SndStrategyManager
-    ├── List<StrategyEntry> (按优先级排序)
-    └── SndStrategyPool (全局策略池引用)
+├── SndStrategyManager (被动策略)
+│   ├── List<StrategyEntry> (按优先级排序，每帧遍历)
+│   └── SndStrategyPool (全局策略池引用)
+└── ActiveStrategyManager (主动策略)
+    ├── Dictionary<string, ActiveStrategyBase> (O(1) 按索引查找)
+    └── SndStrategyPool (共享同一池实例)
 ```
 
 ## 策略生命周期钩子（顺序）

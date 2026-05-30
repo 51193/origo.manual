@@ -13,7 +13,8 @@
 | `ISndDataAccess.cs` | 数据存取与变更订阅 |
 | `ISndNodeAccess.cs` | 节点查询与枚举 |
 | `ISndStrategyAccess.cs` | 策略动态添加/移除 |
-| `ISndEntity.cs` | 组合接口：继承上述三个接口 + `Name` 属性 |
+| `ISndActiveStrategyAccess.cs` | 主动策略：添加/移除/调用 |
+| `ISndEntity.cs` | 组合接口：继承上述四个接口 + `Name` 属性 |
 
 ## 接口详细
 
@@ -41,17 +42,29 @@
 | `AddStrategy(index)` | 向实体动态添加策略 |
 | `RemoveStrategy(index)` | 从实体移除策略 |
 
+### ISndActiveStrategyAccess
+
+| 成员 | 说明 |
+|------|------|
+| `AddActiveStrategy(index)` | 向实体动态添加主动策略 |
+| `RemoveActiveStrategy(index)` | 从实体移除主动策略 |
+| `InvokeStrategy(strategyIndex, input?)` | 主动调用策略并返回结果 |
+
 ### ISndEntity
 
-`ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess`
+`ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess`
 
 `ISndEntity` 组合后唯一自有的成员：`string Name { get; }`——稳定的实体标识名。
 
 ## 设计决策
 
-### 为什么拆分三个访问接口
+### 为什么拆分为四个访问接口
 
 策略代码通常只需访问具体某一方面的实体能力（例如只读写数据而不管理节点）。ISP 拆分让策略声明依赖时更精确，也便于测试时只 mock 需要的部分。
+
+### 为什么主动策略独立为 ISndActiveStrategyAccess
+
+主动策略与被动实体策略共享 `BaseStrategy` 和 `SndStrategyPool` 基础设施，但容器完全独立：主动策略使用 Dictionary 实现 O(1) 按索引查找，不参与帧遍历；被动策略使用排序列表，每帧按优先级迭代。接口分离避免消费者耦合到不必要的策略类型。
 
 ### 为什么 TryGetData 使用 found/value 元组
 
