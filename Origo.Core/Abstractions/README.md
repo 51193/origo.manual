@@ -18,6 +18,7 @@ Origo.Core 的稳定公共抽象层。所有接口在此层定义为平台无关
 | [Node](Node/README.md) | 抽象引擎节点操作 | `INodeFactory` + `INodeHandle` + `INodeHost`(internal) |
 | [Runtime](Runtime/README.md) | 抽象调度接口 | `IScheduler`：Enqueue/Tick/Clear |
 | [Scene](Scene/README.md) | SND 场景访问与宿主 | `ISndSceneAccess` + `ISndSceneHost`（Spawn/FindByName/ProcessAll）|
+| [Snd](Snd/README.md) | ISndContext 8 个角色接口 | IStateMachineContext 也继承其中部分 |
 | [StateMachine](StateMachine/README.md) | 字符串栈状态机体系 | `IStateMachine` + `IStateMachineContext` + `SessionStateMachineContext` |
 
 ## 接口层级
@@ -27,9 +28,14 @@ IBlackboard  IConsole*  IFileSystem  ILogger  IScheduler  INode*
 
 ISndEntity ─── ISndDataAccess + ISndNodeAccess + ISndStrategyAccess
 
+ISndContext ─── ISndBlackboardAccess + ISndSessionAccess + ISndDeferredActions
+               + ISndTemplateAccess + ISndConsoleAccess + ISndStateMachineAccess
+               + ISndSaveOperations + ISndLifecycleOperations
+
 ISndSceneHost ─── ISndSceneAccess
 
 IStateMachine ⟷ IStateMachineContext ⟷ SessionStateMachineContext
+                    │ (inherits ISndBlackboardAccess + ISndDeferredActions)
 ```
 
 ## 设计原则

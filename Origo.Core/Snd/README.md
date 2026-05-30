@@ -19,7 +19,7 @@ SND（Strategy + Node + Data）实体系统的完整实现。这是 Origo 的核
 
 | 文件 | 职责 |
 |------|------|
-| `ISndContext.cs` | SND 上下文接口：黑板访问 + 会话管理 + 持久化请求 + 控制台 |
+| `ISndContext.cs` | SND 上下文组合接口：继承 8 个角色接口（[详见 Abstractions/Snd](../Abstractions/Snd/README.md)） |
 | `SndContext.cs` | 默认 ISndContext 实现（全局/流程级）|
 | `SndContextParameters.cs` | SndContext 构造参数对象 |
 | `NullSndContext.cs` | 测试用空上下文实现 |

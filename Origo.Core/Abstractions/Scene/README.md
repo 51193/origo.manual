@@ -25,7 +25,7 @@
 
 ### ISndSceneHost : ISndSceneAccess
 
-| 新增成员 | 说明 |
+| 自有成员 | 说明 |
 |------|------|
 | `Spawn(SndMetaData)` | 从元数据创建实体（不校验重名） |
 | `GetEntities()` | 枚举所有存活实体 |

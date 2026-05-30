@@ -30,13 +30,17 @@
 
 ## IStateMachineContext 成员
 
+> 继承自 [ISndBlackboardAccess](../Snd/README.md) 和 [ISndDeferredActions](../Snd/README.md) 的成员不再重复列出。
+
 | 成员 | 说明 |
 |------|------|
-| `SystemBlackboard` | 系统级黑板（跨进程） |
-| `ProgressBlackboard` | 进度级黑板；无活动流程时为 null |
-| `SessionBlackboard` | 会话级黑板；无活动会话时为 null |
-| `SceneAccess` | 当前会话 SND 场景访问 |
-| `EnqueueBusinessDeferred(action)` | 将业务逻辑延迟动作入队 |
+| `SystemBlackboard` | 系统级黑板（跨进程），继承自 [ISndBlackboardAccess](../Snd/README.md) |
+| `ProgressBlackboard` | 进度级黑板；无活动流程时为 null，继承自 [ISndBlackboardAccess](../Snd/README.md) |
+| `EnqueueBusinessDeferred(action)` | 将业务逻辑延迟动作入队，继承自 [ISndDeferredActions](../Snd/README.md) |
+| `FlushDeferredActionsForCurrentFrame()` | 冲刷延迟队列，继承自 [ISndDeferredActions](../Snd/README.md) |
+| `GetPendingPersistenceRequestCount()` | 待持久化请求数，继承自 [ISndDeferredActions](../Snd/README.md) |
+| `SessionBlackboard` | 会话级黑板；无活动会话时为 null（自有） |
+| `SceneAccess` | 当前会话 SND 场景访问（自有） |
 
 ## 设计决策
 

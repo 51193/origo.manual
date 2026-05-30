@@ -45,10 +45,12 @@ SavePayloadWriter.WriteToCurrent()
     ├── 写入 current/level_*/session.json
     ├── 写入 current/level_*/session_state_machines.json
     ├── 写入 current/meta.map
+    ├── 写入 current/.payload.sha
     └── 删除 .write_in_progress
     │
     ▼
 SaveStorageFacade.WriteSavePayloadToCurrentThenSnapshot()
+    ├── 检查 save_{id}/.payload.sha 是否存在且 hash 相同 → 跳过（幂等去重）
     ├── 重建 .write_in_progress marker
     ├── 复制 current/ → save_{id}.tmp/
     ├── 删除旧 save_{id}/（若存在）

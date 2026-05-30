@@ -28,6 +28,7 @@
 {saveRoot}/
 ├── current/                          # 活动存档目录
 │   ├── .write_in_progress            # 写入中断标记
+│   ├── .payload.sha                  # Payload SHA-256 摘要（幂等去重）
 │   ├── progress.json                # 流程黑板
 │   ├── progress_state_machines.json  # 流程级状态机
 │   ├── meta.map                     # 展示元数据
@@ -43,12 +44,13 @@
 
 ## 两阶段写入流程
 
-1. **写入标记**：在 `current/` 下创建 `.write_in_progress`
-2. **写入 payload**：写入 progress.json、各关卡三件套、meta.map
-3. **清除第一阶段标记**：`WriteToCurrent` 完成后删除 marker
-4. **重新创建标记**：为快照阶段重建 marker
-5. **快照**：复制 `current/` 到 `save_{id}.tmp/` → 删除旧的 `save_{id}/` → 重命名 `.tmp` 为正式目录
-6. **清除标记**：删除 marker
+1. **幂等检查**：若目标快照 `save_{id}/.payload.sha` 存在且 hash 相同，直接返回（跳过写入）
+2. **写入标记**：在 `current/` 下创建 `.write_in_progress`
+3. **写入 payload**：写入 progress.json、各关卡三件套、meta.map、`.payload.sha`
+4. **清除第一阶段标记**：`WriteToCurrent` 完成后删除 marker
+5. **重新创建标记**：为快照阶段重建 marker
+6. **快照**：复制 `current/` 到 `save_{id}.tmp/` → 删除旧的 `save_{id}/` → 重命名 `.tmp` 为正式目录
+7. **清除标记**：删除 marker
 
 ## 严格读取规则
 
@@ -73,6 +75,26 @@
 ### 为什么 SaveStorageFacade 是静态门面
 
 保存逻辑是纯数据变换 + I/O 操作，无实例状态。静态方法减少依赖注入的工厂复杂度。但内部 Reader/Writer 通过参数接收所有依赖（fileSystem、dataSourceIo、pathPolicy），保持可测试性。
+
+### 为什么通过 SHA 摘要实现幂等去重
+
+同一游戏状态多次写入同一存档槽时，SHA-256 摘要比较可避免无用 I/O。
+`WriteSavePayloadToCurrentThenSnapshot` 入口处先比对目标快照的 `.payload.sha` 与待写入 payload 的 hash：
+
+- **hash 相同** → 记录 INFO 日志 "idempotent save skip"，直接返回，不执行任何文件操作
+- **hash 不同或 .sha 不存在** → 正常走两阶段写入流程
+
+`ComputePayloadHash` 对各组件节点树分别计算 SHA 后拼合，确保：
+- Progress 黑板变更 → hash 不同 → 重写
+- 任何关卡数据变更 → hash 不同 → 重写
+- CustomMeta 键值变更 → hash 不同 → 重写
+- 仅 SaveId 不同（写入不同槽）→ 总是写入（新槽位无 .sha 可比较）
+
+### 为什么 DataSourceNode 计算 Canonical Hash 而非序列化后 Hash
+
+`DataSourceNode.ComputeSha256Hash()` 递归生成确定性字符串表示后做 SHA-256。
+与通过 codec 序列化的方式不同，canonical 字符串不依赖 codec 版本和缩进配置，
+键已按字典序排序，确保同一数据树始终产生相同 hash。
 
 ---
 [↑ 回到 Save](../README.md)

@@ -45,7 +45,7 @@
 
 `ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess`
 
-唯一新增成员：`string Name { get; }`——稳定的实体标识名。
+`ISndEntity` 组合后唯一自有的成员：`string Name { get; }`——稳定的实体标识名。
 
 ## 设计决策
 
