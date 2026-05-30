@@ -10,7 +10,7 @@ Core 层的类型-字符串映射基础设施。在 JSON 序列化中，`TypedDa
 
 | 文件 | 职责 |
 |------|------|
-| `BclTypeNames.cs` | 14 种 BCL 基础类型 + 14 种数组类型的稳定字符串常量 |
+| `BclTypeNames.cs` | 14 种 BCL 基础类型 + 14 种数组类型 + 2 种不可变集合类型的稳定字符串常量 |
 | `TypeStringMapping.cs` | 类型 ↔ 字符串名双向映射表，启动时注册所有已知类型 |
 
 ## 实现详解
@@ -21,8 +21,8 @@ Core 层的类型-字符串映射基础设施。在 JSON 序列化中，`TypedDa
 
 ### TypeStringMapping
 
-- **构造函数**：预注册 28 个 BCL 类型（14 标量 + 14 数组）
-- **RegisterType<T>()**：公开方法，供适配层注册引擎特有类型（如 `Godot.Vector2`）
+- **构造函数**：预注册 28 个 BCL 类型（14 标量 + 14 数组）+ `IReadOnlyDictionary<string,string>` 和 `ReadOnlyDictionary<string,string>`
+- **RegisterType<T>()**：公开方法，供适配层注册引擎特有类型（如 `Godot.Vector2`），也可用于注册自定义游戏类型
 - **双向校验**：注册时检查类型名是否已被占用、类型是否已被映射，冲突时抛 `InvalidOperationException`
 - **查找失败即抛**：`GetTypeByName` 和 `GetNameByType` 在未注册时均抛异常，不返回 null
 

@@ -74,6 +74,8 @@ public interface ISndContext
     bool RequestContinueGame();
 
     // Scene
+    void RequestSwitchForegroundLevel(string newLevelId);
+    void RequestClearEntities();                          // ← 请求清空场景内所有实体（帧末延迟执行）
     SndMetaData CloneTemplate(string templateKey, string? overrideName = null);
     void RegisterTemplate(string key, SndMetaData template);
 

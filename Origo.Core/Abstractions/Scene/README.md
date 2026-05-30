@@ -21,7 +21,7 @@
 |------|------|
 | `SerializeMetaList()` | 导出当前场景全部实体元数据列表 |
 | `LoadFromMetaList(metaList)` | 从元数据列表恢复场景 |
-| `ClearAll()` | 清空场景全部实体 |
+| `ClearAll()` | 清空场景全部实体（同步原语；公开 API 请使用 `ISndContext.RequestClearEntities()`） |
 
 ### ISndSceneHost : ISndSceneAccess
 

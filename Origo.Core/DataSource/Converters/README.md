@@ -44,6 +44,8 @@
 
 特殊转换器，携带类型元数据。读取时从 `"type"` 字段获取 CLR 类型名，通过 `TypeStringMapping` 解析为 `Type`，再用注册表中的对应转换器读取 `"data"` 字段。这是序列化系统保持类型信息的核心机制。
 
+当指定的具体类型在注册表中无精确匹配时（例如存储了 `ReadOnlyDictionary<string,string>` 但只注册了 `IReadOnlyDictionary<string,string>` 的转换器），`DataSourceConverterRegistry` 会自动沿基类链和接口链回退查找。这允许以接口类型注册转换器，同时支持存储其具体实现类型。
+
 ## 设计决策
 
 ### 为什么每种基础类型独立一个转换器

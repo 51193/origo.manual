@@ -28,7 +28,7 @@ SndRuntime = SndWorld (策略池 + 配置) + ISndSceneHost (实体宿主)
 
 - `Spawn(meta)`：校验重名（通过 `SceneHost.FindByName`），然后委托给宿主
 - `SpawnMany()`：批量生成
-- `SerializeMetaList()` / `ClearAll()` / `GetEntities()` / `FindByName()`：透传给 SceneHost
+- `SerializeMetaList()` / `ClearAll()`（内部使用）/ `GetEntities()` / `FindByName()`：透传给 SceneHost。`ClearAll()` 为同步原语，仅供框架内部使用；业务代码应使用 `ISndContext.RequestClearEntities()`（帧末延迟执行）。
 
 ### FullMemorySndSceneHost
 
