@@ -82,7 +82,7 @@ public interface ISndContext
     bool RequestContinueGame();
 
     // Scene
-    void RequestSwitchForegroundLevel(string newLevelId);
+    void RequestSwitchForegroundLevel(string newLevelId);  // ← 系统延迟队列执行（Save 之后、同队 FIFO）
     void RequestKillAll();                                 // ← 立即标记所有实体为待销毁（帧末统一执行）
     void RequestKillEntity(string entityName);             // ← 立即标记指定实体为待销毁
     SndMetaData CloneTemplate(string templateKey, string? overrideName = null);

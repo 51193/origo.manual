@@ -105,6 +105,13 @@ public interface IStateMachineContext
     → 遍历所有 syncProcess=true 的后台会话
     → 调用 session.SceneHost.ProcessAll(delta)
 
+关卡切换:
+  RequestSwitchForegroundLevel(newLevelId)
+    → 系统延迟队列 FIFO 执行（排在 Save 之后）
+    → PersistProgress（写完整会话拓扑到 current/）
+    → 销毁旧前台（auto-persist 旧关卡数据）
+    → LoadAndMountForeground（从 current/ 解析新关卡数据）
+
 销毁:
   SessionManager.DestroySession(key)
     → Dispose SessionRun
@@ -121,6 +128,7 @@ public interface IStateMachineContext
 - 前后台共享同一接口，无类型分叉
 - 管理层全权管理生命周期，会话层仅暴露内部状态
 - 后台会话通过 `FullMemorySndSceneHost` 获得完整策略能力，但不渲染
+- 关卡切换在系统延迟队列中执行，与 Save 操作同队 FIFO。同帧内 `RequestSaveGameAuto` 后调用 `RequestSwitchForegroundLevel` 时，Save 先写入 `current/`，Switch 加载时能发现数据
 
 ## 相关文档
 

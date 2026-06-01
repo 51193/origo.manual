@@ -62,6 +62,16 @@ SystemRuntime
 
 - `ProgressRun.RequestSaveGame` → `SaveContext.SaveGame(...)` → `SavePayloadWriter.WriteToCurrent()` → snapshot
 - `ProgressRun.RequestLoadGame` → `SavePayloadReader.ReadFromCurrent/Snapshot` → 恢复黑板 + 场景
+- `PersistProgress`：将流程黑板与完整会话拓扑（前台 + 所有后台）序列化写入 `current/progress.json`。与 `BuildSavePayload` 不同，此方法不写入关卡实体数据（仅进度元数据），实体数据由 `SessionRun.Dispose` 的 auto-persist 机制保证。
+
+### 关卡切换
+
+`SwitchForeground(newLevelId)` 是保存-销毁-加载的组合操作：
+1. `PersistProgress()` 将当前完整拓扑写入 `current/`
+2. `ResetForeground(true)` 销毁旧前台（触发 auto-persist 保留旧关卡数据）
+3. `LoadAndMountForeground(newLevelId)` 从 `current/` 解析目标关卡数据并挂载新前台
+
+切换完成后，`WriteForegroundTopology` 将新前台与存活的全部后台会话写入流程黑板拓扑。
 
 ### 退出
 
@@ -81,6 +91,14 @@ SystemRuntime
 ### 为什么运行时容器按层分离
 
 每层容器（`SystemRuntime`、`ProgressRuntime` 等）仅暴露本层和下层的能力，上层无法访问下层的实现细节。例如策略只能通过 `ISessionRun` 操作会话，无法访问 `ProgressRun` 内部。
+
+### 为什么 PersistProgress 和 WriteForegroundTopology 写入完整会话拓扑
+
+会话拓扑记录了前台与所有后台会话的键-关卡-同步模式的完整关系。若仅写入前台信息，流程黑板中的拓扑字符串将不包含后台会话，导致 `progress.json` 在切换后丢失后台会话标记。虽然在内存中后台会话仍然存活，但 crash 重启后无法恢复。写入完整拓扑保证了流程黑板始终是当前运行时状态的可恢复快照。
+
+### 为什么 RequestSwitchForegroundLevel 在系统延迟队列中执行
+
+关卡切换是保存-销毁-加载的组合操作，应排在业务逻辑之后、与 Save 操作同队 FIFO 执行。放在系统延迟队列（System Deferred）确保：同帧内的 Save 请求先写入 `current/`，后续的 Switch 的 `LoadAndMountForeground` 从 `current/` 解析时能找到数据。若 Switch 放在业务延迟队列（Business Deferred），Save 尚未执行时 Switch 已尝试加载目标关卡，导致 `current/` 中无数据而回退到空载入。
 
 ---
 [↑ 回到 Runtime](../README.md)

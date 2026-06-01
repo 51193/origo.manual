@@ -36,7 +36,7 @@ SndRuntime = SndWorld (策略池 + 配置) + ISndSceneHost (实体宿主)
 后台会话的默认场景宿主。关键特性：
 - 通过 `SndWorld.CreateEntity` 创建完整 `SndEntity`（非简单内存实体）
 - 需延迟绑定 `SndWorld` 和 `ISndContext`（配合 `OrigoRuntime` 两阶段构造）
-- **Spawn/Load**：创建实体后存储到 `MemoryEntityEntry` 列表
+- **Spawn/Load**：先通过 `entity.Name = metaData.Name` 设置实体名，再将实体注册到内部集合，最后执行 `Spawn(meta)` / `Load(meta)` → 策略钩子（AfterSpawn/AfterLoad）。因此钩子执行期间，`FindByName` 可查找正在创建的实体及其同批兄弟实体。
 - **QuitAll**：反向迭代退出（LIFO 语义）
 - **RequestKillEntity**：立即将实体 `IsPendingKill` 标记为 true（已标记则抛异常）
 - **DeadByName**：按名销毁实体（立即从集合移除，触发 `entity.Dead()` + BeforeDead 钩子）。仅由框架统一 Kill 步骤调用
@@ -63,6 +63,10 @@ SndRuntime = SndWorld (策略池 + 配置) + ISndSceneHost (实体宿主)
 ### 为什么 SndWorld.CreateEntity 通过 SndWorld 创建实体
 
 实体构造需要 `SndStrategyPool`（来自 `SndWorld`），`SndContext`（来自 `OrigoRuntime`）。将这些外部依赖的传递封装在 `CreateEntity` 中，避免在 `FullMemorySndSceneHost` 内部重构实体创建逻辑。
+
+### 为什么实体在 AfterSpawn/AfterLoad 钩子触发前先登记到查找集合
+
+策略钩子可能需要在创建期间引用兄弟实体（例如通过 `FindByName` 查找依赖实体）。若先执行钩子再登记，钩子内部无法找到正在创建的实体。先登记后执行钩子保证了实体在整个生命周期内始终可被检索。`LoadFromMetaList` 遵循同样原则：先登记，再 `Load`。
 
 ---
 [↑ 回到 Snd](../README.md)
