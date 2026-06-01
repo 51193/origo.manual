@@ -21,7 +21,7 @@ SND 实体体系在 Godot 引擎中的具体实现。将 Core 的抽象 `ISndEnt
 
 适配层的核心入口节点（`[GlobalClass]`），直接挂载在 Godot 场景树中：
 
-- **实现 ISndSceneHost**：Spawn / LoadFromMetaList / ClearAll（内部同步原语）/ GetEntities / FindByName / ProcessAll。`ClearAll()` 使用 `Free()`（即时释放）而非 `QueueFree()`，因 Core 已通过 `RequestClearEntities()` 保证在安全的调用时机执行。
+- **实现 ISndSceneHost**：Spawn / LoadFromMetaList / ClearAll（框架内部生命周期操作）/ RequestKillEntity / DeadByName / GetEntities / FindByName / ProcessAll。`ClearAll()` 使用 `Free()`（即时释放）而非 `QueueFree()`，因 Core 保证在安全的生命周期时机调用。
 - **实现 ISndContextAttachableSceneHost**：支持运行时切换上下文
 - **_Process(delta)**：Godot 帧循环入口，快照迭代实体 Process，刷新延迟队列
 - **回滚机制**：`LoadFromMetaList` 中若某实体加载失败，回滚释放所有已创建的实体

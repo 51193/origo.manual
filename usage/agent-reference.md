@@ -11,9 +11,10 @@
 ### ISndEntity
 
 ```csharp
-public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess
+public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess
 {
     string Name { get; }
+    bool IsPendingKill { get; }
 }
 
 public interface ISndDataAccess
@@ -36,6 +37,13 @@ public interface ISndStrategyAccess
 {
     void AddStrategy(string index);
     void RemoveStrategy(string index);
+}
+
+public interface ISndActiveStrategyAccess
+{
+    void AddActiveStrategy(string index);
+    void RemoveActiveStrategy(string index);
+    object? InvokeStrategy(string strategyIndex, object? input = null);
 }
 ```
 
@@ -75,7 +83,8 @@ public interface ISndContext
 
     // Scene
     void RequestSwitchForegroundLevel(string newLevelId);
-    void RequestClearEntities();                          // ← 请求清空场景内所有实体（帧末延迟执行）
+    void RequestKillAll();                                 // ← 立即标记所有实体为待销毁（帧末统一执行）
+    void RequestKillEntity(string entityName);             // ← 立即标记指定实体为待销毁
     SndMetaData CloneTemplate(string templateKey, string? overrideName = null);
     void RegisterTemplate(string key, SndMetaData template);
 

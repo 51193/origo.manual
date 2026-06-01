@@ -28,7 +28,8 @@ SndRuntime = SndWorld (策略池 + 配置) + ISndSceneHost (实体宿主)
 
 - `Spawn(meta)`：校验重名（通过 `SceneHost.FindByName`），然后委托给宿主
 - `SpawnMany()`：批量生成
-- `SerializeMetaList()` / `ClearAll()`（内部使用）/ `GetEntities()` / `FindByName()`：透传给 SceneHost。`ClearAll()` 为同步原语，仅供框架内部使用；业务代码应使用 `ISndContext.RequestClearEntities()`（帧末延迟执行）。
+- `SerializeMetaList()` / `ClearAll()` / `GetEntities()` / `FindByName()`：透传给 SceneHost。`ClearAll()` 仅由框架在生命周期切换时内部调用。
+- `KillPendingEntities()`：统一销毁所有已标记为 `IsPendingKill` 的实体。在帧末业务延迟队列执行完毕后、系统延迟队列执行前调用。
 
 ### FullMemorySndSceneHost
 
@@ -37,7 +38,8 @@ SndRuntime = SndWorld (策略池 + 配置) + ISndSceneHost (实体宿主)
 - 需延迟绑定 `SndWorld` 和 `ISndContext`（配合 `OrigoRuntime` 两阶段构造）
 - **Spawn/Load**：创建实体后存储到 `MemoryEntityEntry` 列表
 - **QuitAll**：反向迭代退出（LIFO 语义）
-- **DeadByName**：按名销毁实体（触发 BeforeDead 钩子）
+- **RequestKillEntity**：立即将实体 `IsPendingKill` 标记为 true（已标记则抛异常）
+- **DeadByName**：按名销毁实体（立即从集合移除，触发 `entity.Dead()` + BeforeDead 钩子）。仅由框架统一 Kill 步骤调用
 - **ProcessAll**：基于快照迭代所有实体
 
 ### MemorySndSceneHost
