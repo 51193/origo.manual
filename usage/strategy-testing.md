@@ -6,7 +6,11 @@
 
 `StrategyTestScenario` 是 Core 层提供的策略隔离测试框架。无需启动完整运行时，可在单元测试中孤立地测试单个策略的所有生命周期行为。
 
-## 三阶段模式
+## EntityStrategy 测试
+
+用于测试继承自 `EntityStrategyBase` 的被动策略（有 Process 和生命周期钩子）。
+
+### 三阶段模式
 
 ### Phase 1: 配置
 
@@ -60,10 +64,123 @@ harness.LoadRequests.Count;       // 请求加载次数
 harness.LevelSwitchRequests;      // 请求关卡切换列表
 harness.DeferredActionCount;      // 延迟动作执行数
 harness.ConsoleCommands;          // 控制台命令记录
-harness.ConsoleOutput;            // 控制台输出记录
 ```
 
-## 完整示例
+## ActiveStrategy 测试
+
+用于测试继承自 `ActiveStrategyBase` 的主动策略（仅 `Invoke` 方法，无生命周期钩子）。
+
+### 配置与执行
+
+```csharp
+var harness = StrategyTestScenario
+    .ForActive<GenerateFoodKeyStrategy>("food.generate_key")
+    .WithData("food.registry", "[]")
+    .WithData("food.next_id", 1)
+    .WithSessionConfig("seed", 42)
+    .Build();
+
+// 调用策略，传入可选参数
+var key = harness.Invoke() as string;
+// 或带输入参数
+var result = harness.Invoke("some_input");
+
+// 检查实体数据变化
+var nextId = harness.GetEntityData<int>("food.next_id");
+Assert.Equal(2, nextId);
+
+// 通过实体的 InvokeStrategy 方法调用（确保委托链正确）
+var key2 = harness.InvokeViaEntity();
+```
+
+### 与 EntityStrategy Harness 的差异
+
+| 能力 | `For<T>` Harness | `ForActive<T>` Harness |
+|------|-----------------|----------------------|
+| `Invoke(object?)` | ❌ 无 | ✅ 核心方法 |
+| `InvokeViaEntity()` | ❌ 无 | ✅ 委托验证 |
+| `RunFrame` / `RunFrames` | ✅ | ❌ 无（ActiveStrategy 不参与帧更新） |
+| `TriggerAfterSpawn` 等钩子 | ✅ | ❌ 无 |
+| `FlushDeferredActions()` | （自动在 RunFrame 中） | ✅ 手动调用 |
+| 黑板/副作用/模板 | ✅ | ✅ |
+| 自动触发 AfterSpawn | ✅（在 Build 中） | ❌（ActiveStrategy 无此钩子） |
+
+### 完整示例
+
+#### 主动调用策略
+
+```csharp
+[Test]
+public void GenerateFoodKey_Invoke_ReturnsUniqueKey()
+{
+    var harness = StrategyTestScenario
+        .ForActive<GenerateFoodKeyStrategy>("food.generate_key")
+        .WithData("food.registry", "[]")
+        .WithData("food.next_id", 1)
+        .Build();
+
+    var key = harness.Invoke() as string;
+
+    Assert.That(key, Does.StartWith("Food_"));
+    Assert.That(harness.GetEntityData<int>("food.next_id"), Is.EqualTo(2));
+}
+```
+
+#### 带输入参数的策略
+
+```csharp
+[Test]
+public void DamageCalc_Invoke_AppliesModifier()
+{
+    var harness = StrategyTestScenario
+        .ForActive<DamageCalcStrategy>("combat.damage_calc")
+        .WithData("base_damage", 50)
+        .Build();
+
+    var result = harness.Invoke(1.5f);  // 传入倍率
+
+    Assert.That(result, Is.EqualTo(75.0f));
+}
+```
+
+#### 业务延迟动作跟踪
+
+```csharp
+[Test]
+public void AutoSaveStrategy_EnqueuesSave()
+{
+    var harness = StrategyTestScenario
+        .ForActive<AutoSaveStrategy>("system.auto_save")
+        .WithProgressConfig("auto_save_interval", 300)
+        .Build();
+
+    harness.Invoke();
+    harness.FlushDeferredActions();
+
+    Assert.That(harness.SaveRequests, Has.Count.EqualTo(1));
+}
+```
+
+#### 模板克隆
+
+```csharp
+[Test]
+public void TemplateStrategy_ClonesRegisteredTemplate()
+{
+    var template = new SndMetaData { Name = "base_enemy", ... };
+
+    var harness = StrategyTestScenario
+        .ForActive<EnemyFactoryStrategy>("factory.enemy")
+        .WithTemplate("enemy_template", template)
+        .Build();
+
+    var enemyName = harness.Invoke() as string;
+
+    Assert.That(enemyName, Is.Not.EqualTo("base_enemy"));
+}
+```
+
+## 完整示例（EntityStrategy）
 
 ### 伤害策略测试
 
@@ -100,31 +217,14 @@ public void HealthStrategy_RequestsSave_WhenHpReachesZero()
 }
 ```
 
-### 延迟动作测试
-
-```csharp
-[Test]
-public void SpawnStrategy_EnqueuesDeferredAction()
-{
-    var harness = StrategyTestScenario
-        .For<SpawnEnemyStrategy>("core.spawn_enemy")
-        .Build();
-
-    harness.RunFrame();
-
-    // 延迟动作在 RunFrame 中自动执行
-    Assert.That(harness.DeferredActionCount, Is.GreaterThan(0));
-}
-```
-
 ## 限制
 
 ### 支持的能力
 
 - 实体数据读写 (SetData / GetData / TryGetData)
 - 三级黑板访问 (System / Progress / Session)
-- 所有 8 个生命周期钩子
-- Process 帧更新
+- EntityStrategy: 所有 8 个生命周期钩子 + Process 帧更新
+- ActiveStrategy: Invoke 调用 + 通过实体 InvokeStrategy 的委托验证
 - 延迟动作 (BusinessDeferred)
 - 持久化请求记录 (Save/Load/LevelSwitch)
 - 控制台命令输入输出
@@ -136,17 +236,6 @@ public void SpawnStrategy_EnqueuesDeferredAction()
 - 后台会话创建 — 需要完整 `SndContext` 集成测试
 - 多实体交互 — 每个 Harness 对应一个实体
 - 引擎类型操作 — 如 `Vector2` 的位置计算（需要注册 Godot 转换器）
-
-## 多策略优先级测试
-
-需要使用 `SndStrategyPool` 直接注册多个策略，测试优先级排序和交互：
-
-```csharp
-var pool = new SndStrategyPool(logger);
-pool.Register<StrategyA>(() => new StrategyA());
-pool.Register<StrategyB>(() => new StrategyB());
-// ... 使用 pool 测试策略顺序
-```
 
 ## 相关文档
 

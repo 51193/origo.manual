@@ -77,7 +77,7 @@ SaveGamePayload {
     ProgressNode,               // 流程黑板：全局进度 + 会话拓扑 (DataSourceNode)
     ProgressStateMachinesNode,  // 流程级状态机
     CustomMeta,                 // 展示元数据字典
-    Levels: {                   // 所有关卡数据
+    Levels: {                   // 所有关卡数据（key 为 levelId，同一 levelId 不会出现多份——框架在构建 payload 前会校验 levelId 唯一性）
         {levelId}: LevelPayload {
             LevelId,
             SndSceneNode,               // 场景实体列表

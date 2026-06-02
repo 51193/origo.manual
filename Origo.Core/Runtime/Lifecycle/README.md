@@ -62,27 +62,44 @@ SystemRuntime
 
 - `ProgressRun.RequestSaveGame` → `SaveContext.SaveGame(...)` → `SavePayloadWriter.WriteToCurrent()` → snapshot
 - `ProgressRun.RequestLoadGame` → `SavePayloadReader.ReadFromCurrent/Snapshot` → 恢复黑板 + 场景
-- `PersistProgress`：将流程黑板与完整会话拓扑（前台 + 所有后台）序列化写入 `current/progress.json`。与 `BuildSavePayload` 不同，此方法不写入关卡实体数据（仅进度元数据），实体数据由 `SessionRun.Dispose` 的 auto-persist 机制保证。
+- `PersistProgress`：将流程黑板与完整会话拓扑（前台 + 所有后台）序列化写入 `current/progress.json`。与 `BuildSavePayload` 不同，此方法不写入关卡实体数据（仅进度元数据），实体数据由调用方显式通过 `PersistSession` 持久化。
 
 ### 关卡切换
 
 `SwitchForeground(newLevelId)` 是保存-销毁-加载的组合操作：
-1. `PersistProgress()` 将当前完整拓扑写入 `current/`
-2. `ResetForeground(true)` 销毁旧前台（触发 auto-persist 保留旧关卡数据）
-3. `LoadAndMountForeground(newLevelId)` 从 `current/` 解析目标关卡数据并挂载新前台
+1. `PersistForegroundLevelState()` **显式**持久化旧前台关卡数据到 `current/`（调用 `SessionManager.PersistSession`）
+2. `PersistAndDestroyBackgroundIfExists(newLevelId)` 若后台会话持有目标 `levelId`，先持久化再销毁
+3. `ResetForeground(true)` 销毁旧前台（不再隐式持久化）
+4. `LoadAndMountForeground(newLevelId)` 创建新前台并挂载（`CreateForegroundSession` → 从 `current/` 解析关卡数据）
+5. `PersistProgress()` 将新完整拓扑写入 `current/progress.json`
 
-切换完成后，`WriteForegroundTopology` 将新前台与存活的全部后台会话写入流程黑板拓扑。
+切换完成后，`WriteForegroundTopology` 将新前台与存活的全部后台会话写入流程黑板拓扑；
+后续的 `PersistProgress()` 统一将此拓扑与进度状态机落地到磁盘。
 
 ### 退出
 
 - `Dispose` 级联：SessionRun → SessionManager → ProgressRun → SystemRun
-- 退出时自动触发持久化（auto-persist 语义）
+- Dispose 只做资源清理（清空会话、删除临时目录、弹出状态机、清理黑板），不触发持久化
+- 退出前的数据保存应由应用层显式调用 `RequestSaveGame` 完成；`current/` 目录作为临时工作区，在退出时被安全清理
 
 ## 设计决策
 
 ### 为什么 ProgressRun 使用 partial class 拆分持久化和会话加载
 
 `ProgressRun` 原本体量较大，拆分将持久化逻辑（两阶段写入、严格读取）和会话加载逻辑（拓扑编解码、后台会话创建）分离为独立文件，保持主文件聚焦核心编排流程。
+
+### 为什么 Dispose 不自动持久化
+
+早期设计中 `SessionRun.Dispose` 和 `ProgressRun.Dispose` 会触发 auto-persist，将数据写入 `current/` 后由 `DeleteCurrentDirectory()` 立即删除。这导致：
+- 写入 `current/` 随后被删，纯浪费 I/O
+- `BeforeSave` 钩子在即将销毁的实体上执行，语义错误且有副作用风险
+
+现在持久化职责完全由调用方显式负责：
+- 用户存档：`RequestSaveGame` → `BuildSavePayload` → `WriteSavePayloadToCurrentThenSnapshot`
+- 关卡切换：`SwitchForeground` 在销毁旧前台之前**显式**调用 `PersistForegroundLevelState`
+- 退出/销毁：只做清理，不做持久化
+
+这确保了每条持久化路径都有明确的语义和可追溯的调用链。
 
 ### 为什么前台会话键固定为 `__foreground__`
 
@@ -99,6 +116,12 @@ SystemRuntime
 ### 为什么 RequestSwitchForegroundLevel 在系统延迟队列中执行
 
 关卡切换是保存-销毁-加载的组合操作，应排在业务逻辑之后、与 Save 操作同队 FIFO 执行。放在系统延迟队列（System Deferred）确保：同帧内的 Save 请求先写入 `current/`，后续的 Switch 的 `LoadAndMountForeground` 从 `current/` 解析时能找到数据。若 Switch 放在业务延迟队列（Business Deferred），Save 尚未执行时 Switch 已尝试加载目标关卡，导致 `current/` 中无数据而回退到空载入。
+
+### 为什么 levelId 必须全局唯一
+
+每个 levelId 对应 `current/level_{id}/` 目录和 `SaveGamePayload.Levels` 中的一个 key。若两个会话同时持有同一 levelId，持久化时后写入者会覆盖前者数据；加载时双方读取同一份已覆盖的 payload。为此 `SessionManager` 在创建会话时校验 levelId 唯一性——若冲突则立即抛出 `InvalidOperationException`。
+
+`SwitchForeground` 在创建新前台前会自动检测后台会话是否持有目标 `levelId`。若冲突，会先调用 `PersistSession` 保存后台数据，再调用 `DestroySession` 销毁该后台，确保 `LoadAndMountForeground` 可以无冲突地创建新前台。调用方无需手动清理冲突的后台会话。
 
 ---
 [↑ 回到 Runtime](../README.md)

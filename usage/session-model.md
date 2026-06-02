@@ -61,17 +61,47 @@ bgSession.SceneHost.Spawn(dungeonEntityMeta);
 bgSession.SessionBlackboard.Set("explored", true);
 ```
 
+**levelId 唯一性约束：** 同一时刻，一个 levelId 只能被一个会话持有。若尝试创建后台会话时已有前台或其他后台使用了该 levelId，`CreateBackgroundSession` 会抛出 `InvalidOperationException`。
+
+`SwitchForeground` 在执行前会**自动检测**是否有后台会话持有目标 `levelId`。若存在冲突，会先保存该后台会话的数据到 `current/`，再销毁它，最后创建新前台会话。调用方无需手动销毁后台会话。
+
+若需要显式控制流程（例如不想保存后台的当前状态），仍可手动销毁后台后再调用切换：
+
+```csharp
+// 方式一：自动处理（推荐）—— SwitchForeground 内部完成保存 + 销毁
+var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
+bg.SceneHost.Spawn(...);
+bg.SessionBlackboard.Set("data", value);
+
+// 直接切换，SwitchForeground 会自动保存并销毁 bg
+ctx.RequestSwitchForegroundLevel("game");
+ctx.FlushDeferredActionsForCurrentFrame();
+
+// 方式二：手动控制——与旧版行为兼容，调用方显式保存和销毁
+var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
+bg.SceneHost.Spawn(...);
+
+ctx.RequestSaveGameAuto();
+ctx.FlushDeferredActionsForCurrentFrame();
+
+ctx.SessionManager.DestroySession("gen");
+ctx.RequestSwitchForegroundLevel("game");
+ctx.FlushDeferredActionsForCurrentFrame();
+```
+
 ## 会话拓扑
 
 多个并发会话之间的关系通过 `SessionTopology` 编解码。编码格式（存储在 Progress 黑板中）：
 
 ```
-foreground:{level_id};background:{key}={level_id},{key}={level_id}
+key=levelId=syncProcess,key=levelId=syncProcess
 ```
 
-例如：`foreground:town;background:dungeon=dungeon_level,farm=farm_level`
+例如：`__foreground__=town=false,dungeon=dungeon_level=true,farm=farm_level=false`
 
-读档恢复时，`SessionTopologyCodec` 解析此字符串，重建所有后台会话。
+由于 levelId 唯一性约束，topology 中不会出现两个条目指向同一 levelId。
+
+读档恢复时，`SessionTopologyCodec` 解析此字符串，重建所有后台会话。若解析到的 topology 中包含 levelId 重复，会因 `CreateBackgroundSession` 的 levelId 校验而抛异常——这确保了损坏的存档数据不会静默加载。
 
 ## 状态机上下文
 
@@ -95,6 +125,7 @@ public interface IStateMachineContext
 ```
 创建:
   SessionManager.CreateBackgroundSession(key, levelId)
+    → 校验 key 和 levelId 均不与已有会话冲突
     → 创建 SessionRun
     → 注入 FullMemorySndSceneHost
     → 挂载到 _sessions 字典
@@ -105,22 +136,26 @@ public interface IStateMachineContext
     → 遍历所有 syncProcess=true 的后台会话
     → 调用 session.SceneHost.ProcessAll(delta)
 
-关卡切换:
-  RequestSwitchForegroundLevel(newLevelId)
-    → 系统延迟队列 FIFO 执行（排在 Save 之后）
-    → PersistProgress（写完整会话拓扑到 current/）
-    → 销毁旧前台（auto-persist 旧关卡数据）
-    → LoadAndMountForeground（从 current/ 解析新关卡数据）
+ 关卡切换:
+   RequestSwitchForegroundLevel(newLevelId)
+     → 系统延迟队列 FIFO 执行（排在 Save 之后）
+     → PersistForegroundLevelState（显式持久化旧前台关卡数据到 current/）
+     → PersistAndDestroyBackgroundIfExists（若后台会话持有目标 levelId，先保存再销毁）
+     → ResetForeground(true)（销毁旧前台，Dispose 不再隐式持久化）
+     → LoadAndMountForeground（创建新前台，从 current/ 解析新关卡数据）
+     → PersistProgress（写完整会话拓扑到 current/）
 
 销毁:
   SessionManager.DestroySession(key)
-    → Dispose SessionRun
+    → Dispose SessionRun（仅清理资源：卸载、弹出状态机、清理实体和黑板）
     → 从字典移除
+    → 释放该会话持有的 levelId
 
 退出:
   ProgressRun dispose
-    → 按序销毁所有后台会话
-    → 最后销毁前台会话
+    → 按序销毁所有后台会话和前台会话
+    → 清理 current/ 临时目录
+    → 不触发持久化（保存由应用层显式调用 RequestSaveGame 负责）
 ```
 
 ## 设计原则
@@ -129,6 +164,8 @@ public interface IStateMachineContext
 - 管理层全权管理生命周期，会话层仅暴露内部状态
 - 后台会话通过 `FullMemorySndSceneHost` 获得完整策略能力，但不渲染
 - 关卡切换在系统延迟队列中执行，与 Save 操作同队 FIFO。同帧内 `RequestSaveGameAuto` 后调用 `RequestSwitchForegroundLevel` 时，Save 先写入 `current/`，Switch 加载时能发现数据
+- **levelId 唯一性**：每个 levelId 同一时刻只被一个会话持有。若后台会话与目标前台 levelId 冲突，`SwitchForeground` 会在切换前自动保存并销毁该后台会话
+- **Dispose 不持久化**：`ISessionRun.Dispose` 和 `ProgressRun.Dispose` 仅负责资源清理，不触发任何持久化操作。关卡切换时的旧前台数据由 `SwitchForeground` 显式调用 `PersistSession` 持久化。退出前如需保存进度，应用层应显式调用 `RequestSaveGame`
 
 ## 相关文档
 
