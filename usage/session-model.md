@@ -57,7 +57,7 @@ var bgSession = sessionManager.CreateBackgroundSession(
     syncProcess: true);  // 参与 Process 帧更新
 
 // 后台会话拥有独立的实体、黑板和状态机
-bgSession.SceneHost.Spawn(dungeonEntityMeta);
+bgSession.SceneHost.CreateEntity(dungeonEntityMeta);
 bgSession.SessionBlackboard.Set("explored", true);
 ```
 
@@ -70,7 +70,7 @@ bgSession.SessionBlackboard.Set("explored", true);
 ```csharp
 // 方式一：自动处理（推荐）—— SwitchForeground 内部完成保存 + 销毁
 var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
-bg.SceneHost.Spawn(...);
+bg.SceneHost.CreateEntity(...);
 bg.SessionBlackboard.Set("data", value);
 
 // 直接切换，SwitchForeground 会自动保存并销毁 bg
@@ -79,7 +79,7 @@ ctx.FlushDeferredActionsForCurrentFrame();
 
 // 方式二：手动控制——与旧版行为兼容，调用方显式保存和销毁
 var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
-bg.SceneHost.Spawn(...);
+bg.SceneHost.CreateEntity(...);
 
 ctx.RequestSaveGameAuto();
 ctx.FlushDeferredActionsForCurrentFrame();

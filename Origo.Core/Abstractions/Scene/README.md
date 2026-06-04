@@ -26,13 +26,12 @@
 
 | 自有成员 | 说明 |
 |------|------|
-| `Spawn(SndMetaData)` | 创建实体 + 恢复数据/策略/节点 + 触发 AfterSpawn 钩子（不校验重名） |
-| `SpawnMany(IEnumerable<SndMetaData>)` | 批量创建所有实体（Recover），然后统一触发 AfterSpawn 钩子（不校验重名） |
+| `CreateEntity(SndMetaData)` | 创建实体 + 恢复数据/策略/节点，不触发任何策略生命周期钩子（不校验重名） |
 | `GetEntities()` | 枚举所有存活实体 |
 | `FindByName(name)` | 按名查找实体 |
 | `ProcessAll(delta)` | 对所有存活实体执行帧更新 |
 | `RequestKillEntity(name)` | 立即将指定实体标记为待销毁（帧末统一执行）。若实体不存在或已标记则抛异常 |
-| `TeardownEntity(name)` | 仅拆解实体资源（释放策略引用 + 释放节点/数据），不触发钩子。BeforeDead 钩子由框架在调用前统一触发 |
+| `RemoveEntity(name)` | 从集合移除 + 释放引擎资源（节点/数据），不释放策略、不触发钩子。BeforeDead 钩子和策略释放由框架在调用前统一完成 |
 | `RemoveAllEntities()` | 清空场景实体集合引用（不触发钩子、不释放策略）。BeforeQuit 钩子和策略释放由框架在调用前统一完成 |
 
 ## 设计决策
@@ -43,7 +42,7 @@
 
 ### 为什么场景宿主不触发策略钩子
 
-策略生命周期钩子（AfterSpawn/AfterLoad/BeforeSave/BeforeQuit/BeforeDead）由框架层的 `SndRuntime` 和 `SessionRun` 统一编排。场景宿主仅负责实体容器管理（创建/查找/移除）和引擎节点挂载（Godot 适配层）。这种职责分离确保：
+场景宿主仅负责实体容器管理，不涉及任何策略生命周期钩子。所有钩子编排由 `SndRuntime` 统一处理。这种职责分离确保：
 
 - Godot 适配层不参与策略生命周期管理
 - 批量操作可以在"全部创建/恢复"和"全部触发钩子"两个阶段之间进行
@@ -51,13 +50,13 @@
 
 参见 [IEntityLifecycle](../../Abstractions/Entity/README.md) 和 [SndRuntime](../../Snd/Scene/README.md#sndruntime-生命周期编排)。
 
-### 为什么 Spawn 不做重名校验
+### 为什么 CreateEntity 不做重名校验
 
 重名校验是上层业务规则（通过 `SndRuntime.Spawn` 执行），不在接口层强制。接口保持最小语义，将校验职责留给编排层。
 
-### 为什么 Kill 分为 RequestKillEntity（标记）和 TeardownEntity（拆解）
+### 为什么 Kill 分为 RequestKillEntity（标记）和 RemoveEntity（拆解）
 
-`RequestKillEntity` 立即标记实体为待销毁（`IsPendingKill = true`），但不立即物理移除。这允许同帧内后续操作通过 `IsPendingKill` 判断实体存活状态，避免延迟 Kill 导致的重复操作。物理销毁在帧末由 `KillPendingEntities()` 统一执行（业务队列之后、系统队列之前），先批量触发 BeforeDead 钩子，再逐个调用 `TeardownEntity` 拆解。
+`RequestKillEntity` 立即标记实体为待销毁（`IsPendingKill = true`），但不立即物理移除。这允许同帧内后续操作通过 `IsPendingKill` 判断实体存活状态，避免延迟 Kill 导致的重复操作。物理销毁在帧末由 `KillPendingEntities()` 统一执行（业务队列之后、系统队列之前），先批量触发 BeforeDead 钩子、释放策略，再逐个调用 `RemoveEntity` 拆解。
 
 ---
 

@@ -6,15 +6,16 @@
 
 ## 被测行为概览
 
-验证 SND 场景宿主层的实现：MemorySndSceneHost 的实体生命周期管理、
-NullNodeFactory 的无操作行为。
+验证 SND 场景宿主层的实现：MemorySndSceneHost 的实体容器管理、
+NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFactory 的公共 API。
 
 ## 测试文件清单
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `MemorySndSceneHostTests.cs` | MemorySndSceneHost 的 SpawnEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities |
+| `MemorySndSceneHostTests.cs` | MemorySndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
 | `NullNodeFactoryTests.cs` | NullNodeFactory 返回 NullNodeHandle，不抛异常 |
+| `SndEntityLifecycleBatchTests.cs` | SndRuntime 全面钩子编排：Spawn/SpawnMany/KillPendingEntities/ClearAll、CreateEntity 不触发钩子、RemoveEntity 不触发钩子、SndEntityFactory 公共 API |
 
 ## 测试详情
 
@@ -22,23 +23,33 @@ NullNodeFactory 的无操作行为。
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| MemorySndSceneHost.SpawnEntity 创建实体并加入列表 | SpawnEntity 后实体可被 FindByName 找到 | ISndSceneHost |
+| MemorySndSceneHost.CreateEntity 创建实体并加入列表 | CreateEntity 后实体可被 FindByName 找到 | ISndSceneHost |
 | BuildMetaList 返回当前实体元数据 | 序列化快照反映当前状态 | ISndSceneHost |
 | RecoverFromMetaList 恢复实体列表 | 反序列化后 GetEntities 包含实体 | ISndSceneHost |
 | RemoveAllEntities 清空所有实体 | RemoveAllEntities 后 GetEntities 为空 | ISndSceneHost |
+| RemoveEntity 移除实体 | RemoveEntity 后实体不可查找 | ISndSceneHost |
 | NullNodeFactory.Create 返回 NullNodeHandle | 无渲染模式下工厂返回空节点 | INodeFactory |
+| SndRuntime.Spawn 触发 AfterSpawn | CreateEntity + 钩子触发完整完成 | SndRuntime |
+| SndRuntime.SpawnMany 批量两阶段 | 全部创建后统一触发钩子 | SndRuntime |
+| SndRuntime.KillPendingEntities 全生命周期 | BeforeDead → Release → Teardown → RemoveEntity | SndRuntime |
+| SndEntityFactory.Spawn 封装 CreateEntity + AfterSpawn | 公共静态工具正确处理钩子 | SndEntityFactory |
+| SndEntityFactory.SpawnMany 批量封装 | 全部创建后统一触发 | SndEntityFactory |
 
 ### 边界路径
 
 | 测试方法 | 边界条件 | 预期行为 |
 |---------|---------|---------|
 | FindByName 不存在时返回 null | 查询不存在的实体 | 返回 null |
+| CreateEntity 不触发 AfterSpawn | 直接调用 CreateEntity | 策略钩子不触发 |
+| RemoveEntity 不触发 BeforeDead | 直接调用 RemoveEntity | 策略钩子不触发 |
+| Spawn/SpawnMany 处理非 IEntityLifecycle 实体 | MemorySndEntity 等无生命周期实体 | 不抛异常，正常返回 |
+| ProcessAll 空场景不抛异常 | 无实体的场景 | 不抛异常 |
 
 ## 已知覆盖缺口
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| 并发 SpawnEntity/RemoveAllEntities 的线程安全 | 场景宿主是否承诺线程安全 | ISndSceneHost |
+| 并发 CreateEntity/RemoveEntity 的线程安全 | 场景宿主是否承诺线程安全 | ISndSceneHost |
 
 ---
 

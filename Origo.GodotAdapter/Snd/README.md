@@ -21,18 +21,21 @@ SND 实体体系在 Godot 引擎中的具体实现。将 Core 的抽象 `ISndEnt
 
 适配层的核心入口节点（`[GlobalClass]`），直接挂载在 Godot 场景树中：
 
-- **实现 ISndSceneHost**：Spawn / LoadFromMetaList / ClearAll（框架内部生命周期操作）/ RequestKillEntity / DeadByName / GetEntities / FindByName / ProcessAll。`ClearAll()` 使用 `Free()`（即时释放）而非 `QueueFree()`，因 Core 保证在安全的生命周期时机调用。
+- **实现 ISndSceneHost**：CreateEntity / LoadFromMetaList / ClearAll（框架内部生命周期操作）/ RequestKillEntity / RemoveEntity / GetEntities / FindByName / ProcessAll。`ClearAll()` 使用 `Free()`（即时释放）而非 `QueueFree()`，因 Core 保证在安全的生命周期时机调用。
 - **实现 ISndContextAttachableSceneHost**：支持运行时切换上下文
-- **_Process(delta)**：Godot 帧循环入口，快照迭代实体 Process，刷新延迟队列
+- **_Process(delta)**：Godot 帧循环入口，快照迭代实体 Process
 - **回滚机制**：`LoadFromMetaList` 中若某实体加载失败，回滚释放所有已创建的实体
 - **EntityView**：惰性创建 `IReadOnlyList<ISndEntity>` 包装，缓存引用避免重复分配
+- **BuildMetaList()**：调用实体的 `BuildSndMetaData()` 收集元数据
 
 ### GodotSndEntity
 
 Core `SndEntity` 的 Godot 包装器（`[GlobalClass]`）：
 
 - **延迟初始化**：`_entity` 在首次访问时通过 `SndWorld.CreateEntity` 创建
-- **Lifecycle 分离**：`QuitFromManager` / `DeadFromManager` 仅由 GodotSndManager 调用，确保先从管理列表移除再释放
+- **Lifecycle 分离**：`DetachFromManager()` 仅由 GodotSndManager 调用，设置 released 标志、置空 entity 引用、调用 `Free()` 释放节点
+- **BuildSndMetaData()**：公开包装 `BuildMetaData()`，供 GodotSndManager 收集元数据
+- **IEntityLifecycle 实现**：各方法包含 `EnsureEntity()` 守卫（先用再创建）
 - **StableName**：独立存储实体稳定名（Godot Node 的 Name 可能因重名自动修改后缀）
 - **GetNodeFromSnd<TNode>**：Godot 特有扩展——从 SND 节点系统按名查找并强转为 Godot 具体类型
 
@@ -60,7 +63,7 @@ Godot 场景树中如果存在同名节点，Godot 会自动在 Name 后追加 `
 
 如果加载 100 个实体时第 50 个失败，前 49 个已创建的实体处于不完整状态（可能已触发 AfterLoad 钩子但场景不完整）。回滚全部释放防止残留损坏的实体污染后续操作。
 
-### 为什么 QuitFromManager 必须先移出列表再释放
+### 为什么 DetachFromManager 必须先移出列表再释放
 
 如果在 `_entities` 遍历中直接释放节点，Godot 的节点树变化可能导致后续迭代跳过实体或重复处理。先移除，后释放，保证列表迭代安全。
 

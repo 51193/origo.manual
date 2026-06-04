@@ -40,6 +40,21 @@ OrigoDefaultEntry._Ready()
 - **不反向依赖**：Core 绝不引用 GodotAdapter 的任何类型
 - **Godot 类型仅在适配层出现**：`Godot.Vector*`、`Godot.Node` 等不会出现在 Core 层
 
+### 策略生命周期隔离
+
+适配层不参与策略生命周期管理的任何环节：
+
+- **不触发策略钩子**：`GodotSndManager.CreateEntity` 仅创建实体和 Godot 节点，不调用 `AfterSpawn` / `AfterLoad` / `BeforeDead` 等钩子
+- **不管理策略释放**：`RemoveEntity` 仅移除 Godot 节点和集合引用，不调用 `ReleaseStrategiesOnly`
+- **不冲刷延迟管线**：帧循环中不绕过 Core 直接调用 `FlushDeferredActionsForCurrentFrame`
+- **`OrigoAutoHost._Process` 为唯一帧入口**：在其中依次委托 Core 的 `ProcessAll` → `FlushEndOfFrameDeferred` → `Console.ProcessPending`，适配层仅做调度，不做决策
+
+所有这些编排由 `SndRuntime`（Core 层）统一负责。详细分离原则见 [架构总览](../../usage/architecture-overview.md#适配层与-core-层分离原则)。
+
+### 桥接模式
+
+`GodotSndEntity` 是桥接模式的体现：它同时实现 `ISndEntity`（Core 公开接口）和 `IEntityLifecycle`（Core internal 接口），内部持有 `SndEntity` 实例并全部透明委托。它本身不包含任何业务逻辑——仅作为 Godot Node 与 Core SndEntity 之间的适配器。
+
 ## 与 Core 的桥接
 
 | Core 接口 | Adapter 实现 | 文件 |

@@ -10,7 +10,7 @@ Godot 适配层的启动与编排。负责创建完整的运行时栈（`OrigoRu
 
 | 文件 | 职责 |
 |------|------|
-| `OrigoAutoHost.cs` | Godot Node，创建运行时：GodotFileSystem + TypeStringMapping + ConverterRegistry + PersistentBlackboard + ConsoleInput/Output |
+| `OrigoAutoHost.cs` | Godot Node，创建运行时：GodotFileSystem + TypeStringMapping + ConverterRegistry + PersistentBlackboard + ConsoleInput/Output。`_Process` 先调用 `Runtime.FlushEndOfFrameDeferred()` 再调用 `Console.ProcessPending()` |
 | `OrigoDefaultEntry.cs` | 继承 OrigoAutoHost，完成启动编排：策略发现 → SndContext 创建 → 别名/模板加载 → 初始加载 |
 | `OrigoDefaultEntry.Bootstrap.cs` | partial class，`_Ready` 实现：注册命令处理器 → 自动发现策略 → 创建 SndContext → LoadMainMenuEntrySave |
 | `GodotSndBootstrap.cs` | 工具方法：将 Runtime 依赖和 SessionContext 分步绑定到 GodotSndManager |
