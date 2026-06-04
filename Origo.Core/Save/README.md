@@ -1,6 +1,7 @@
 # Save
 
 > [↑ 回到 Origo.Core](../README.md)
+> [↔ 相关测试: Save-Storage](../../Origo.Core.Tests/Save-Storage.md) · [Save-Serialization](../../Origo.Core.Tests/Save-Serialization.md) · [Save-Meta](../../Origo.Core.Tests/Save-Meta.md)
 
 ## 模块能力
 

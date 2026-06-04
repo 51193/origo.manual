@@ -1,6 +1,7 @@
 # 控制台命令
 
 > [↑ 回到 usage](README.md)
+> [↔ 相关测试: Console](../../Origo.Core.Tests/Console.md)
 
 ## 概述
 

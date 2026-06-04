@@ -15,6 +15,11 @@ Root (this file)
   │   ├── Origo.GodotAdapter/README.md → 适配层子模块
   │   └── Origo.ConsoleBridge/README.md → TCP 桥接
   │
+  ├── 我需要了解"测试覆盖了什么能力"
+  │   ├── Origo.Core.Tests/README.md → 按 22 个能力查看 Core 测试
+  │   ├── Origo.GodotAdapter.Tests/README.md → 适配层 6 个能力测试
+  │   └── Origo.ConsoleBridge.Tests/README.md → TCP 桥接测试
+  │
   └── 我需要了解"这个手册本身怎么维护"
       └── META.md
 ```
@@ -32,6 +37,9 @@ Root (this file)
 | **Origo.GodotAdapter** | [README](Origo.GodotAdapter/README.md) | Godot 4 适配层：文件系统、日志、序列化、启动 |
 | **Origo.ConsoleBridge** | [README](Origo.ConsoleBridge/README.md) | TCP 远程控制台桥接（端口 9876） |
 | **使用文档** | [README](usage/README.md) | 从快速入门到深度参考的使用指南 |
+| **测试: Core** | [README](Origo.Core.Tests/README.md) | Core 层 22 个能力的行为测试文档 |
+| **测试: GodotAdapter** | [README](Origo.GodotAdapter.Tests/README.md) | 适配层 6 个能力的行为测试文档 |
+| **测试: ConsoleBridge** | [README](Origo.ConsoleBridge.Tests/README.md) | TCP 桥接服务器行为测试文档 |
 | **手册元指令** | [META.md](META.md) | 本手册的编写与维护规范 |
 
 ## Origo.Core 子系统

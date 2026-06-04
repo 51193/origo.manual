@@ -1,6 +1,6 @@
 # StateMachine
 
-> [↑ 回到 Origo.Core](../README.md) · [↔ 抽象: Abstractions/StateMachine](../Abstractions/StateMachine/README.md)
+> [↑ 回到 Origo.Core](../README.md) · [↔ 相关测试: StateMachine](../../Origo.Core.Tests/StateMachine.md)
 
 ## 概述
 
