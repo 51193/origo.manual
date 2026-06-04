@@ -60,7 +60,7 @@ BaseStrategy
 | `Remove(entity, index, ctx)` | 动态移除策略（触发 BeforeRemove） |
 
 - **Recover**：从池获取时进行类型过滤，仅保留 `EntityStrategyBase` 子类，其余立即 `ReleaseStrategy`
-- **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略
+- **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略。五个触发器方法（`TriggerAfterSpawn/Load/Save/Quit/Dead`）统一委托给 `TriggerAll`，消除复制粘贴重复
 
 ### ActiveStrategyManager
 

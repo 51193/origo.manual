@@ -63,40 +63,83 @@ public interface IBlackboard
 
 ### ISndContext
 
+ISndContext 是策略钩子接收的统一门面接口，组合了 9 个角色接口。命名空间 `Origo.Core.Snd`。
+
 ```csharp
-public interface ISndContext
+public interface ISndContext : ISndBlackboardAccess, ISndSessionAccess, ISndDeferredActions,
+    ISndTemplateAccess, ISndConsoleAccess, ISndStateMachineAccess, ISndSaveOperations,
+    ISndLifecycleOperations, ISndEntityOperations
 {
+}
+
+// === 角色接口概览 ===
+
+// 黑板访问
+public interface ISndBlackboardAccess {
     IBlackboard SystemBlackboard { get; }
-    IBlackboard ProgressBlackboard { get; }
+    IBlackboard? ProgressBlackboard { get; }
+}
+
+// 会话管理
+public interface ISndSessionAccess {
     ISessionManager SessionManager { get; }
     ISessionRun? CurrentSession { get; }
     bool IsFrontSession { get; }
+}
 
+// 延迟动作
+public interface ISndDeferredActions {
     void EnqueueBusinessDeferred(Action action);
     void FlushDeferredActionsForCurrentFrame();
+    int GetPendingPersistenceRequestCount();
+}
 
-    // 持久化
-    void RequestSaveGame(string newSaveId);
-    string RequestSaveGameAuto(string? newSaveId = null);
-    void RequestLoadGame(string saveId);
-    bool RequestContinueGame();
-
-    // Scene
-    void RequestSwitchForegroundLevel(string newLevelId);  // ← 系统延迟队列执行（Save 之后、同队 FIFO）
-    void RequestKillAll();                                 // ← 立即标记所有实体为待销毁（帧末统一执行）
-    void RequestKillEntity(string entityName);             // ← 立即标记指定实体为待销毁
+// 模板
+public interface ISndTemplateAccess {
     SndMetaData CloneTemplate(string templateKey, string? overrideName = null);
-    void RegisterTemplate(string key, SndMetaData template);
+}
 
-    // Console
+// 控制台
+public interface ISndConsoleAccess {
     bool TrySubmitConsoleCommand(string commandLine);
     void ProcessConsolePending();
     long SubscribeConsoleOutput(Action<string> onLine);
     void UnsubscribeConsoleOutput(long subscriptionId);
 }
+
+// 状态机
+public interface ISndStateMachineAccess {
+    StateMachineContainer? GetProgressStateMachines();
+}
+
+// 存档操作
+public interface ISndSaveOperations {
+    IReadOnlyList<string> ListSaves();
+    void RequestLoadGame(string saveId);
+    void RequestSaveGame(string newSaveId);
+    string RequestSaveGameAuto(string? newSaveId = null);
+    void SetContinueTarget(string saveId);
+    void RequestSwitchForegroundLevel(string newLevelId);
+}
+
+// 生命周期入口
+public interface ISndLifecycleOperations {
+    bool HasContinueData();
+    bool RequestContinueGame();
+    void RequestLoadInitialSave();
+    void RequestLoadMainMenuEntrySave();
+}
+
+// 实体操作
+public interface ISndEntityOperations {
+    void RequestKillAll();
+    void RequestKillEntity(string entityName);
+}
 ```
 
 ### ISessionManager / ISessionRun
+
+命名空间 `Origo.Core.Abstractions.Lifecycle`。
 
 ```csharp
 public interface ISessionManager
@@ -105,8 +148,10 @@ public interface ISessionManager
     ISessionRun? ForegroundSession { get; }
     IReadOnlyCollection<string> Keys { get; }
     ISessionRun? TryGet(string key);
+    bool Contains(string key);
     ISessionRun CreateBackgroundSession(string key, string levelId, bool syncProcess = false);
     void DestroySession(string key);
+    void ProcessAllSessions(double delta, bool includeForeground = false);
 }
 ```
 
@@ -117,11 +162,11 @@ public interface ISessionRun : IDisposable
     ISndSceneHost SceneHost { get; }
     string LevelId { get; }
     bool IsFrontSession { get; }
-    StateMachineContainer GetSessionStateMachines();
+    IStateMachineContainer GetSessionStateMachines();
 }
 ```
 
-### IStateMachine / IStateMachineContext
+### IStateMachine / IStateMachineContext / IStateMachineContainer
 
 ```csharp
 public interface IStateMachine
@@ -147,6 +192,16 @@ public interface IStateMachineContext
     IBlackboard? SessionBlackboard { get; }
     ISndSceneAccess SceneAccess { get; }
     void EnqueueBusinessDeferred(Action action);
+}
+```
+
+```csharp
+public interface IStateMachineContainer
+{
+    IStateMachine CreateOrGet(string machineKey, string pushStrategyIndex, string popStrategyIndex);
+    bool TryGet(string machineKey, out IStateMachine? machine);
+    void Remove(string machineKey);
+    void Clear();
 }
 ```
 

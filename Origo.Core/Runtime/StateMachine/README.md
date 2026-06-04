@@ -4,17 +4,21 @@
 
 ## 概述
 
-状态机容器的运行时封装。`StateMachineContainer` 是按 key 管理多个 `StackStateMachine` 实例的容器，负责创建、查找、移除、序列化和反序列化。生命周期与策略池引用计数对齐，通过 `IStateMachineContext` 而非具体上下文类型运作。
+状态机容器的运行时封装。`StateMachineContainer` 实现 `IStateMachineContainer` 接口，按 key 管理多个 `StackStateMachine` 实例，负责创建、查找、移除、序列化和反序列化。生命周期与策略池引用计数对齐，通过 `IStateMachineContext` 而非具体上下文类型运作。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
-| `StateMachineContainer.cs` | 状态机容器：CreateOrGet / TryGet / Remove / Clear / 序列化 |
+| `StateMachineContainer.cs` | 状态机容器：CreateOrGet / TryGet / Remove / Clear / 序列化 / 反序列化 |
 
 ## 模块详解
 
-### StateMachineContainer
+### StateMachineContainer : IStateMachineContainer
+
+- 实现 `IStateMachineContainer` 接口（定义于 Abstractions 层）
+- 对 `ISessionRun` 暴露为 `IStateMachineContainer`，对 Runtime 层内部暴露具体 `StateMachineContainer`（含 `FlushAllAfterLoad`、`SerializeToNode` 等内部方法）
+- `ForEachMachine` 统一了 `FlushAllAfterLoad`/`PopAllRuntime`/`PopAllOnQuit` 的迭代模式，消除重复
 
 **核心操作**：
 

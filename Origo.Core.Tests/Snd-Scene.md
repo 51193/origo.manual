@@ -6,14 +6,14 @@
 
 ## 被测行为概览
 
-验证 SND 场景宿主层的实现：MemorySndSceneHost 的实体容器管理、
+验证 SND 场景宿主层的实现：StubSndSceneHost 的实体容器管理、
 NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFactory 的公共 API。
 
 ## 测试文件清单
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `MemorySndSceneHostTests.cs` | MemorySndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
+| `StubSndSceneHostTests.cs` | StubSndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
 | `NullNodeFactoryTests.cs` | NullNodeFactory 返回 NullNodeHandle，不抛异常 |
 | `SndEntityLifecycleBatchTests.cs` | SndRuntime 全面钩子编排：Spawn/SpawnMany/KillPendingEntities/ClearAll、CreateEntity 不触发钩子、RemoveEntity 不触发钩子、SndEntityFactory 公共 API |
 
@@ -23,7 +23,7 @@ NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFacto
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| MemorySndSceneHost.CreateEntity 创建实体并加入列表 | CreateEntity 后实体可被 FindByName 找到 | ISndSceneHost |
+| StubSndSceneHost.CreateEntity 创建实体并加入列表 | CreateEntity 后实体可被 FindByName 找到 | ISndSceneHost |
 | BuildMetaList 返回当前实体元数据 | 序列化快照反映当前状态 | ISndSceneHost |
 | RecoverFromMetaList 恢复实体列表 | 反序列化后 GetEntities 包含实体 | ISndSceneHost |
 | RemoveAllEntities 清空所有实体 | RemoveAllEntities 后 GetEntities 为空 | ISndSceneHost |
@@ -42,7 +42,7 @@ NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFacto
 | FindByName 不存在时返回 null | 查询不存在的实体 | 返回 null |
 | CreateEntity 不触发 AfterSpawn | 直接调用 CreateEntity | 策略钩子不触发 |
 | RemoveEntity 不触发 BeforeDead | 直接调用 RemoveEntity | 策略钩子不触发 |
-| Spawn/SpawnMany 处理非 IEntityLifecycle 实体 | MemorySndEntity 等无生命周期实体 | 不抛异常，正常返回 |
+| Spawn/SpawnMany 处理非 IEntityLifecycle 实体 | StubSndEntity 等无生命周期实体 | 不抛异常，正常返回 |
 | ProcessAll 空场景不抛异常 | 无实体的场景 | 不抛异常 |
 
 ## 已知覆盖缺口

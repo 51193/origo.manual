@@ -52,7 +52,7 @@ Core 的 `ConsoleCommandHandlerBase` 要求子类持有对 `OrigoRuntime` 的引
 
 ### 为什么 PressButton 需要 Godot 实体类型检查
 
-`Runtime.Snd.FindByName` 返回 `ISndEntity` 抽象接口，但 `GetNodeOrNull<Button>` 是 Godot.Node 的方法。运行时检查确保类型安全——如果实体是纯内存实体（如 `MemorySndEntity`），提前用清晰错误信息告知而非 NullReferenceException。
+`Runtime.Snd.FindByName` 返回 `ISndEntity` 抽象接口，但 `GetNodeOrNull<Button>` 是 Godot.Node 的方法。运行时检查确保类型安全——如果实体是纯内存实体（如 `StubSndEntity`），提前用清晰错误信息告知而非 NullReferenceException。
 
 ---
 [↑ 回到 Origo.GodotAdapter](../README.md)

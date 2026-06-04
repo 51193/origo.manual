@@ -4,7 +4,7 @@
 
 ## 概述
 
-ISndContext 的角色接口拆分。8 个窄接口按职责分解，遵循接口隔离原则（ISP）。ISndContext 本身作为组合接口继承全部角色。
+ISndContext 的角色接口拆分。9 个窄接口按职责分解，遵循接口隔离原则（ISP）。ISndContext 本身作为组合接口继承全部角色。
 
 ## 包含文件
 
@@ -16,15 +16,16 @@ ISndContext 的角色接口拆分。8 个窄接口按职责分解，遵循接口
 | `ISndTemplateAccess.cs` | 模板克隆（1 成员） |
 | `ISndConsoleAccess.cs` | 控制台命令提交/处理/输出订阅（4 成员） |
 | `ISndStateMachineAccess.cs` | 流程级状态机容器访问（1 成员） |
-| `ISndSaveOperations.cs` | 存档列表/读/写 + 关卡切换 + 实体 Kill/KillAll（9 成员） |
+| `ISndSaveOperations.cs` | 存档列表/读/写 + 关卡切换 + continue 目标（7 成员） |
 | `ISndLifecycleOperations.cs` | Continue/Initial/MainMenu 生命周期入口（4 成员） |
+| `ISndEntityOperations.cs` | 实体操作：标记销毁 + 批量清空（2 成员） |
 
 ## ISndContext 组合
 
 ```
 ISndContext : ISndBlackboardAccess + ISndSessionAccess + ISndDeferredActions
             + ISndTemplateAccess + ISndConsoleAccess + ISndStateMachineAccess
-            + ISndSaveOperations + ISndLifecycleOperations
+            + ISndSaveOperations + ISndLifecycleOperations + ISndEntityOperations
 ```
 
 ISndContext 自身不声明任何成员——所有成员均来自继承的角色接口。
@@ -42,14 +43,15 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 
 ### 为什么拆分 ISndContext
 
-将 30 成员的接口拆分为 8 个窄接口，每个消费者可按需依赖窄接口：
+将 30 成员的接口拆分为 9 个窄接口，每个消费者可按需依赖窄接口：
 
 - 仅需黑板访问的代码可依赖 `ISndBlackboardAccess`
 - 仅需延迟队列的代码可依赖 `ISndDeferredActions`
 - 仅需存档操作的代码可依赖 `ISndSaveOperations`
+- 仅需实体操作的代码可依赖 `ISndEntityOperations`
 - 等等
 
-策略钩子（`EntityStrategyBase` 的 8 个虚方法）保持 `ISndContext ctx` 全量参数——零 breaking change，策略作者仍可访问全部能力。
+策略钩子（`EntityStrategyBase` 的 8 个虚方法）保持 `ISndContext ctx` 全量参数——策略作为一等公民，应能访问框架全部能力。
 
 ### 为什么 ISndContext 仍作为组合接口存在
 
@@ -59,5 +61,14 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 
 `IStateMachineContext` 原有 5 个成员，其中 `SystemBlackboard`、`ProgressBlackboard`、`EnqueueBusinessDeferred` 与 `ISndContext` 中的语义完全一致。通过继承 `ISndBlackboardAccess` + `ISndDeferredActions`，消除了跨接口的重复定义，同时保持 IStateMachineContext 的独立语义（SessionBlackboard + SceneAccess 为状态机特有）。
 
+### 为什么 RequestKill 独立为 ISndEntityOperations
+
+`RequestKillEntity` 和 `RequestKillAll` 原本放在 `ISndSaveOperations` 中，但实体销毁是运行时生命周期操作，与存档读写在职责上不应混在一起。拆分为独立角色接口后：
+
+- `ISndSaveOperations` 聚焦纯持久化操作（存档/读档/关卡切换/continue）
+- `ISndEntityOperations` 聚焦实体运行时操作（标记销毁/批量清空）
+- 消费者可按需只依赖需要的角色
+
 ---
+
 [↑ 回到 Abstractions](../README.md)

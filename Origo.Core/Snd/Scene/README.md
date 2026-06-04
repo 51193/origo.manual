@@ -4,16 +4,16 @@
 
 ## 概述
 
-SND 场景宿主实现层。提供 `ISndSceneHost` 的三种实现：完整内存宿主（用于后台会话）、轻量内存宿主（用于测试）、引擎无关的 NullNodeFactory。`SndRuntime` 作为面向上层的门面，组合 `SndWorld` 和 `ISndSceneHost`，并统一编排全部策略生命周期钩子。SceneHost 仅提供实体容器能力。
+SND 场景宿主实现层。提供 `ISndSceneHost` 的两种实现：完整内存宿主（用于后台会话）、轻量存根宿主（用于测试和设备无关的离线构建）。`SndRuntime` 作为面向上层的门面，组合 `SndWorld` 和 `ISndSceneHost`，并统一编排全部策略生命周期钩子。SceneHost 仅提供实体容器能力。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
 | `SndRuntime.cs` | SND 运行时门面：组合 World + SceneHost，统一编排 Spawn/Kill/Save/Quit 策略生命周期钩子，提供 ProcessAll 帧更新 |
-| `SndEntityFactory.cs` | 公共工具类：提供 `Spawn(host, meta)` 和 `SpawnMany(host, metas)` 静态方法，封装 CreateEntity + AfterSpawn 钩子。供无法直接访问 SndRuntime 的外部代码使用（如后台会话中直接操作 ISndSceneHost） |
+| `SndEntityFactory.cs` | 公共工具类：`Spawn(host, meta)` 和 `SpawnMany(host, metas)` 静态方法，委托给 `SndRuntime.SpawnCore/SpawnManyCore` 统一实现 |
 | `FullMemorySndSceneHost.cs` | 完整内存场景宿主，创建真实 SndEntity，具备完整策略生命周期 |
-| `MemorySndSceneHost.cs` | 轻量内存场景宿主，使用简单 MemorySndEntity（无策略/节点）|
+| `StubSndSceneHost.cs` | 轻量存根场景宿主，使用简单 StubSndEntity（无策略/节点），用于单元测试和 LevelBuilder 离线构建 |
 | `ISndContextAttachableSceneHost.cs` | 接口：允许运行时绑定 ISndContext |
 | `NullNodeFactory.cs` | 内存级节点工厂，创建无操作句柄 |
 
@@ -53,9 +53,11 @@ Spawn/SpawnMany 不再委托给 SceneHost 内部完成钩子触发，而是由 S
 - **RemoveAllEntities**：仅清空内部集合
 - **ProcessAll**：基于快照迭代所有实体
 
-### MemorySndSceneHost
+### StubSndSceneHost
 
-轻量实现，直接使用内嵌的 `MemorySndEntity` 类。这个实体不支持节点访问、策略和订阅，仅支持基础键值数据存取。用于单元测试和 `LevelBuilder` 离线构建。
+轻量实现，直接使用内嵌的 `StubSndEntity` 类。这个实体不支持节点访问、策略和订阅，仅支持基础键值数据存取。用于单元测试和 `LevelBuilder` 离线构建。
+
+> 原名 `MemorySndSceneHost`，重命名为 `StubSndSceneHost` 以更准确地表达其"存根"语义——它是无策略/无节点的轻量占位实现，非完整内存宿主。
 
 ### NullNodeFactory / NullNodeHandle
 
@@ -73,7 +75,11 @@ Spawn/SpawnMany 不再委托给 SceneHost 内部完成钩子触发，而是由 S
 
 ### 为什么需要两个场景宿主
 
-`FullMemorySndSceneHost` 提供完整策略生命周期但需要 `SndWorld` 和 `ISndContext` 的上游依赖；`MemorySndSceneHost` 零依赖、完全自治但不能运行策略。前者用于后台会话，后者用于测试（测试中通常只测数据流转而无需策略执行）。
+`FullMemorySndSceneHost` 提供完整策略生命周期但需要 `SndWorld` 和 `ISndContext` 的上游依赖；`StubSndSceneHost` 零依赖、完全自治但不能运行策略。前者用于后台会话，后者用于测试和离线构建（测试中通常只测数据流转而无需策略执行）。
+
+### 为什么 SndEntityFactory 委托给 SndRuntime
+
+`SndEntityFactory.Spawn/SpawnMany` 与 `SndRuntime.Spawn/SpawnMany` 原本各自维护一套 spawn 逻辑，存在重复。重构后 `SndRuntime` 提取了内部静态方法 `SpawnCore/SpawnManyCore` 作为唯一权威实现，`SndEntityFactory` 委托调用这些方法。这保证了 spawn 逻辑的单一来源——修复 bug 或调整行为只需修改一处。
 
 ### 为什么 FullMemorySndSceneHost 延迟绑定 World/Context
 

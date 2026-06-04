@@ -19,14 +19,15 @@
 | `ProgressRun.Persistence.cs` | 流程层持久化分支（partial class）|
 | `ProgressRun.SessionLoading.cs` | 流程层会话加载分支（partial class）|
 | `SessionParameters.cs` | 会话层构造参数 |
-| `SessionManager.cs` | 会话管理器完整实现 |
+| `SessionManager.cs` | 会话管理器完整实现（实现 `ISessionManager`）|
 | `SessionManagerRuntime.cs` | 会话管理器运行时容器 |
-| `SessionRun.cs` | 会话级别运行时实现 |
+| `SessionRun.cs` | 会话级别运行时实现（实现 `ISessionRun`）|
 | `SessionTopologyCodec.cs` | 会话拓扑编解码（前台+后台会话关系）|
-| `ISessionManager.cs` | 会话管理器接口（public）|
-| `ISessionRun.cs` | 会话运行时接口（public）|
+| `SessionStateMachineContext.cs` | internal：会话级状态机上下文适配器，将 SessionBlackboard/SceneAccess 绑定到当前会话 |
 | `EmptySessionManager.cs` | 无操作会话管理器（测试/空场景）|
 | `RunStateScope.cs` | 运行时状态作用域工具 |
+
+> `ISessionManager` 和 `ISessionRun` 接口已移至 `Origo.Core.Abstractions.Lifecycle` 命名空间，确保 Abstractions 层不依赖 Runtime 层。本层保留具体实现。
 
 ## 四层容器模型
 

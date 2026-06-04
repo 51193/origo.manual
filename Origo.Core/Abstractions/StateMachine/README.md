@@ -4,7 +4,7 @@
 
 ## 概述
 
-定义字符串栈状态机体系。状态机本身只存储字符串，Push/Pop 的具体语义由关联的策略钩子实现。同时定义了状态机策略钩子所需的运行时上下文接口 `IStateMachineContext`，以及其会话级适配器 `SessionStateMachineContext`。
+定义字符串栈状态机体系。状态机本身只存储字符串，Push/Pop 的具体语义由关联的策略钩子实现。同时定义了状态机策略钩子所需的运行时上下文接口 `IStateMachineContext` 和状态机容器接口 `IStateMachineContainer`。
 
 ## 包含文件
 
@@ -12,7 +12,7 @@
 |------|------|
 | `IStateMachine.cs` | 字符串栈状态机接口：Push/Pop/Peek/Snapshot + 持久化 |
 | `IStateMachineContext.cs` | 状态机策略钩子运行时上下文：黑板访问 + 场景访问 + 延迟队列 |
-| `SessionStateMachineContext.cs` | internal：会话级适配器，将 SessionBlackboard/SceneAccess 绑定到当前会话 |
+| `IStateMachineContainer.cs` | 状态机容器接口：CreateOrGet/TryGet/Remove/Clear |
 
 ## IStateMachine 成员
 
@@ -52,9 +52,17 @@
 
 两种出栈触发不同的策略钩子语义。运行时出栈触发 `BeforeRemove`（正常状态流转），退出逐级出栈触发 `BeforeQuit`（状态机销毁时的清理）。如果合并为一个方法，调用方需传递额外参数区分语义，增加误用风险。
 
-### 为什么 SessionStateMachineContext 是 internal
+### 为什么 SessionStateMachineContext 是 internal 且不在 Abstractions 层
 
-外部代码只需要 `IStateMachineContext` 接口。`SessionStateMachineContext` 是会话层的实现细节，其构造函数参数（全局上下文 + 会话黑板 + 场景访问）由 `SessionManager` 在构造 `SessionRun` 时注入，不应被外部直接实例化。
+`SessionStateMachineContext` 是具体实现类，不属于 Abstractions 层的接口契约，因此在代码清理中移至 `Origo.Core.Runtime.Lifecycle` 命名空间。外部代码只需依赖 `IStateMachineContext` 接口。会话级的上下文绑定由 `SessionManager` 在构造 `SessionRun` 时内部完成。
+
+### 为什么需要 IStateMachineContainer
+
+`StateMachineContainer` 是具体类型（位于 `Runtime.StateMachine`），若 `ISessionRun.GetSessionStateMachines()` 直接返回它，则 `ISessionRun`（Abstractions 层）会依赖 Runtime 层具体类型——违反依赖方向。通过引入 `IStateMachineContainer` 接口：
+
+- 策略层通过 `ISessionRun` 获取容器时仅依赖 Abstractions 层
+- 具体实现 `StateMachineContainer` 保留内部方法（`FlushAllAfterLoad`、`SerializeToNode`），供 Runtime 层内部代码使用
+- 外部策略可通过 `CreateOrGet`/`TryGet` 创建和查找状态机，无需感知容器具体实现
 
 ---
 [↑ 回到 Abstractions](../README.md)

@@ -6,14 +6,14 @@
 
 ## 被测行为概览
 
-验证 SndEntity 聚合根的行为：MemorySndEntity 的数据 CRUD、AfterLoad 钩子触发、
+验证 SndEntity 聚合根的行为：StubSndEntity 的数据 CRUD、AfterLoad 钩子触发、
 AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycleBatchTests）。
 
 ## 测试文件清单
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `MemorySndEntityTests.cs` | MemorySndEntity 的 SetData/GetData/TryGetData/数据隔离 |
+| `StubSndEntityTests.cs` | StubSndEntity 的 SetData/GetData/TryGetData/数据隔离 |
 | `SndEntityAfterLoadTests.cs` | AfterLoad 钩子的触发顺序和数据恢复 |
 | `SndEntityAndAutoInitializerTests.cs` | AutoInitializer 从 metadata 恢复策略和数据 |
 | `SndEntityLifecycleBatchTests.cs` | 批量生命周期：SpawnEntity/RecoverFromMetaList/RemoveAllEntities 整体操作，不再逐实体触发钩子 |
@@ -24,7 +24,7 @@ AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycle
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| MemorySndEntity SetData/TryGetData 往返 | 数据正确存取，类型保留 | snd-entity-model: TypedData |
+| StubSndEntity SetData/TryGetData 往返 | 数据正确存取，类型保留 | snd-entity-model: TypedData |
 | AfterLoad 钩子按预期顺序触发 | Load 恢复后策略 AfterLoad 被调用 | snd-entity-model: 生命周期钩子 |
 | AutoInitializer 从 SndMetaData 恢复策略列表 | 策略索引从 metadata 正确加载 | Snd/Entity |
 
