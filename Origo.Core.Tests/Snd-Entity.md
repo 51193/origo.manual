@@ -7,7 +7,7 @@
 ## 被测行为概览
 
 验证 SndEntity 聚合根的行为：MemorySndEntity 的数据 CRUD、AfterLoad 钩子触发、
-AutoInitializer 的策略/数据恢复。
+AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycleBatchTests）。
 
 ## 测试文件清单
 
@@ -16,6 +16,7 @@ AutoInitializer 的策略/数据恢复。
 | `MemorySndEntityTests.cs` | MemorySndEntity 的 SetData/GetData/TryGetData/数据隔离 |
 | `SndEntityAfterLoadTests.cs` | AfterLoad 钩子的触发顺序和数据恢复 |
 | `SndEntityAndAutoInitializerTests.cs` | AutoInitializer 从 metadata 恢复策略和数据 |
+| `SndEntityLifecycleBatchTests.cs` | 批量生命周期：SpawnEntity/RecoverFromMetaList/RemoveAllEntities 整体操作，不再逐实体触发钩子 |
 
 ## 测试详情
 

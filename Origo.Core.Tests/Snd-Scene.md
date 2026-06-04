@@ -13,7 +13,7 @@ NullNodeFactory 的无操作行为。
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `MemorySndSceneHostTests.cs` | MemorySndSceneHost 的 Spawn/FindByName/SerializeMetaList/LoadFromMetaList/ClearAll |
+| `MemorySndSceneHostTests.cs` | MemorySndSceneHost 的 SpawnEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities |
 | `NullNodeFactoryTests.cs` | NullNodeFactory 返回 NullNodeHandle，不抛异常 |
 
 ## 测试详情
@@ -22,10 +22,10 @@ NullNodeFactory 的无操作行为。
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| MemorySndSceneHost.Spawn 创建实体并加入列表 | Spawn 后实体可被 FindByName 找到 | ISndSceneHost |
-| SerializeMetaList 返回当前实体元数据 | 序列化快照反映当前状态 | ISndSceneHost |
-| LoadFromMetaList 恢复实体列表 | 反序列化后 GetEntities 包含实体 | ISndSceneHost |
-| ClearAll 清空所有实体 | ClearAll 后 GetEntities 为空 | ISndSceneHost |
+| MemorySndSceneHost.SpawnEntity 创建实体并加入列表 | SpawnEntity 后实体可被 FindByName 找到 | ISndSceneHost |
+| BuildMetaList 返回当前实体元数据 | 序列化快照反映当前状态 | ISndSceneHost |
+| RecoverFromMetaList 恢复实体列表 | 反序列化后 GetEntities 包含实体 | ISndSceneHost |
+| RemoveAllEntities 清空所有实体 | RemoveAllEntities 后 GetEntities 为空 | ISndSceneHost |
 | NullNodeFactory.Create 返回 NullNodeHandle | 无渲染模式下工厂返回空节点 | INodeFactory |
 
 ### 边界路径
@@ -38,7 +38,7 @@ NullNodeFactory 的无操作行为。
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| 并发 Spawn/Clear 的线程安全 | 场景宿主是否承诺线程安全 | ISndSceneHost |
+| 并发 SpawnEntity/RemoveAllEntities 的线程安全 | 场景宿主是否承诺线程安全 | ISndSceneHost |
 
 ---
 

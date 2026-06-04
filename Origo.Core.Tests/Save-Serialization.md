@@ -37,8 +37,8 @@ SaveContext 在 ProgressRun 流程中的协调行为。
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| `Serialize_ThenDeserialize_PreservesEntityNames` | 场景实体列表序列化后恢复实体名 | Snd/Scene |
-| `Deserialize_IntoHost_RestoresEntities` | 反序列化后 SceneHost 恢复实体列表 | Snd/Scene |
+| `Build_ThenRecover_PreservesEntityNames` | 场景实体列表序列化后恢复实体名 | Snd/Scene |
+| `Recover_IntoHost_RestoresEntities` | 反序列化后 SceneHost 恢复实体列表 | Snd/Scene |
 
 ## SaveContextTests 测试详情
 

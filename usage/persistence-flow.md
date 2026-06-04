@@ -100,7 +100,7 @@ ctx.RequestSaveGameAuto();  // 自动生成时间戳 ID
 // ProgressRun 会处理这些请求：
 // - 收集 Progress 黑板
 // - 收集 Session 黑板（通过 BeforeSave 钩子触发策略最终修改）
-// - 收集 SND 场景（通过 SerializeMetaList）
+// - 收集 SND 场景（通过 BuildMetaList）
 // - 构建 SaveGamePayload
 // - 两阶段写入
 ```

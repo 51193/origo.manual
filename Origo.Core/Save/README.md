@@ -33,7 +33,7 @@ SaveContext.SaveGame(...)
     │
     ├── SerializeProgress()  →  progress.json
     ├── SerializeSession()   →  session.json
-    └── SerializeSndScene()  →  snd_scene.json
+    └── BuildSndScene()  →  snd_scene.json
     │
     ▼
 SaveGamePayload (完整存档对象)

@@ -4,7 +4,7 @@
 
 ## 概述
 
-存档序列化层的内部实现。提供黑板（`BlackboardSerializer`）和 SND 场景（`SndSceneSerializer`）的序列化/反序列化能力，以及聚合这些能力的 `SaveContext`（存档编排上下文）。所有序列化均产出 `DataSourceNode`，不直接接触文件 I/O。
+存档序列化层的内部实现。提供黑板（`BlackboardSerializer`）和 SND 场景（`SndSceneSerializer`）的构建/恢复能力，以及聚合这些能力的 `SaveContext`（存档编排上下文）。所有操作均产出 `DataSourceNode`，不直接接触文件 I/O。策略钩子（BeforeSave/AfterLoad）由上层 `SessionRun` 在调用前后统一触发。
 
 ## 包含文件
 
@@ -25,12 +25,10 @@
 
 ### SndSceneSerializer
 
-- **Serialize**：`sceneAccess.SerializeMetaList()` → `_world.WriteMetaListNode(metaList)` → DataSourceNode
-- **DeserializeInto**：数据必须是 Array 格式 → `SndMappings.ResolveMetaListFromJsonArray` → `sceneAccess.LoadFromMetaList`
-
-支持两种加载模式：
-- `clearBeforeLoad=true`（默认）：先清空场景再恢复（存档恢复语义）
-- `clearBeforeLoad=false`：在现有场景上增量加载
+- **Build**：`sceneAccess.BuildMetaList()` → `_world.WriteMetaListNode(metaList)` → DataSourceNode  
+  不触发 BeforeSave——BeforeSave 由 SessionRun.BuildLevelPayload 在调用前批量触发。
+- **RecoverInto**：数据必须是 Array 格式 → `SndMappings.ResolveMetaListFromJsonArray` → `sceneAccess.RecoverFromMetaList`  
+  不触发 AfterLoad，不执行 ClearAll——AfterLoad 由 SessionRun.LoadFromPayload 在调用后批量触发，ClearAll 由调用方在调用前自行处理。
 
 ### SaveContext
 
@@ -40,7 +38,13 @@ Save 模块的核心编排对象，由 `ProgressRun` 持有：
 SaveContext = IBlackboard(Progress) + IBlackboard(Session) + SndWorld
 ```
 
-提供统一的序列化入口，内部委托给子序列化器。`SaveGame` 方法收集全部数据构建 `SaveGamePayload`。
+提供统一的构建/恢复入口：
+
+| 方法 | 说明 |
+|------|------|
+| `BuildSndScene(ISndSceneAccess)` | 构建场景元数据（不触发 BeforeSave） |
+| `RecoverSndScene(ISndSceneHost, DataSourceNode)` | 恢复场景（不触发 AfterLoad，不做 ClearAll） |
+| `SaveGame(...)` | 收集全部数据构建 `SaveGamePayload` |
 
 ## 设计决策
 
@@ -56,5 +60,14 @@ SaveContext = IBlackboard(Progress) + IBlackboard(Session) + SndWorld
 
 SND 场景是实体数组（`[entity1, entity2, ...]`），不是对象。在入口处校验格式可及早捕获错误（如意外传入了 session.json 而非 snd_scene.json），而非在后续解析中产生歧义。
 
+### 为什么 SndSceneSerializer 不触发策略钩子
+
+BeforeSave 和 AfterLoad 钩子由 `SessionRun` 统一编排：
+- **BeforeSave**：`SessionRun.BuildLevelPayload` 先批量触发 `FireBeforeSaveHooks`，再调用 `SaveContext.BuildSndScene`
+- **AfterLoad**：`SessionRun.LoadFromPayload` 先调用 `SaveContext.RecoverSndScene`，再批量触发 `FireAfterLoadHooks`
+
+序列化器专注于数据转换，不参与生命周期管理。
+
 ---
+
 [↑ 回到 Save](../README.md)

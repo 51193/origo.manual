@@ -62,7 +62,9 @@ SystemRuntime
 
 - `ProgressRun.RequestSaveGame` → `SaveContext.SaveGame(...)` → `SavePayloadWriter.WriteToCurrent()` → snapshot
 - `ProgressRun.RequestLoadGame` → `SavePayloadReader.ReadFromCurrent/Snapshot` → 恢复黑板 + 场景
-- `PersistProgress`：将流程黑板与完整会话拓扑（前台 + 所有后台）序列化写入 `current/progress.json`。与 `BuildSavePayload` 不同，此方法不写入关卡实体数据（仅进度元数据），实体数据由调用方显式通过 `PersistSession` 持久化。
+- `PersistProgress`：将流程黑板与完整会话拓扑（前台 + 所有后台）序列化写入 `current/progress.json`。
+- `SessionRun.BuildLevelPayload`：先批量触发 BeforeSave 钩子（`FireBeforeSaveHooks`）在所有实体上，再通过 `SaveContext.BuildSndScene` 构建场景元数据。这确保任何策略在存档前有最后的机会将内存状态刷新到实体 Data 中。
+- `SessionRun.LoadFromPayload`：先通过 `SaveContext.RecoverSndScene` 恢复所有实体数据/策略/节点，再批量触发 AfterLoad 钩子（`FireAfterLoadHooks`），最后 Flush 状态机 AfterLoad。这确保所有实体和 ActiveStrategy 已完全恢复后才触发任何策略的 AfterLoad，实现加载顺序无关的跨实体互操作。
 
 ### 关卡切换
 
@@ -79,7 +81,7 @@ SystemRuntime
 ### 退出
 
 - `Dispose` 级联：SessionRun → SessionManager → ProgressRun → SystemRun
-- Dispose 只做资源清理（清空会话、删除临时目录、弹出状态机、清理黑板），不触发持久化
+- `SessionRun.Dispose` 先批量触发 BeforeQuit 钩子（`FireBeforeQuitHooks`）和释放策略，再拆卸实体节点/数据，最后清空场景集合和黑板
 - 退出前的数据保存应由应用层显式调用 `RequestSaveGame` 完成；`current/` 目录作为临时工作区，在退出时被安全清理
 
 ## 设计决策

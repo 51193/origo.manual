@@ -17,7 +17,7 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 | `ActiveStrategyBase.cs` | 主动策略基类：`Invoke(entity, ctx, input)` — 外部按索引主动调用 |
 | `ActiveStrategyManager.cs` | 单实体主动策略管理器：Dictionary 容器 + 增删 + 序列化 |
 | `SndStrategyPool.cs` | 策略池：注册、实例化、引用计数、无状态校验 |
-| `SndStrategyManager.cs` | 单实体被动策略管理器：增删策略 + 协调生命周期回调 |
+| `SndStrategyManager.cs` | 单实体被动策略管理器：策略容器的增删 + 生命周期钩子协调 |
 | `StrategyIndexAttribute.cs` | 策略索引声明特性：`[StrategyIndex("core.health")]` |
 
 ## 模块详解
@@ -43,24 +43,57 @@ BaseStrategy
 
 ### SndStrategyManager
 
-每个 `SndEntity` 持有一个 manager 实例，管理被动实体策略：
+每个 `SndEntity` 持有一个 manager 实例，管理被动实体策略。对外暴露分阶段操作方法（均为 `internal`），由 `SndEntity` 通过 `IEntityLifecycle` 调用：
 
-- **策略列表**：`List<StrategyEntry>`（Index + EntityStrategyBase），按优先级升序插入
-- **Process**：基于快照迭代，允许 Process 中增删策略
+| 方法 | 说明 |
+|------|------|
+| `RecoverStrategiesOnly(indices)` | 从策略池按索引获取策略并排序插入（释放旧策略，不触发钩子） |
+| `ReleaseStrategiesOnly()` | 释放全部策略引用并清空列表（不触发钩子） |
+| `TriggerAfterSpawn(entity, ctx)` | 快照迭代触发 AfterSpawn |
+| `TriggerAfterLoad(entity, ctx)` | 快照迭代触发 AfterLoad |
+| `TriggerBeforeSave(entity, ctx)` | 快照迭代触发 BeforeSave |
+| `TriggerBeforeQuit(entity, ctx)` | 快照迭代触发 BeforeQuit |
+| `TriggerBeforeDead(entity, ctx)` | 快照迭代触发 BeforeDead |
+| `GetStrategyIndices()` | 返回当前持有的所有策略索引 |
+| `Process(entity, delta, ctx)` | 帧更新（快照迭代） |
+| `Add(entity, index, ctx)` | 动态添加策略（触发 AfterAdd） |
+| `Remove(entity, index, ctx)` | 动态移除策略（触发 BeforeRemove） |
+
 - **Recover**：从池获取时进行类型过滤，仅保留 `EntityStrategyBase` 子类，其余立即 `ReleaseStrategy`
 - **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略
-- **Release**：逐个 Release 池引用，然后清空列表
 
 ### ActiveStrategyManager
 
 每个 `SndEntity` 持有一个 manager 实例，管理主动策略：
 
 - **容器**：`Dictionary<string, ActiveStrategyBase>` — O(1) 按索引查找，不参与每帧遍历
-- **Recover**：从 metadata 批量恢复，进行类型过滤
+- **Recover**：从 metadata 批量恢复，进行类型过滤（不触发钩子）
+- **ReleaseAll**：逐个 `ReleaseStrategy` 并清空容器（不触发钩子）
 - **Add / Remove**：动态增删主动策略
 - **Invoke**：按索引查找策略实例，调用 `Invoke(entity, ctx, input)` 并返回结果
 - **序列化**：`SerializeIndices()` 返回当前持有的全部索引
-- **释放**：`ReleaseAll()` 逐个 `ReleaseStrategy`
+
+### 实体生命周期中的策略顺序
+
+实体策略的生命周期钩子在两阶段批处理中的顺序：
+
+```
+Phase 1 (RecoverForLifecycle):
+  1. Recover Data
+  2. Recover Nodes
+  3. Recover EntityStrategy (RecoverStrategiesOnly)
+  4. Recover ActiveStrategy
+
+Phase 2 (Trigger hooks — **internal**):
+  5. 触发实体策略钩子 (TriggerAfterSpawn/AfterLoad/etc.，由 IEntityLifecycle 的 internal 方法驱动)
+
+Phase 3 (Teardown):
+  6. Release ActiveStrategy (ReleaseAll)
+  7. Release EntityStrategy (ReleaseStrategiesOnly)
+  8. Teardown Nodes + Data (TeardownOnly)
+```
+
+ActiveStrategy 在 Phase 1 恢复，Phase 2 期间可被 `InvokeStrategy` 安全调用。
 
 ### StrategyMetaData 拆分
 
@@ -77,7 +110,7 @@ StrategyMetaData
 { "entity_indices": ["patrol", "idle"], "active_indices": ["query.hp"] }
 ```
 
-两者在 Load / Spawn 时分别恢复，互不交叉。
+两者在 RecoverForLifecycle 时分别恢复，互不交叉。
 
 ### StrategyIndexAttribute
 
@@ -107,5 +140,10 @@ public class PlayerControlStrategy : EntityStrategyBase { ... }
 
 钩子回调中经常需要增删策略（例如 `BeforeDead` 中移除自身策略）。直接迭代修改中的列表会导致异常。快照确保了每次钩子调用的列表稳定性，以少量分配换取安全。
 
+### 为什么 ActiveStrategy 在实体策略钩子之前恢复
+
+ActiveStrategy 在 `RecoverForLifecycle` (Phase 1) 中恢复，早于 `FireAfterSpawnHooks` / `FireAfterLoadHooks` (Phase 2)。这确保实体策略钩子中可以通过 `InvokeStrategy` 调用自身的 ActiveStrategy，也可以调用其他已恢复实体的 ActiveStrategy——实现加载顺序无关的跨实体互操作。
+
 ---
+
 [↑ 回到 Snd](../README.md)

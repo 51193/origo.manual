@@ -60,6 +60,8 @@ SndEntity (聚合根)
 7. **BeforeQuit** — 实体正常退出前
 8. **BeforeDead** — 实体销毁前
 
+> **批量生命周期（batch orchestration）：** `SpawnEntity`、`RecoverFromMetaList`、`RemoveAllEntities` 为整体操作，不再逐实体触发 AfterSpawn / AfterLoad / BeforeDead 钩子。钩子统一由上层（SaveContext.BuildSndScene / RecoverSndScene、SessionRun 生命周期）在批量操作完成后集中触发。
+
 ## 核心原则
 
 - **策略无状态**：策略实例共享，可变状态在实体 Data 中

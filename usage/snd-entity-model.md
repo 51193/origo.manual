@@ -32,14 +32,14 @@ BaseStrategy (抽象，所有策略的基类)
 
 | 钩子 | 触发时机 | 典型用途 |
 |------|---------|---------|
-| `AfterSpawn(entity, ctx)` | 新实体生成后 | 初始化属性（hp, position 等） |
-| `AfterLoad(entity, ctx)` | 从存档恢复后 | 恢复后重新注册事件等 |
+| `AfterSpawn(entity, ctx)` | 新实体生成后（由 `ISndSceneHost.Spawn` / `SpawnMany` 触发） | 初始化属性（hp, position 等） |
+| `AfterLoad(entity, ctx)` | 从存档恢复后（批量 RecoverFromMetaList 不触发，由上层统一触发） | 恢复后重新注册事件等 |
 | `AfterAdd(entity, ctx)` | 策略动态添加到实体 | 动态添加状态逻辑 |
 | `Process(entity, delta, ctx)` | 每帧 | 持续逻辑（移动、计时等） |
 | `BeforeRemove(entity, ctx)` | 策略被移除前 | 清理订阅/资源 |
 | `BeforeSave(entity, ctx)` | 序列化存档前 | 刷新待写入数据 |
 | `BeforeQuit(entity, ctx)` | 实体正常退出 | 保存进度、清理 |
-| `BeforeDead(entity, ctx)` | 实体销毁前 | 死亡特效、掉落等 |
+| `BeforeDead(entity, ctx)` | 实体销毁前（批量 RemoveAllEntities 不触发，由上层统一触发） | 死亡特效、掉落等 |
 
 ### 编写策略
 

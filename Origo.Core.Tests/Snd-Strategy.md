@@ -70,7 +70,7 @@
 |---------|-----------|---------|
 | `SndStrategyPool_ReusesAndReleasesByReferenceCount` | 引用计数复用：获取两次返回同实例，释放多余次数后重新创建 | snd-entity-model: 引用计数 |
 | `SndStrategyManager_Recover_WhenFailed_RollsBackAcquiredStrategies` | 部分策略 Spawn 失败时回滚已获取的策略 | snd-entity-model |
-| `SndRuntime_DelegatesToSceneHost` | SndRuntime.Spawn/SpawnMany/ClearAll 代理到 SceneHost | Snd/Scene |
+| `SndRuntime_DelegatesToSceneHost` | SndRuntime.SpawnEntity/SpawnMany/RemoveAllEntities 代理到 SceneHost | Snd/Scene |
 | `OrigoRuntime_CreatesSndWorldAndSupportsInjectedSystemBlackboard` | OrigoRuntime 正确创建 SndWorld，注入黑板可用 | Runtime |
 | `OrigoRuntime_ResetConsoleState_ClearsInputQueueOnly` | 重置控制台只清理输入队列，不清理输出订阅 | Console |
 
@@ -80,7 +80,7 @@
 |---------|-----------|---------|
 | `SndStrategyPool_GetUnknownStrategy_ThrowsInvalidOperation` | 获取未注册策略 | InvalidOperationException |
 | `SndStrategyPool_ReleaseWithoutAcquire_OrDoubleRelease_ThrowsInvalidOperation` | 未获取或重复释放 | InvalidOperationException |
-| `SndRuntime_Spawn_DuplicateName_ThrowsInvalidOperation` | 重复实体名 | InvalidOperationException |
+| `SndRuntime_SpawnEntity_DuplicateName_ThrowsInvalidOperation` | 重复实体名 | InvalidOperationException |
 
 ## EntityStrategyBaseTests 测试详情
 
