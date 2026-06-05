@@ -137,9 +137,10 @@ play_time: 2h30m
 player_name: Alice
 ```
 
-通过 `ISaveMetaContributor` 贡献者接口自定义元数据：
+通过 `ISaveMetaContributor` 贡献者接口自定义元数据，然后通过 `ctx.RegisterSaveMetaContributor(...)` 注册：
 
 ```csharp
+// 贡献者实现
 class MySaveMetaContributor : ISaveMetaContributor
 {
     public void Contribute(in SaveMetaBuildContext context, IDictionary<string, string> target)
@@ -148,6 +149,11 @@ class MySaveMetaContributor : ISaveMetaContributor
         target["player_name"] = context.Session.GetData<string>("player_name");
     }
 }
+
+// 注册（在 OrigoDefaultEntry.ConfigureSaveMetadataContributors 或策略中）
+ctx.RegisterSaveMetaContributor(new MySaveMetaContributor());
+// 也可使用委托重载：
+ctx.RegisterSaveMetaContributor((ctx, meta) => meta["custom"] = "value");
 ```
 
 ## 路径策略

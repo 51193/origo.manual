@@ -145,6 +145,8 @@ public interface ISndSaveOperations {
     string RequestSaveGameAuto(string? newSaveId = null);
     void SetContinueTarget(string saveId);
     void RequestSwitchForegroundLevel(string newLevelId);
+    void RegisterSaveMetaContributor(ISaveMetaContributor contributor);
+    void RegisterSaveMetaContributor(Action<SaveMetaBuildContext, IDictionary<string, string>> contribute);
 }
 
 // 生命周期入口

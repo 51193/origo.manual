@@ -16,6 +16,7 @@
 |------|-----------|
 | `DelegateSaveMetaContributorTests.cs` | ISaveMetaContributor 委托包装正确性 |
 | `SaveMetaBuildContextTests.cs` | SaveMetaBuildContext 上下文数据传递 |
+| `SaveMetaIntegrationTests.cs` | 完整链路：RegisterSaveMetaContributor → RequestSaveGame → CustomMeta 写入 meta.map |
 | `SaveMetaMapCodecTests.cs` | meta.map 编解码往返 |
 | `SaveMetaMapCodecExtendedTests.cs` | meta.map 编解码边缘路径 |
 | `SaveMetaMergerTests.cs` | SaveMetaMerger 多贡献者合并 |
@@ -30,6 +31,8 @@
 | SaveMetaMerger 合并多个贡献者 | 多来源元数据不冲突地合并到同一字典 | persistence-flow |
 | SaveMetaMapCodec 编解码往返 | meta.map 写入后读回一致 | persistence-flow: meta.map |
 | SaveMetaBuildContext 携带上下文数据 | Context 传递 Session/Progress 引用 | ISaveMetaContributor |
+| RegisterSaveMetaContributor 注册并保存 | ISaveMetaContributor 或委托注册后，RequestSaveGame 携带 CustomMeta | persistence-flow: meta.map |
+| NullSndContext / SessionSndContext 注册行为 | NullSndContext 抛异常，SessionSndContext 委托到全局 | ISndSaveOperations |
 
 ### 边界路径
 

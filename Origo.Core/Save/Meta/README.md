@@ -21,7 +21,7 @@
 
 ### 元数据贡献流程
 
-1. **注册贡献者**：实现 `ISaveMetaContributor`，通过 `SaveContext` 注册
+1. **注册贡献者**：实现 `ISaveMetaContributor`，通过 `ISndSaveOperations.RegisterSaveMetaContributor()` 注册（支持接口实例和委托两种重载）
 2. **构建上下文**：存档时创建 `SaveMetaBuildContext`（含 saveId、levelId、黑板、场景访问）
 3. **收集**：`SaveMetaMerger.Merge()` 按注册顺序调用每个贡献者的 `Contribute()`，同名键后者覆盖前者
 4. **覆写**：调用方提供的 `customMeta` 参数再次键级覆盖
