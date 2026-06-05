@@ -7,14 +7,16 @@
 ## 被测行为概览
 
 验证 SND 元数据的核心类型：
-- **TypedData**：类型+值的保留容器，支持值类型/引用类型/null/数组/struct
+- **TypedData**：只读 partial struct，通过 Source Generator 生成类型化工厂与 IEquatable 实现，值类型语义，内联存储
 - **SndMetaData**：实体元数据的深拷贝，Node/Strategy/Data 三大模块全部正确复制
 
 ## 测试文件清单
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `TypedDataTests.cs` | TypedData 构造、类型保留、值/引用类型行为、独立实例 |
+| `TypedDataTests.cs` | TypedData 构造、类型保留、值/引用类型行为、struct 值语义 |
+| `TypedDataGeneratedTests.cs` | Source Generator 输出验证：生成的工厂方法、IEquatable 实现、显式转换 |
+| `TypedDataPerformanceTests.cs` | 零分配基准测试：struct 内联存储与装箱消除 |
 | `SndMetaDataTests.cs` | SndMetaData 默认值、DeepClone 深拷贝、修改不影响原对象 |
 
 ## TypedDataTests 测试详情
@@ -23,8 +25,8 @@
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| `Constructor_StoresTypeAndValue` | `new TypedData(typeof(int), 42)` 正确存储 Type 和 Data | snd-entity-model: TypedData |
-| `NullValue_IsAllowed` | `new TypedData(typeof(string), null)` 允许 null 值 | — |
+| `Constructor_StoresTypeAndValue` | 工厂/显式转换正确存储 Type 和 Data | snd-entity-model: TypedData |
+| `NullValue_IsAllowed` | 工厂/显式转换允许 null 值 | — |
 | `WithIntValue_PreservesExactType` | int 类型保留为 typeof(int) | snd-entity-model: TypedData |
 | `WithFloatValue_PreservesExactType` | float 类型保留为 typeof(float) | snd-entity-model: TypedData |
 | `WithDoubleValue_PreservesExactType` | double 类型保留 | snd-entity-model: TypedData |
@@ -41,8 +43,8 @@
 
 | 测试方法 | 边界条件 | 预期行为 |
 |---------|---------|---------|
-| `TwoInstances_SameTypeAndSameValue_HaveDifferentReferences` | 相同值的两个 TypedData 是不同引用 | 不共享状态 |
-| `TwoInstances_DifferentType_HaveDifferentReferences` | 不同值的两个 TypedData 是不同引用 | 不共享状态 |
+| `TwoInstances_SameTypeAndSameValue_AreEqual` | 相同值的两个 TypedData 值相等（struct 值语义） | 值相等，无独立引用 |
+| `TwoInstances_DifferentType_AreNotEqual` | 不同类型的两个 TypedData 值不等 | 类型不同的 struct 互不相等 |
 
 ## SndMetaDataTests 测试详情
 
@@ -70,7 +72,7 @@
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| TypedData 自定义 Equality（若实现）的测试 | TypedData 是纯数据载体，是否需要值相等语义 | TypedData |
+| TypedData IEquatable<TypedData> 的测试 | TypedData 通过 Source Generator 实现 IEquatable<TypedData>，需验证值相等语义 | TypedData |
 | SndMetaData 非常大量策略索引时的性能 | 极端数据量 | — |
 
 ---

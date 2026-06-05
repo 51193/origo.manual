@@ -15,15 +15,15 @@
 ## 实现细节
 
 - **键校验**：`Set` 和 `TryGet` 均对空/null 键做防御性检查，抛出 `ArgumentException`
-- **Set**：将值包装为 `new TypedData(typeof(T), value)` 存入字典，泛型类型在编译期捕获
-- **TryGet**：先查找 `TypedData`，再通过模式匹配 `typedData.Data is T value` 校验运行时类型
+- **Set**：通过 `TypedDataFactory<T>.Create(value)` 创建值类型实例存入字典，泛型类型在编译期捕获
+- **TryGet**：先查找 `TypedData`，再通过 `TypedDataFactory<T>.TryExtract(td, out var value)` 提取并校验运行时类型
 - **SerializeAll/DeserializeAll**：全量导出/导入，不涉及增量合并。`DeserializeAll` 先清空再填充，替换语义
 
 ## 设计决策
 
-### 为什么是 sealed
+### 为什么是值类型
 
-`Blackboard` 是纯数据容器，不应通过继承扩展行为。需要定制黑板行为的场景应通过组合（包装新的 `IBlackboard` 实现）或装饰器模式实现，而非继承。
+`TypedData` 是 `readonly partial struct`，作为值类型在字典中内联存储，避免堆分配和 GC 压力。结构体只包含类型元数据句柄和实际数据的 `object` 引用，拷贝开销极低。需要定制黑板行为的场景应通过组合（包装新的 `IBlackboard` 实现）或装饰器模式实现，而非继承。
 
 ### 为什么使用 Ordinal 比较
 

@@ -44,8 +44,8 @@ DataSourceTests 是该能力最大的测试文件（1491 行）。
 | `MapCodec_Encode_SkipsNullValues` | Map 编码跳过 null 值 | DataSource |
 | `Registry_RegisterAndGet_RoundTrips` | Converter 注册→获取→Write→Read 往返 | DataSource |
 | `PrimitiveConverters_RoundTrip_AllTypes` | string/int/long/float/double/bool 往返 | DataSource |
-| `TypedDataConverter_RoundTrip_IntValue` | TypedData<int> 往返 | DataSource |
-| `TypedDataConverter_RoundTrip_NullData` | TypedData<string, null> 往返 | DataSource |
+| `TypedDataConverter_RoundTrip_IntValue` | TypedData<int> 往返，struct 语义下同一转换器无损序列化 | DataSource |
+| `TypedDataConverter_RoundTrip_NullData` | TypedData<string, null> 往返，struct 内 null 数据自然支持 | DataSource |
 | `SndMetaDataConverter_RoundTrip_FullStructure` | SndMetaData 全字段往返 | DataSource |
 | `SndMetaDataConverter_RoundTrip_NullSubStructures` | null 子结构往返 | DataSource |
 | `BlackboardDataConverter_RoundTrip_MixedEntries` | 黑板数据字典往返 | DataSource |

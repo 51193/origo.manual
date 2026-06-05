@@ -78,18 +78,31 @@ public class DamageTickStrategy : EntityStrategyBase
 
 ### TypedData
 
-Core 的核心类型保留机制：
+`readonly partial struct`，通过判别联合实现值类型内联存储。编译时由 Source Generator 为注册类型生成强类型访问器。
 
 ```csharp
-public sealed class TypedData {
+public readonly partial struct TypedData : IEquatable<TypedData>
+{
+    internal byte _kind;          // 0=Null, 1=Int32, 2=Single, ...
+    internal long _inlineBits;    // 值类型 ≤ 8 字节内联存储
+    internal object? _ref;        // 引用类型或大值类型兜底
+
     public Type DataType { get; }  // 如 typeof(int)
-    public object? Data { get; }   // 如 42
+    public object? Data { get; }   // 按需装箱，用于序列化边界
+    public bool IsNull { get; }
+
+    // Source Generator 生成的强类型访问器
+    public bool TryGetInt32(out int value);
+    public bool TryGetSingle(out float value);
+    public bool TryGetString(out string? value);
+    // ... 每种注册类型一个 TryGetXxx
 }
 ```
 
-- **存储时**：`new TypedData(typeof(T), value)` 在泛型 SetData 中自动捕获类型
-- **读取时**：`typedData.Data is T value` 模式匹配校验运行时类型
-- **序列化时**：`TypedDataConverter` 将类型转字符串，通过 `TypeStringMapping` 双向映射
+- **存储时**：泛型 `SetData<T>` 通过 `TypedDataFactory<T>.Create(value)` 将值内联写入 `_inlineBits`，零装箱零堆分配
+- **读取时**：`TypedDataFactory<T>.TryExtract(td, out var value)` 通过判别值分发，直接字段读取，无 `is T` 拆箱开销
+- **序列化时**：`TypedData.Data` 属性按需装箱值，`TypedDataConverter` 将类型转字符串并通过 `TypeStringMapping` 双向映射
+- **未注册类型**：走 `_ref` 兜底路径，性能等同 class 方案
 
 ### 安全读取
 
@@ -104,10 +117,12 @@ if (found) { /* 使用 hp */ }
 
 ### 数据观察者
 
+订阅回调接收 `TypedData` 参数，使用强类型访问器读取值：
+
 ```csharp
-entity.Subscribe("hp", (target, oldValue, newValue) =>
+entity.Subscribe("hp", (target, observer, oldValue, newValue) =>
 {
-    if (newValue is int hp && hp <= 0)
+    if (newValue.TryGetInt32(out var hp) && hp <= 0)
         ctx.RequestSaveGame("entity_died");
 });
 ```

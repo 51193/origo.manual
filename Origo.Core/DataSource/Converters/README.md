@@ -42,7 +42,9 @@
 
 ### TypedDataConverter
 
-特殊转换器，携带类型元数据。读取时从 `"type"` 字段获取 CLR 类型名，通过 `TypeStringMapping` 解析为 `Type`，再用注册表中的对应转换器读取 `"data"` 字段。这是序列化系统保持类型信息的核心机制。
+`TypedData` 是一个 struct（值类型），携带类型元数据。该转换器从 JSON 中读写 `"type"` 和 `"data"` 两个字段。读取时从 `"type"` 字段获取 CLR 类型名，通过 `TypeStringMapping` 解析为 `Type`，再用注册表中的对应转换器读取 `"data"` 字段。这是序列化系统保持类型信息的核心机制。
+
+序列化边界：写入时 `TypedData.Data` 将内联值装箱为 `object`；读取时对已注册类型通过 `FromObject` 解除装箱还原内联值。未注册类型的值仍需经过 `object?` 装箱穿越序列化边界。
 
 当指定的具体类型在注册表中无精确匹配时（例如存储了 `ReadOnlyDictionary<string,string>` 但只注册了 `IReadOnlyDictionary<string,string>` 的转换器），`DataSourceConverterRegistry` 会自动沿基类链和接口链回退查找。这允许以接口类型注册转换器，同时支持存储其具体实现类型。
 

@@ -21,6 +21,8 @@
 - **Serialize**：`blackboard.SerializeAll()` → `registry.Write<Dict<string,TypedData>>()` → DataSourceNode
 - **DeserializeInto**：DataSourceNode → `registry.Read<Dict<string,TypedData>>()` → `blackboard.DeserializeAll(dict)`
 
+`TypedData` 为 struct（值类型），字典中直接存储其内联值，避免额外堆分配。
+
 依赖 `BlackboardDataConverter`（注册在 DataSource.Converters 中）。
 
 ### SndSceneSerializer

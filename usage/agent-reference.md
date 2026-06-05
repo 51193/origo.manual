@@ -23,9 +23,9 @@ public interface ISndDataAccess
     void SetData<T>(string name, T value);
     T GetData<T>(string name);
     (bool found, T? value) TryGetData<T>(string name);
-    void Subscribe(string name, Action<ISndEntity, ISndEntity, object?, object?> callback,
-        Func<ISndEntity, ISndEntity, object?, object?, bool>? filter = null);
-    void Unsubscribe(string name, Action<ISndEntity, ISndEntity, object?, object?> callback);
+    void Subscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback,
+        Func<ISndEntity, ISndEntity, TypedData, TypedData, bool>? filter = null);
+    void Unsubscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback);
 }
 
 public interface ISndEntityLifecycleAccess
@@ -37,10 +37,10 @@ public interface ISndEntityLifecycleAccess
 public interface ISndObservation
 {
     void ObserveData(ISndEntity target, string dataName,
-        Action<ISndEntity, ISndEntity, object?, object?> callback,
-        Func<ISndEntity, ISndEntity, object?, object?, bool>? filter = null);
+        Action<ISndEntity, ISndEntity, TypedData, TypedData> callback,
+        Func<ISndEntity, ISndEntity, TypedData, TypedData, bool>? filter = null);
     void UnobserveData(ISndEntity target, string dataName,
-        Action<ISndEntity, ISndEntity, object?, object?> callback);
+        Action<ISndEntity, ISndEntity, TypedData, TypedData> callback);
     void ObserveLifecycle(ISndEntity target,
         Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
     void UnobserveLifecycle(ISndEntity target,
@@ -261,6 +261,7 @@ OrigoAutoHost._Ready()
 
 ```csharp
 using Origo.Core.Abstractions.Entity;
+using Origo.Core.Snd.Metadata;
 using Origo.Core.Snd.Strategy;
 
 [StrategyIndex("example.simple_health", Priority = 6205)]
@@ -272,7 +273,7 @@ public class SimpleHealthStrategy : EntityStrategyBase
         entity.SetData("max_hp", 100);
 
         entity.Subscribe("hp", OnHpChanged,
-            filter: (t, obs, old, @new) => @new is int n && n <= 0);
+            filter: (t, obs, old, @new) => @new.TryGetInt32(out var n) && n <= 0);
     }
 
     public override void Process(ISndEntity entity, double delta, ISndContext ctx)
@@ -284,7 +285,7 @@ public class SimpleHealthStrategy : EntityStrategyBase
     }
 
     private static void OnHpChanged(ISndEntity target, ISndEntity observer,
-        object? oldValue, object? newValue)
+        TypedData oldValue, TypedData newValue)
     {
     }
 }
@@ -297,9 +298,9 @@ public class SimpleHealthStrategy : EntityStrategyBase
 public sealed class EnemyWatcherStrategy : EntityStrategyBase
 {
     private static void OnBossHpChanged(ISndEntity target, ISndEntity observer,
-        object? oldVal, object? newVal)
+        TypedData oldVal, TypedData newVal)
     {
-        observer.SetData("boss_hp", (int)newVal!);
+        observer.SetData("boss_hp", newVal.AsInt32());
     }
 
     private static void OnBossLifecycle(ISndEntity target, ISndEntity observer,

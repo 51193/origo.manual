@@ -29,7 +29,7 @@
 | `SetData<T>(name, value)` | 写入命名数据 |
 | `GetData<T>(name)` | 直接读取；键不存在时抛异常 |
 | `TryGetData<T>(name)` | 安全读取，返回 `(found, value?)` |
-| `Subscribe(name, callback, filter?)` | 订阅本实体数据变更。等价于 `ObserveData(this, ...)`，走统一内部链路。回调签名 `(target, observer, oldValue, newValue)` |
+| `Subscribe(name, callback, filter?)` | 订阅本实体数据变更。等价于 `ObserveData(this, ...)`，走统一内部链路。回调签名 `(target, observer, oldValue, newValue)`，`oldValue` 和 `newValue` 为 `TypedData` 结构体 |
 | `Unsubscribe(name, callback)` | 取消数据订阅。`callback` 必须与 `Subscribe` 调用时的委托实例相同（方法引用），lambda 表达式每次编译产生不同实例，会导致退订失败 |
 
 ### ISndNodeAccess
@@ -67,7 +67,7 @@
 
 | 成员 | 说明 |
 |------|------|
-| `ObserveData(target, dataName, callback, filter?)` | 观察目标实体的数据变更。回调签名 `(target, observer, oldValue, newValue)` |
+| `ObserveData(target, dataName, callback, filter?)` | 观察目标实体的数据变更。回调签名 `(target, observer, oldValue, newValue)`，`oldValue` 和 `newValue` 为 `TypedData` 结构体 |
 | `UnobserveData(target, dataName, callback)` | 取消对目标实体的数据观察。`callback` 必须与 `ObserveData` 相同的委托实例 |
 | `ObserveLifecycle(target, callback)` | 观察目标实体的生命周期事件。回调签名 `(target, observer, lifecycleEvent)` |
 | `UnobserveLifecycle(target, callback)` | 取消对目标实体的生命周期观察。`callback` 必须与 `ObserveLifecycle` 相同的委托实例 |

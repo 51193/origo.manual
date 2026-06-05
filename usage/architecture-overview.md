@@ -58,7 +58,7 @@ Strategy + Node + Data
 |------|------|------|
 | **Strategy** | 行为逻辑，无实例可变状态 | 策略池（全局共享） |
 | **Node** | 表现层映射，由引擎实现驱动 | 适配层（GodotNodeHandle） |
-| **Data** | 实体可变状态的唯一权威来源 | SndDataManager (TypedData) |
+| **Data** | 实体可变状态的唯一权威来源 | SndDataManager（内联存储 TypedData struct） |
 
 ### 策略池约束
 

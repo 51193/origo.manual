@@ -4,7 +4,7 @@
 
 ## 概述
 
-Core 层的类型-字符串映射基础设施。在 JSON 序列化中，`TypedData` 需要知道值的精确 CLR 类型才能正确反序列化。`TypeStringMapping` 维护类型与稳定字符串标识符的双向映射，避免在 JSON 中嵌入完整类型名。
+Core 层的类型-字符串映射基础设施。在 JSON 序列化中，`TypedData` 需要知道值的精确 CLR 类型才能正确反序列化。对于已注册类型，类型识别码（kind discriminator）通过编译期生成的查找表提供 `Type`；对于未注册类型，则通过 `_ref?.GetType()` 获取运行时类型。`TypeStringMapping` 维护类型与稳定字符串标识符的双向映射，避免在 JSON 中嵌入完整类型名。
 
 ## 包含文件
 
