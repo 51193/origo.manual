@@ -16,13 +16,14 @@ Origo 框架的使用方（游戏开发者、AI Agent）文档。按照使用场
 | [state-machine](state-machine.md) | 策略开发者 | 字符串栈状态机、Push/Pop 钩子、持久化 |
 | [console-commands](console-commands.md) | 调试者 | 内置控制台命令完整参考 |
 | [strategy-testing](strategy-testing.md) | 测试编写者 | StrategyTestScenario 使用指南 |
+| [capabilities](capabilities.md) | 所有用户 | 框架完整能力清单，按功能域索引，快速了解 Origo 能做什么 |
 | [agent-reference](agent-reference.md) | AI Agent | 完整运行时参考：接口签名、生命周期时间线、策略编写模板 |
 
 ## 推荐阅读路径
 
 ```
 新用户:
-  quick-start → architecture-overview → snd-entity-model
+  quick-start → capabilities（浏览全部能力）→ architecture-overview → snd-entity-model
 
 策略开发者:
   snd-entity-model → state-machine → strategy-testing → strategy-testing (agent-reference)
