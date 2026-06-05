@@ -199,13 +199,16 @@ Origo.Core/           # 平台无关核心 (~90 个 .cs 文件)
 ├── StateMachine/     # 字符串栈状态机
 └── Testing/          # 策略测试框架
 
-Origo.GodotAdapter/   # Godot 4 适配层 (~17 个 .cs 文件)
+Origo.SourceGeneration/  # Roslyn 源码生成器 (~1 个 .cs 文件)
+└── TypedDataGenerator.cs  # Home/Adapter 双模式代码生成
+
+Origo.GodotAdapter/   # Godot 4 适配层 (~18 个 .cs 文件)
 ├── Bootstrap/        # 启动编排
 ├── Console/          # Godot 命令
 ├── FileSystem/       # Godot 文件系统
 ├── Logging/          # Godot 日志
 ├── Serialization/    # Godot 类型序列化
-└── Snd/              # Godot 实体 + 管理器
+└── Snd/              # Godot 实体 + 管理器 + TypedDataInitializer
 
 Origo.ConsoleBridge/  # TCP 远程控制台（~2 个 .cs 文件）
 ```

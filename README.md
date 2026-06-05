@@ -52,6 +52,7 @@ Root (this file)
 | 模块 | 位置 | 说明 |
 |------|------|------|
 | **Origo.Core** | [README](Origo.Core/README.md) | 平台无关核心：SND 实体系统、运行时、持久化、状态机 |
+| **Origo.SourceGeneration** | [README](Origo.SourceGeneration/README.md) | Roslyn 增量源码生成器：TypedData 多层内联存储 + 强类型访问器 |
 | **Origo.GodotAdapter** | [README](Origo.GodotAdapter/README.md) | Godot 4 适配层：文件系统、日志、序列化、启动 |
 | **Origo.ConsoleBridge** | [README](Origo.ConsoleBridge/README.md) | TCP 远程控制台桥接（端口 9876） |
 | **使用文档** | [README](usage/README.md) | 从快速入门到深度参考的使用指南 |
@@ -92,6 +93,7 @@ Root (this file)
 | 使用控制台命令 | [usage/console-commands](usage/console-commands.md) |
 | 查看接口签名 | [usage/agent-reference](usage/agent-reference.md) |
 | 理解 Core 模块实现 | [Origo.Core/](Origo.Core/README.md) |
+| 理解 Source Generation | [Origo.SourceGeneration/](Origo.SourceGeneration/README.md) |
 | 理解 Godot 适配 | [Origo.GodotAdapter/](Origo.GodotAdapter/README.md) |
 
 ## 版本

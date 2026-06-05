@@ -15,8 +15,9 @@
 | 文件 | 验证侧重点 |
 |------|-----------|
 | `TypedDataTests.cs` | TypedData 构造、类型保留、值/引用类型行为、struct 值语义 |
-| `TypedDataGeneratedTests.cs` | Source Generator 输出验证：生成的工厂方法、IEquatable 实现、显式转换 |
-| `TypedDataPerformanceTests.cs` | 零分配基准测试：struct 内联存储与装箱消除 |
+| `TypedDataGeneratedTests.cs` | Source Generator 输出验证：生成的工厂方法、IEquatable 实现、显式转换、多层 KindResolver 链、ObjectConverter fallback |
+| `TypedDataPerformanceTests.cs` | 零分配基准测试：struct 内联存储与装箱消除、实体帧模拟 |
+| `TypedDataDispatchPerformanceTests.cs` | 分发性能基准：Kind 检查 vs `is T` 模式匹配、工厂 TryExtract vs `is T`、ToObject switch vs Data 属性、混合类型分发 |
 | `SndMetaDataTests.cs` | SndMetaData 默认值、DeepClone 深拷贝、修改不影响原对象 |
 
 ## TypedDataTests 测试详情

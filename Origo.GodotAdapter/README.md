@@ -15,7 +15,8 @@
 | [FileSystem](FileSystem/README.md) | Godot 文件系统 | IFileSystem 实现：FileAccess/DirAccess + res:// 和 user:// 支持 |
 | [Logging](Logging/README.md) | Godot 日志 | ILogger 实现：委托注入 GD.Print/PushWarning/PushError |
 | [Serialization](Serialization/README.md) | Godot 类型序列化 | 14 种上帝类型 → DataSourceNode 转换器 |
-| [Snd](Snd/README.md) | Godot SND 实体 | ISndSceneHost 实现：GodotSndManager + GodotSndEntity + PackedSceneNodeFactory |
+| [Snd](Snd/README.md) | Godot SND 实体 | ISndSceneHost 实现：GodotSndManager + GodotSndEntity + PackedSceneNodeFactory + TypedDataInitializer |
+| — | TypedData 内联 | Source Generator 为 14 种 Godot 类型生成扩展方法与 Kind 注册 |
 
 ## 启动流程
 
@@ -65,6 +66,15 @@ OrigoDefaultEntry._Ready()
 | `INodeFactory` | `GodotPackedSceneNodeFactory` | [Snd/](Snd/README.md) |
 | `INodeHandle` | `GodotNodeHandle` | [Snd/](Snd/README.md) |
 | `IConsoleCommandHandler` | `CommandHandlerBase` + 子类 | [Console/](Console/README.md) |
+
+## TypedData 多层内联
+
+Origo.GodotAdapter 引用 `Origo.SourceGeneration` 源码生成器，通过 `[assembly: SndInlineTypes(startKind: 128, ...)]` 在程序集中注册 14 种 Godot 引擎类型。编译时 SG 自动生成扩展方法（`TryGetVector2` / `AsVector3` 等）、`[ModuleInitializer]` 注册逻辑和 KindResolver/Converter 桥接。
+
+- **TypedDataInitializer**（`Origo.GodotAdapter.Snd`）：公开的 `IsLoaded` 入口，访问此类型触发 GodotAdapter 程序集加载，确保所有 `[ModuleInitializer]` 执行完毕。测试项目通过此类强制加载适配层。
+- **Kind 范围 128–141**：不与 Core 层 1–13 冲突，确保 Core 创建的 `(TypedData)42` 不会在 GodotAdapter 中被误解析为 `Vector2`。
+
+详见 [Origo.SourceGeneration 文档](../../Origo.SourceGeneration/README.md)。
 
 ---
 [↑ 回到 Origo.manual](../../README.md)

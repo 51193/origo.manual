@@ -6,6 +6,8 @@
 
 Godot 引擎类型在 Origo 序列化系统中的注册。向 Core 的 `TypeStringMapping` 和 `DataSourceConverterRegistry` 添加 14 种 Godot 内置类型的支持，使 `Vector2`、`Vector3`、`Color`、`Transform3D` 等引擎类型能够在存档 JSON 中正确序列化/反序列化。
 
+此外，Origo.GodotAdapter 通过 `[assembly: SndInlineTypes(startKind: 128, ...)]` 向 TypedData 多层内联系统注册这 14 种类型，使运行时 `GetKindForType(typeof(Vector3))` 返回确定的 kind 值（130），避免走 `is T` 运行时模式匹配的兜底路径。详见 [Origo.SourceGeneration](../../Origo.SourceGeneration/README.md)。
+
 ## 包含文件
 
 | 文件 | 职责 |

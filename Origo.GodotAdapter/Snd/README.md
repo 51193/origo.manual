@@ -14,6 +14,7 @@ SND 实体体系在 Godot 引擎中的具体实现。将 Core 的抽象 `ISndEnt
 | `GodotSndEntity.cs` | Godot 实体：将 Core SndEntity 绑定到 Godot Node 生命周期，委托所有 ISndEntity 调用 |
 | `GodotPackedSceneNodeFactory.cs` | INodeFactory 实现：通过 PackedScene.Instantiate 创建 Godot Node |
 | `GodotNodeHandle.cs` | INodeHandle 实现：包装 Godot.Node，提供 Free / SetVisible |
+| `TypedDataInitializer.cs` | 程序集加载强制入口：访问 `IsLoaded` 属性触发所有 `[ModuleInitializer]` 执行 |
 
 ## 模块详解
 
