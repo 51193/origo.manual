@@ -11,7 +11,8 @@
 ### ISndEntity
 
 ```csharp
-public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess
+public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess,
+    ISndActiveStrategyAccess, ISndEntityLifecycleAccess, ISndObservation
 {
     string Name { get; }
     bool IsPendingKill { get; }
@@ -22,9 +23,28 @@ public interface ISndDataAccess
     void SetData<T>(string name, T value);
     T GetData<T>(string name);
     (bool found, T? value) TryGetData<T>(string name);
-    void Subscribe(string name, Action<ISndEntity, object?, object?> callback,
-        Func<ISndEntity, object?, object?, bool>? filter = null);
-    void Unsubscribe(string name, Action<ISndEntity, object?, object?> callback);
+    void Subscribe(string name, Action<ISndEntity, ISndEntity, object?, object?> callback,
+        Func<ISndEntity, ISndEntity, object?, object?, bool>? filter = null);
+    void Unsubscribe(string name, Action<ISndEntity, ISndEntity, object?, object?> callback);
+}
+
+public interface ISndEntityLifecycleAccess
+{
+    void SubscribeLifecycle(Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
+    void UnsubscribeLifecycle(Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
+}
+
+public interface ISndObservation
+{
+    void ObserveData(ISndEntity target, string dataName,
+        Action<ISndEntity, ISndEntity, object?, object?> callback,
+        Func<ISndEntity, ISndEntity, object?, object?, bool>? filter = null);
+    void UnobserveData(ISndEntity target, string dataName,
+        Action<ISndEntity, ISndEntity, object?, object?> callback);
+    void ObserveLifecycle(ISndEntity target,
+        Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
+    void UnobserveLifecycle(ISndEntity target,
+        Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
 }
 
 public interface ISndNodeAccess
@@ -44,6 +64,11 @@ public interface ISndActiveStrategyAccess
     void AddActiveStrategy(string index);
     void RemoveActiveStrategy(string index);
     object? InvokeStrategy(string strategyIndex, object? input = null);
+}
+
+public enum EntityLifecycleEvent
+{
+    AfterSpawn, AfterLoad, BeforeSave, BeforeQuit, BeforeDead
 }
 ```
 
@@ -247,7 +272,7 @@ public class SimpleHealthStrategy : EntityStrategyBase
         entity.SetData("max_hp", 100);
 
         entity.Subscribe("hp", OnHpChanged,
-            filter: (e, old, @new) => @new is int n && n <= 0);
+            filter: (t, obs, old, @new) => @new is int n && n <= 0);
     }
 
     public override void Process(ISndEntity entity, double delta, ISndContext ctx)
@@ -255,15 +280,52 @@ public class SimpleHealthStrategy : EntityStrategyBase
         var (found, hp) = entity.TryGetData<int>("hp");
         if (!found) return;
 
-        // 持续扣血示例
         entity.SetData("hp", hp - 1);
     }
 
-    private void OnHpChanged(ISndEntity entity, object? oldValue, object? newValue)
+    private static void OnHpChanged(ISndEntity target, ISndEntity observer,
+        object? oldValue, object? newValue)
     {
-        // HP 归零时触发存档
-        var ctx = entity.GetData<ISndContext>("__context__");
-        ctx.RequestSaveGame("player_died");
+    }
+}
+```
+
+## 跨实体观察示例
+
+```csharp
+[StrategyIndex("enemy.watcher")]
+public sealed class EnemyWatcherStrategy : EntityStrategyBase
+{
+    private static void OnBossHpChanged(ISndEntity target, ISndEntity observer,
+        object? oldVal, object? newVal)
+    {
+        observer.SetData("boss_hp", (int)newVal!);
+    }
+
+    private static void OnBossLifecycle(ISndEntity target, ISndEntity observer,
+        EntityLifecycleEvent evt)
+    {
+        if (evt == EntityLifecycleEvent.BeforeDead)
+            observer.SetData("boss_alive", false);
+    }
+
+    public override void AfterLoad(ISndEntity entity, ISndContext ctx)
+    {
+        var boss = ctx.CurrentSession?.SceneHost.FindByName("boss");
+        if (boss is null) return;
+
+        entity.ObserveData(boss, "hp", OnBossHpChanged);
+        entity.ObserveLifecycle(boss, OnBossLifecycle);
+    }
+
+    // 提前取消观察（如不再需要）。框架在 entity Teardown 时自动清理传出订阅，通常无需手动调用。
+    public override void BeforeRemove(ISndEntity entity, ISndContext ctx)
+    {
+        var boss = ctx.CurrentSession?.SceneHost.FindByName("boss");
+        if (boss is null) return;
+
+        entity.UnobserveData(boss, "hp", OnBossHpChanged);
+        entity.UnobserveLifecycle(boss, OnBossLifecycle);
     }
 }
 ```
@@ -321,6 +383,9 @@ public void Core_ContainsNoGodotReferences()
 4. **BeforeSave 中修改数据会被写入存档** — 这是设计意图，用于刷新
 5. **延迟动作在 Process 后自动执行** — RunFrame 中已经处理
 6. **后台会话无渲染节点** — 不做依赖节点的操作
+7. **Subscribe / Unsubscribe 须传相同委托实例** — 方法引用（method group）保证一致性。lambda 每次编译产生不同实例，会导致退订失败
+8. **ObserveData / ObserveLifecycle 也须传相同委托实例** — 同理。策略中建议定义为 `static` 方法并用方法引用
+9. **观察方 Teardown 自动清理传出订阅** — 策略通常无需手动调用 Unobserve，框架在实体死亡时统一处理
 
 ## 相关文档
 

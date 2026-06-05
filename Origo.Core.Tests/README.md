@@ -39,6 +39,7 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | 测试替身 | [Abstractions.md](Abstractions.md) | TestFileSystem / NullLogger / TestFileSystemAdditional 的正确性 |
 | 黑板 | [Blackboard.md](Blackboard.md) | Set/Get/TryGet/Clear/SerializeAll/DeserializeAll 全生命周期 + 键校验 |
 | 数据观察者 | [DataObserver.md](DataObserver.md) | Subscribe/Unsubscribe/Notify/多订阅者/重入安全/Clear |
+| 跨实体观察 | 测试文件 `CrossEntityObserverTests.cs` | 统一观察模型：自身/跨实体数据观察、自身/跨实体生命周期观察、Teardown 自动清理、批量场景、生命周期事件通知顺序 |
 | 数据源 | [DataSource.md](DataSource.md) | DataSourceNode 创建/访问/懒展开、JSON 编解码、Map 编解码、类型转换器注册、TypedData 转换器、SndMetaData 转换器、IDisposable |
 | 日志 | [Logging.md](Logging.md) | LogMessageBuilder 结构化构建（prefix/suffix/elapsed） |
 | 随机数 | [Random.md](Random.md) | XorShift128+ 种子确定性、噪声图生成 |

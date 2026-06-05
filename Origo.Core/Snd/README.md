@@ -35,6 +35,10 @@ SND（Strategy + Node + Data）实体系统的完整实现。这是 Origo 的核
 
 ```
 SndEntity (聚合根)
+├── 统一观察系统
+│   ├── 传出数据订阅追踪 (List<OutgoingDataSub>)
+│   ├── 传出生命周期订阅追踪 (List<OutgoingLifecycleSub>)
+│   └── 传入生命周期观察者 (List<Action<...>>)
 ├── SndDataManager
 │   ├── DataObserverManager (订阅/通知)
 │   └── Dictionary<string, TypedData> (数据存储)
@@ -60,13 +64,25 @@ SndEntity (聚合根)
 7. **BeforeQuit** — 实体正常退出前
 8. **BeforeDead** — 实体销毁前
 
-> **批量生命周期（batch orchestration）：** `SpawnEntity`、`RecoverFromMetaList`、`RemoveAllEntities` 为整体操作，不再逐实体触发 AfterSpawn / AfterLoad / BeforeDead 钩子。钩子统一由上层（SaveContext.BuildSndScene / RecoverSndScene、SessionRun 生命周期）在批量操作完成后集中触发。
+> **批量生命周期（batch orchestration）：** `SpawnEntity`、`RecoverFromMetaList`、`RemoveAllEntities` 为整体操作，不再逐实体触发 AfterSpawn / AfterLoad / BeforeDead 钩子。钩子统一由上层（SaveContext.BuildSndScene / RecoverSndScene、SessionRun 生命周期）在批量操作完成后集中触发。每个钩子方法中先通知生命周期观察者（外部实体），再触发策略钩子（自身）。
+
+## 观察系统
+
+SND 实体提供统一的观察模式，自身订阅和跨实体观察共享内部链路：
+
+- **自身数据订阅**：`entity.Subscribe("hp", callback)` — 等价于 `entity.ObserveData(entity, "hp", callback)`
+- **自身生命周期订阅**：`entity.SubscribeLifecycle(callback)` — 等价于 `entity.ObserveLifecycle(entity, callback)`
+- **跨实体观察**：`observer.ObserveData(target, "hp", callback)` — 观察目标实体的数据变更
+- **跨实体生命周期观察**：`observer.ObserveLifecycle(target, callback)` — 观察目标实体的生命周期事件
+
+所有观察关系在观察方实体 Teardown 时自动清理。公开接口见 [ISndObservation](../../Abstractions/Entity/README.md#isndobservation)，实现细节见 [SndEntity](Entity/README.md#sndentity聚合根)。
 
 ## 核心原则
 
 - **策略无状态**：策略实例共享，可变状态在实体 Data 中
 - **节点解耦**：Core 不持有引擎节点引用，通过 `INodeHandle` 抽象操作
 - **元数据驱动**：实体的创建/恢复/序列化全部通过 `SndMetaData` 中介
+- **统一观察**：自身订阅与跨实体观察走同一条内部链路，传出订阅自动追踪并在 Teardown 时清理
 
 ---
 [↑ 回到 Origo.Core](../README.md)
