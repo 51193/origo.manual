@@ -12,7 +12,7 @@
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `OrigoRuntimeBasicTests.cs` | OrigoRuntime 构造、SndWorld 创建、控制台注入/未注入、ResetConsoleState、FlushEndOfFrameDeferred |
+| `OrigoRuntimeBasicTests.cs` | OrigoRuntime 构造、SndWorld 创建、控制台注入/未注入、ResetConsoleState、FlushEndOfFrameDeferred、IOrigoFrameDriver.DriveFrame |
 | `ContextBoundaryTests.cs` | SndContext 边界：上下文能力和访问控制 |
 | `EntityKillTests.cs` | 实体 Kill/KillAll：标记为待销毁、帧末执行 |
 | `SchedulingAndTypeMappingTests.cs` | 调度器与类型映射的集成 |
@@ -28,6 +28,7 @@
 | `OrigoRuntime_WithConsole_CreatesConsole` | 注入控制台输入/输出后 Console 可用 | Runtime: Console |
 | `OrigoRuntime_ResetConsoleState_ClearsInputQueue` | 重置只清理输入队列 | Runtime: Console |
 | `OrigoRuntime_FlushEndOfFrameDeferred_ExecutesDeferredActions` | Business 和 System 延迟动作全部执行 | Scheduling |
+| `OrigoRuntime_DriveFrame_DelegatesToFlushAndConsole` | IOrigoFrameDriver.DriveFrame(delta) 执行业务延迟队列并处理控制台 pending | Abstractions/Runtime: IOrigoFrameDriver |
 
 ## 已知覆盖缺口
 

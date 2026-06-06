@@ -18,6 +18,7 @@
 | 成员 | 说明 |
 |------|------|
 | `ForegroundKey` | 前台会话在管理器中的保留键（常量 `"__foreground__"`） |
+| `CanCreateSessions` | 当前是否可以创建会话。`EmptySessionManager` 返回 `false`。调用方应先检查此属性而非依赖异常捕获 |
 | `ForegroundSession` | 当前前台会话；无活动前台会话时为 null |
 | `Keys` | 所有已挂载会话的键列表 |
 | `TryGet(key)` | 按键获取会话 |
@@ -51,6 +52,10 @@
 `ISessionRun` 的 `GetSessionStateMachines()` 返回 `IStateMachineContainer`（Abstractions 层接口），而非具体的 `StateMachineContainer`。这保持接口的抽象层次一致：策略层通过 `ISessionRun` 获取状态机容器时，不依赖 Runtime 层具体类型。
 
 具体实现 `SessionRun` 保留了内部方法返回 `StateMachineContainer`，供 Runtime 层内部代码（如 `ProgressRun`、`SessionManager`）访问 `FlushAllAfterLoad`、`SerializeToNode` 等容器级方法。
+
+### 为什么添加 CanCreateSessions 属性
+
+`EmptySessionManager`（Null Object 模式）在 `ProgressRun` 未建立时作为占位实例。它的 `CreateBackgroundSession` 抛出 `InvalidOperationException`，违反了 Liskov 替换原则：通过 `ISessionManager` 接口使用 `EmptySessionManager` 的消费者必须知道具体类型才能避免异常。添加 `CanCreateSessions` 属性让消费者可以在调用前检查能力，`EmptySessionManager` 安全返回 `false`。
 
 ---
 

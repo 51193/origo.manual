@@ -4,14 +4,14 @@
 
 ## 概述
 
-定义抽象引擎节点操作接口体系。Core 层通过 `INodeHandle` 触发基础节点行为（可见性、释放），通过 `INodeFactory` 创建节点实例，通过 `INodeHost`（internal）管理节点的恢复与导出。所有接口均不暴露具体引擎类型。
+定义抽象引擎节点操作接口体系。Core 层通过 `INodeHandle` 触发基础节点行为（可见性、释放），通过 `INodeFactory` 创建节点实例，通过 `INodeHost`（internal）管理节点的恢复与导出。所有接口均不暴露具体引擎类型——`INodeHandle` 不包含任何引擎原生节点的引用。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
 | `INodeFactory.cs` | 按资源标识创建节点实例 |
-| `INodeHandle.cs` | 抽象节点句柄：Name / Native / Free / SetVisible |
+| `INodeHandle.cs` | 抽象节点句柄：Name / Free / SetVisible |
 | `INodeHost.cs` | internal：节点容器行为——恢复、回收、导出元数据 |
 
 ## 接口详细
@@ -27,7 +27,6 @@
 | 成员 | 说明 |
 |------|------|
 | `Name` | 节点逻辑名 |
-| `Native` | 平台原生对象引用（`object`） |
 | `Free()` | 释放节点资源 |
 | `SetVisible(bool)` | 控制节点可见性 |
 
@@ -47,9 +46,9 @@
 
 `INodeHost` 是 SND 实体内部管理节点的契约，不是对外公开的能力。外部策略代码通过 `ISndEntity`（组合了 `ISndNodeAccess`）访问节点，不需要感知节点容器的恢复/回收生命周期。internal 可见性防止策略代码绕过实体直接操作节点池。
 
-### 为什么 INodeHandle.Native 是 object
+### 为什么 INodeHandle 不暴露原生节点对象
 
-`object` 是 C# 中最通用的类型引用，不引入对 Godot 或其他引擎的依赖。适配层实现时可以安全地将 `Godot.Node` 赋值给 `Native`，Core 层代码不直接访问它。
+Core 层通过 `INodeHandle` 的方法（`Free` / `SetVisible`）操作节点，不持有、不暴露任何引擎特定类型。适配层通过 `SndEntityNodeExtensions.GetNativeNode()`（`Origo.GodotAdapter/Snd/`）安全地将 `INodeHandle` 提取为原生 `Godot.Node`，或通过 `GetNodeFromSnd<T>()` 遍历 Godot 场景树。移除 `Native` 属性消除了 Core 被引擎类型通过 `object` 转型污染的最后一个入口——任何 `(Godot.Node)handle.Native` 的代码现在必须通过适配层扩展方法显式声明引擎依赖。
 
 ---
 [↑ 回到 Abstractions](../README.md)

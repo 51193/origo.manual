@@ -10,10 +10,11 @@ SND 实体体系在 Godot 引擎中的具体实现。将 Core 的抽象 `ISndEnt
 
 | 文件 | 职责 |
 |------|------|
-| `GodotSndManager.cs` | Godot 场景宿主：管理 GodotSndEntity 集合，实现 ISndSceneHost，驱动 Process 帧循环 |
+| `GodotSndManager.cs` | Godot 场景宿主：管理 GodotSndEntity 集合，实现 ISndSceneHost。实体帧处理由 Core 的 `SndRuntime.ProcessAll` 通过 `IOrigoFrameDriver.DriveFrame` 统一驱动 |
 | `GodotSndEntity.cs` | Godot 实体：将 Core SndEntity 绑定到 Godot Node 生命周期，委托所有 ISndEntity 调用 |
 | `GodotPackedSceneNodeFactory.cs` | INodeFactory 实现：通过 PackedScene.Instantiate 创建 Godot Node |
-| `GodotNodeHandle.cs` | INodeHandle 实现：包装 Godot.Node，提供 Free / SetVisible |
+| `GodotNodeHandle.cs` | INodeHandle 实现：包装 Godot.Node，提供 Free / SetVisible / UnsafeGetNode |
+| `SndEntityNodeExtensions.cs` | 适配层便利扩展：`GetNativeNode()`（从 INodeHandle 提取 Godot Node）、`GetNodeFromSnd<T>()`（从 ISndEntity 遍历 Godot 场景树） |
 | `TypedDataInitializer.cs` | 程序集加载强制入口：访问 `IsLoaded` 属性触发所有 `[ModuleInitializer]` 执行 |
 
 ## 模块详解
@@ -24,10 +25,10 @@ SND 实体体系在 Godot 引擎中的具体实现。将 Core 的抽象 `ISndEnt
 
 - **实现 ISndSceneHost**：CreateEntity / LoadFromMetaList / ClearAll（框架内部生命周期操作）/ RequestKillEntity / RemoveEntity / GetEntities / FindByName / ProcessAll。`ClearAll()` 使用 `Free()`（即时释放）而非 `QueueFree()`，因 Core 保证在安全的生命周期时机调用。
 - **实现 ISndContextAttachableSceneHost**：支持运行时切换上下文
-- **_Process(delta)**：Godot 帧循环入口，快照迭代实体 Process
-- **回滚机制**：`LoadFromMetaList` 中若某实体加载失败，回滚释放所有已创建的实体
+- **回滚机制**：`RecoverFromMetaList` 中若某实体加载失败，回滚释放所有已创建的实体
 - **EntityView**：惰性创建 `IReadOnlyList<ISndEntity>` 包装，缓存引用避免重复分配
 - **BuildMetaList()**：调用实体的 `BuildSndMetaData()` 收集元数据
+- **ProcessAll(delta)**：实现 Core 层 `SndRuntime.ProcessAll` 调用的统一入口，维护 `ProcessTickCount` 和 `ProcessDeltaSum` 统计
 
 ### GodotSndEntity
 
@@ -49,8 +50,18 @@ Core `SndEntity` 的 Godot 包装器（`[GlobalClass]`）：
 
 - **Free()** → `_node.Free()`（Godot 即时释放）
 - **SetVisible(bool)** → 根据节点类型（`CanvasItem` 或 `Node3D`）设置对应的 Visible 属性
+- **UnsafeGetNode()** → `internal` — 返回底层 `Godot.Node` 引用，仅供 `SndEntityNodeExtensions.GetNativeNode()` 使用
+
+### SndEntityNodeExtensions
+
+- **GetNativeNode(this INodeHandle)** → 安全地将 `INodeHandle` 转换为原生 `Godot.Node`。仅在 handle 是 `GodotNodeHandle` 时生效，否则返回 null
+- **GetNodeFromSnd<TNode>(this ISndEntity, string)** → 遍历 Godot 场景树按名查找节点并强转为指定类型。仅在 entity 是 `GodotSndEntity` 时生效
 
 ## 设计决策
+
+### 为什么 GodotSndManager 不再拥有 _Process 循环
+
+实体帧处理是 Core 编排职责。`GodotSndManager._Process` 直接遍历实体调用 `ProcessSnd(delta)`，重复了 `SndRuntime.ProcessAll` 的逻辑，绕过了 Core 的正式处理管线。帧处理现在统一由 Core 的 `SndRuntime.ProcessAll(delta)` 通过 `IOrigoFrameDriver.DriveFrame(delta)` 执行。`ProcessTickCount` 和 `ProcessDeltaSum` 移至 `ProcessAll` 中维护。
 
 ### 为什么 GodotSndEntity 使用延迟创建 Core Entity
 

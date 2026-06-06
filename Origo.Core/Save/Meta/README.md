@@ -31,10 +31,10 @@
 
 单方法接口：
 ```csharp
-void Contribute(in SaveMetaBuildContext context, IDictionary<string, string> target);
+IReadOnlyDictionary<string, string> Contribute(in SaveMetaBuildContext context);
 ```
 
-`target` 为可变字典，贡献者向其中添加键值对。`context` 为只读结构体（struct），通过 `in` 传递避免拷贝。
+贡献者返回自己产出的键值对字典，而非修改外部传入的可变字典。多个贡献者的结果由 `SaveMetaMerger` 按注册顺序合并——同名键后者覆盖前者。此设计防止贡献者调用 `target.Clear()` 或 `target.Remove()` 破坏其他贡献者的输出。
 
 ### SaveMetaMapCodec
 
@@ -54,6 +54,10 @@ void Contribute(in SaveMetaBuildContext context, IDictionary<string, string> tar
 ### 为什么贡献者是按序同名覆盖而非去重
 
 不同贡献者可能对同一键有不同视角（如"play_time"，一个贡献者从流程黑板读取，另一个可能从会话黑板）。后注册者的值可能更准确。按序覆盖提供可预测的优先级模型。
+
+### 为什么贡献者返回独立字典而非修改可变 target
+
+原 `void Contribute(context, IDictionary<string, string> target)` 设计中，贡献者持有可变 `target` 引用，可以调用 `Clear()`、`Remove()` 等方法破坏此前其他贡献者的结果。改为返回 `IReadOnlyDictionary<string, string>` 后，每个贡献者只产出自己的键值对，合并（覆盖顺序）由框架的 `SaveMetaMerger` 统一处理——贡献者无法影响彼此的产出。
 
 ### 为什么 SaveMetaBuildContext 是 readonly struct
 

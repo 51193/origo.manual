@@ -10,9 +10,9 @@ Godot 适配层的启动与编排。负责创建完整的运行时栈（`OrigoRu
 
 | 文件 | 职责 |
 |------|------|
-| `OrigoAutoHost.cs` | Godot Node，创建运行时：GodotFileSystem + TypeStringMapping + ConverterRegistry + PersistentBlackboard + ConsoleInput/Output。`_Process` 先调用 `Runtime.FlushEndOfFrameDeferred()` 再调用 `Console.ProcessPending()` |
-| `OrigoDefaultEntry.cs` | 继承 OrigoAutoHost，完成启动编排：策略发现 → SndContext 创建 → 别名/模板加载 → 初始加载 |
-| `OrigoDefaultEntry.Bootstrap.cs` | partial class，`_Ready` 实现：注册命令处理器 → 自动发现策略 → 创建 SndContext → LoadMainMenuEntrySave |
+| `OrigoAutoHost.cs` | Godot Node，创建运行时：GodotFileSystem + TypeStringMapping + ConverterRegistry + PersistentBlackboard + ConsoleInput/Output。`_Process` 委托给 `IOrigoFrameDriver.DriveFrame(delta)` |
+| `OrigoDefaultEntry.cs` | 继承 OrigoAutoHost，持有启动配置属性（`AutoDiscoverStrategies`、`GodotSkipPrefixes`、`SceneAliasMapPath` 等） |
+| `OrigoDefaultEntry.Bootstrap.cs` | partial class，`_Ready` 实现：注册命令处理器 → 创建 SndContext → 调用 `Bootstrap()` |
 | `GodotSndBootstrap.cs` | 工具方法：将 Runtime 依赖和 SessionContext 分步绑定到 GodotSndManager |
 
 ## 启动流程
@@ -32,14 +32,21 @@ OrigoDefaultEntry._Ready()
             ├── new ConsoleOutputChannel()
             └── new OrigoRuntime(...)
        └── sndManager.BindRuntimeDependencies(world, logger)
-  ├── RegisterConsoleCommandHandlers()
-  │    └── new PressButtonCommandHandler(runtime)
-  ├── OrigoAutoInitializer.DiscoverAndRegisterStrategies(...)  // 反射扫描
-  ├── new SndContext(new SndContextParameters(...))
+  ├── RegisterConsoleCommandHandlers()       // 适配层命令处理器
+  ├── new SndContext(new SndContextParameters(...) {  // 传入启动配置
+  │       AutoDiscoverStrategies = ...,
+  │       DiscoverySkipPrefixes = ...,
+  │       SceneAliasMapPath = ...,
+  │       SndTemplateMapPath = ...
+  │   })
   ├── SndManager.BindContext(sndContext)
-  ├── Runtime.SndWorld.LoadSceneAliases(...)
-  ├── Runtime.SndWorld.LoadTemplates(...)
-  └── sndContext.RequestLoadMainMenuEntrySave()
+  └── sndContext.Bootstrap()                 // Core 内部编排：
+
+SndContext.Bootstrap() 内部顺序：
+  1. 策略发现       (OrigoAutoInitializer.DiscoverAndRegisterStrategies)
+  2. 场景别名加载   (SndWorld.LoadSceneAliases)
+  3. SND 模板加载   (SndWorld.LoadTemplates)
+  4. 入口存档加载   (RequestLoadMainMenuEntrySave)
 ```
 
 ## 设计决策
@@ -54,7 +61,11 @@ OrigoDefaultEntry._Ready()
 
 ### 为什么策略发现过滤 Godot 前缀
 
-`OrigoAutoInitializer.DiscoverAndRegisterStrategies` 扫描当前 AppDomain 中所有程序集。Godot 和 GodotSharp 的程序集包含大量非策略类，过滤前缀避免无效扫描和注册错误。
+`OrigoAutoInitializer.DiscoverAndRegisterStrategies` 扫描当前 AppDomain 中所有程序集。Godot 和 GodotSharp 的程序集包含大量非策略类，过滤前缀避免无效扫描和注册错误。此前缀通过 `SndContextParameters.DiscoverySkipPrefixes` 传入 Core，而非在适配层硬编码。
+
+### 为什么启动编排集中在 SndContext.Bootstrap()
+
+适配层不应直接调用 `OrigoAutoInitializer.DiscoverAndRegisterStrategies()`、`LoadSceneAliases()`、`LoadTemplates()`、`RequestLoadMainMenuEntrySave()`。这些是 Core 内部编排操作——策略发现必须在 Core 层执行，别名/模板加载是 Core 配置解析，入口存档加载是 Core 生命周期入口。适配层仅通过 `SndContextParameters` 传入配置参数，`Bootstrap()` 确保这些操作以正确的依赖顺序在正确的层中完成。
 
 ---
 [↑ 回到 Origo.GodotAdapter](../README.md)

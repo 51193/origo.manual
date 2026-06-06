@@ -4,15 +4,24 @@
 
 ## 概述
 
-定义抽象调度接口 `IScheduler`，由宿主环境（Godot 主循环播放、测试驱动）驱动帧或周期的执行。Core 层通过该接口将动作放入延迟队列，后续按帧/周期批量执行。
+定义帧驱动抽象接口。`IOrigoFrameDriver` 是宿主环境与 Core 之间的帧边界——适配层通过 `DriveFrame(delta)` 移交帧控制权，Core 内部按固定顺序编排（实体处理→业务队列→杀实体→系统队列→控制台）。`IScheduler`（已改为 `internal`）是 Core 内部的调度队列接口。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
-| `IScheduler.cs` | 调度核心接口：Enqueue / Tick / Clear |
+| `IOrigoFrameDriver.cs` | 对外暴露的帧边界接口：`DriveFrame(double delta)` |
+| `IScheduler.cs` | **internal** — Core 内部调度队列接口：Enqueue / Tick / Clear |
 
 ## 接口成员
+
+### IOrigoFrameDriver
+
+| 成员 | 说明 |
+|------|------|
+| `DriveFrame(double delta)` | 宿主环境帧边界入口。Core 内部按固定顺序编排：实体帧处理 → 业务延迟队列 → 清理待杀实体 → 系统延迟队列 → 控制台 pump。适配层不应直接调用 `FlushEndOfFrameDeferred` 或 `ProcessPending`，只应调用此方法 |
+
+### IScheduler (internal)
 
 | 方法 | 说明 |
 |------|------|
@@ -22,9 +31,13 @@
 
 ## 设计决策
 
-### 为什么 IScheduler 放在 Abstractions/Runtime 而非 Scheduling
+### 为什么 IOrigoFrameDriver 独立于 IScheduler
 
-`IScheduler` 是对 Core 层可见的抽象契约（`public`），而 `Scheduling/` 下的 `ActionScheduler` 是该契约的具体实现。Abstractions 是 Core 的公共抽象层，Scheduling 是具体模块实现。接口与实现分层分离符合项目架构约定。
+`IScheduler` 是 Core 内部的调度队列接口（已改为 `internal`），供 `OrigoRuntime` 内部子系统使用。`IOrigoFrameDriver` 是对外暴露的帧边界抽象——适配层通过它移交帧控制权，不感知 Core 内部的队列顺序、实体处理管线等编排细节。两接口职责正交：一个管理队列，一个定义帧边界。
+
+### 为什么 IScheduler 是 internal
+
+`IScheduler` 在 Core 层之外没有跨程序集的消费者（唯一实现者是 `internal sealed ActionScheduler`）。将其标记为 `internal` 避免对外暴露出不必要的 API 表面积，符合 public 白名单原则。
 
 ### 为什么不提供取消单个动作的能力
 

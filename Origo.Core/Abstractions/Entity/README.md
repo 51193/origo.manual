@@ -4,7 +4,7 @@
 
 ## 概述
 
-定义 SND 实体的抽象接口体系。所有接口遵循接口隔离原则（ISP），将实体的数据、节点、策略、生命周期、观察五种能力拆分为独立接口，再由 `ISndEntity` 组合统一入口。`IEntityLifecycle` 单独定义，供框架层进行批处理生命周期编排。**此接口为 `internal`，用户代码不可访问。**
+定义 SND 实体的抽象接口体系。所有接口遵循接口隔离原则（ISP），将实体的数据、节点、策略、生命周期、观察五种能力拆分为独立接口，再由 `ISndEntity` 组合统一入口。`IEntityLifecycle` 单独定义，供框架与适配层实体共同实现。
 
 ## 包含文件
 
@@ -17,7 +17,7 @@
 | `ISndEntityLifecycleAccess.cs` | 实体生命周期事件订阅 |
 | `ISndObservation.cs` | 跨实体观察：数据 + 生命周期的统一观察入口 |
 | `ISndEntity.cs` | 组合接口：继承上述六个接口 + `Name` 属性 + `IsPendingKill` |
-| `IEntityLifecycle.cs` | **`internal`** — 框架内部生命周期接口：分阶段恢复/钩子/拆卸方法 |
+| `IEntityLifecycle.cs` | 框架内部生命周期接口：分阶段恢复/钩子/拆卸方法。实现者：`SndEntity`（Core 内存实体）、适配层实体（桥接委托给内部 `SndEntity`） |
 | `EntityLifecycleEvent.cs` | 实体生命周期事件枚举 |
 
 ## 接口详细
@@ -93,9 +93,9 @@ enum EntityLifecycleEvent {
 | `Name { get; }` | 稳定的实体标识名 |
 | `IsPendingKill { get; }` | 标记为待销毁状态。框架在帧末统一执行销毁（业务延迟队列之后、系统延迟队列之前）。策略应在操作实体前通过此标志位判断实体是否仍然存活 |
 
-### IEntityLifecycle（`internal`）
+### IEntityLifecycle
 
-**框架内部使用的接口**，供 `SndRuntime` 和 `SessionRun` 进行两阶段批处理编排。**此接口为 `internal`，业务代码无法访问。**
+**框架内部使用的接口**，供 `SndRuntime` 和 `SessionRun` 进行两阶段批处理编排，也供适配层实体（如 `GodotSndEntity`）实现以桥接委托。业务代码不应直接调用此接口。
 
 | 方法 | 阶段 | 说明 |
 |------|------|------|
@@ -109,7 +109,9 @@ enum EntityLifecycleEvent {
 | `TeardownOnly()` | Phase 3 | 清理全部传出订阅、清空生命周期观察者、释放 Node + Data 资源 |
 | `BuildMetaData()` | 序列化 | 构建元数据（不触发 BeforeSave） |
 
-实现者：`SndEntity`（Core 内存实体）、`GodotSndEntity`（Godot 适配层实体）。
+实现者：`SndEntity`（Core 内存实体）、适配层实体（如 `GodotSndEntity`，桥接委托给内部 `SndEntity`）。
+
+`ISndEntityRawSubscription`（`Origo.Core/Snd/Entity/`）提供原始的 `TypedData` 级订阅接口——`SubscribeDataRaw`、`UnsubscribeDataRaw`、`SubscribeLifecycleRaw`、`UnsubscribeLifecycleRaw`。供框架内部和适配层使用，不暴露给业务策略代码。
 
 ## 设计决策
 
