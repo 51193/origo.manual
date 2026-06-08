@@ -65,6 +65,93 @@
 - [ ] 所有链接是否有效（无 404）？
 - [ ] 设计决策章节是否反映当前设计意图？
 
+## Git 提交消息格式
+
+所有提交必须遵循 Conventional Commits 规范，保持仓库历史可读、可机器解析。
+
+### 基本格式
+
+```
+type: 简述
+
+详细段落，说明变更的**内容**和**原因**，而非实现细节（代码 diff 已经展示了"怎么做"）。
+
+多行正文每行不超过 72 字符，段落之间空一行。
+当变更涉及多个子项目时，使用分组标题。
+```
+
+### 类型（type）
+
+| 类型 | 用途 |
+|------|------|
+| `feat` | 新功能（面向用户或下游库消费者） |
+| `fix` | 缺陷修复 |
+| `refactor` | 不改变外部行为的代码重构 |
+| `perf` | 性能优化 |
+| `docs` | 仅文档变更 |
+| `test` | 仅测试新增或修改 |
+| `chore` | 构建、依赖、版本号等维护性变更 |
+
+### 简述规则
+
+- 使用英文祈使句（如 `add`, `fix`, `remove`, `extract`），首字母小写
+- 一行完成，不超过 72 个字符
+- 不加句号结尾
+- 描述面向外部行为，而非内部细节
+
+### 正文规则（多段时必填，单行修复可选）
+
+- 说明**为什么要做**这个变更（如设计缺陷、技术债、新需求）
+- 说明**对使用者的影响**（API 变更、行为变更、破坏性变更）
+- 破坏性变更必须在正文末尾添加 `BREAKING CHANGE:` 前缀段落
+- 关联的 issue 或 PR 编号放最后一行（`Closes #xxx` / `Refs #xxx`）
+
+### 示例
+
+```
+feat: add Vector3 support to TypedData inline storage
+
+Register Vector3, Vector3I, and Vector4 as GodotAdapter inline types
+with startKind=128. The TypedData source generator now emits TryGetXxx
+and AsXxx extension methods for all registered adapter types.
+
+Closes #42
+```
+
+```
+refactor: extract SaveCoordinator from ProgressRun nested class
+
+SaveCoordinator held references to ProgressRun internals via _owner,
+preventing isolated testing. Extracting it with explicit constructor
+injection makes save orchestration independently testable and clarifies
+the ProgressRun persistence boundary.
+
+BREAKING CHANGE: SaveCoordinator constructor now requires IStateMachineContainer
+instead of accessing ProgressScope.StateMachines through the owner reference.
+```
+
+```
+fix: prevent partial session state after failed load recovery
+
+ResetAfterLoadFailure used a single try-catch that swallowed all
+exceptions, leaving the session in an inconsistent state. Split into
+per-step try-finally blocks with aggregate rethrow to ensure each
+cleanup step executes independently and failures are surfaced.
+```
+
+```
+chore: bump Origo to 0.0.7-nightly.20260608
+```
+
+### 禁止的做法
+
+- ❌ 无类型前缀的提交消息
+- ❌ 空提交消息
+- ❌ 仅写 `update`、`fix bug`、`wip` 等无信息量消息
+- ❌ 在提交消息中写实现细节（"改用 X 类"、"把参数从 A 改成 B"）——这些是 diff 的内容
+- ❌ 描述不在本次提交范围内的计划或意图
+- ❌ Squash merge 时保留中间开发的阶段性提交消息（应重新撰写面向功能的消息）
+
 ## 目录结构约定
 
 ```
