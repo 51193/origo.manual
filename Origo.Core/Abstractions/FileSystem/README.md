@@ -43,5 +43,13 @@
 
 不同平台（Godot 虚拟文件系统 vs OS 本地文件系统）对同名目标的重命名行为不同。Core 层不应预设行为，由适配层根据平台语义实现最安全的策略。
 
+### 为什么策略不直接使用 IFileSystem
+
+`IFileSystem` 仅暴露原始文本读写，不提供解析能力。策略通过 `ISndFileAccess`（`ISndContext` 的第 10 个角色接口）访问文件——此接口的文件内容操作均经过 `IDataSourceIoGateway` 边界，自动处理后缀路由（`.json` / `.map` 等）并返回已解析的 `DataSourceNode` 树或强类型对象。这确保：
+
+- 所有文件内容读写统一经过 `IDataSourceIoGateway`（框架的硬性 I/O 边界）
+- 策略无需自行解析原始 JSON/Map 文本
+- 编码/解码策略集中管理，更换引擎时无需修改策略代码
+
 ---
 [↑ 回到 Abstractions](../README.md)

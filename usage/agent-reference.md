@@ -88,12 +88,12 @@ public interface IBlackboard
 
 ### ISndContext
 
-ISndContext 是策略钩子接收的统一门面接口，组合了 9 个角色接口。命名空间 `Origo.Core.Snd`。
+ISndContext 是策略钩子接收的统一门面接口，组合了 10 个角色接口。命名空间 `Origo.Core.Snd`。
 
 ```csharp
 public interface ISndContext : ISndBlackboardAccess, ISndSessionAccess, ISndDeferredActions,
     ISndTemplateAccess, ISndConsoleAccess, ISndStateMachineAccess, ISndSaveOperations,
-    ISndLifecycleOperations, ISndEntityOperations
+    ISndLifecycleOperations, ISndEntityOperations, ISndFileAccess
 {
 }
 
@@ -161,6 +161,15 @@ public interface ISndLifecycleOperations {
 public interface ISndEntityOperations {
     void RequestKillAll();
     void RequestKillEntity(string entityName);
+}
+
+// 文件访问（经 DataSource 边界，内置解析）
+public interface ISndFileAccess {
+    DataSourceNode ReadFile(string path);
+    void WriteFile(string path, DataSourceNode node, bool overwrite = true);
+    bool FileExists(string path);
+    T ReadObject<T>(string path);
+    void WriteObject<T>(string path, T value, bool overwrite = true);
 }
 ```
 
@@ -293,6 +302,33 @@ public class SimpleHealthStrategy : EntityStrategyBase
 }
 ```
 
+## 文件访问示例
+
+```csharp
+using Origo.Core.Abstractions.Entity;
+using Origo.Core.DataSource;
+using Origo.Core.Snd.Strategy;
+
+[StrategyIndex("example.config_loader")]
+public class ConfigLoadStrategy : EntityStrategyBase
+{
+    public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
+    {
+        // 读取 JSON 配置为 DataSourceNode 树
+        if (!ctx.FileExists("res://configs/enemies.json"))
+            return;
+        var cfg = ctx.ReadFile("res://configs/enemies.json");
+        var baseHp = cfg["orc"]["base_hp"].AsInt();
+        entity.SetData("orc_base_hp", baseHp);
+
+        // 强类型读写
+        var prefs = ctx.ReadObject<PlayerPrefs>("user://prefs.json");
+        prefs.Volume = 0.8f;
+        ctx.WriteObject("user://prefs.json", prefs);
+    }
+}
+```
+
 ## 跨实体观察示例
 
 ```csharp
@@ -389,6 +425,7 @@ public void Core_ContainsNoGodotReferences()
 7. **Subscribe / Unsubscribe 须传相同委托实例** — 方法引用（method group）保证一致性。lambda 每次编译产生不同实例，会导致退订失败
 8. **ObserveData / ObserveLifecycle 也须传相同委托实例** — 同理。策略中建议定义为 `static` 方法并用方法引用
 9. **观察方 Teardown 自动清理传出订阅** — 策略通常无需手动调用 Unobserve，框架在实体死亡时统一处理
+10. **文件 I/O 必须通过 ISndFileAccess，不要直接使用 IFileSystem** — 所有文件内容读写统一通过 `IDataSourceIoGateway` 边界，后缀路由和解析由框架处理。`ISndFileAccess.ReadFile` / `ReadObject<T>` 已包含解析，策略不应自行解析原始文本
 
 ## 相关文档
 

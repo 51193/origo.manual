@@ -12,7 +12,7 @@
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `AdapterArchitectureGuardrailTests.cs` | SndContext 公共接口完整性：8 种角色接口全部可用、后台会话创建/销毁/数据读写 |
+| `AdapterArchitectureGuardrailTests.cs` | SndContext 公共接口完整性：7 种角色接口全部可用（含 ISndFileAccess）、后台会话创建/销毁/数据读写 |
 
 ## 测试详情
 
@@ -20,7 +20,7 @@
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| `SndContext_AllRoleInterfaces_AreAccessibleThroughISndContext` | ISndContext 可访问 6 种角色接口（Blackboard/Deferred/Session/Save/Lifecycle/Console） | Abstractions: ISndContext |
+| `SndContext_AllRoleInterfaces_AreAccessibleThroughISndContext` | ISndContext 可访问 7 种角色接口（Blackboard/Deferred/Session/Save/Lifecycle/Console/FileAccess） | Abstractions: ISndContext |
 | `SndContext_ViaSessionManager_CanCreateAndDestroyBackgroundSessions` | 通过 ISessionManager 创建/销毁后台会话，数据读写正确 | session-model |
 
 ---

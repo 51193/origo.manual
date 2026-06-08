@@ -62,6 +62,7 @@ harness.SystemBlackboard.TryGet("game_over", out bool over);
 - 控制台命令收集：`ConsoleCommands` / `ConsoleOutput`
 - 延迟队列：`FlushDeferredActionsForCurrentFrame()` 手动排空
 - 模板注册：`RegisterTemplate`
+- **文件访问**：内置 `MemoryFileSystem` → `IDataSourceIoGateway` → `DataSourceConverterRegistry` 完整链路，支持 `ReadFile` / `WriteFile` / `ReadObject<T>` / `WriteObject<T>` 等操作。所有文件 I/O 在内存中完成，不涉及真实磁盘
 
 ### 辅助类型
 

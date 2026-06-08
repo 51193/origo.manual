@@ -4,7 +4,7 @@
 
 ## 概述
 
-ISndContext 的角色接口拆分。9 个窄接口按职责分解，遵循接口隔离原则（ISP）。ISndContext 本身作为组合接口继承全部角色。
+ISndContext 的角色接口拆分。10 个窄接口按职责分解，遵循接口隔离原则（ISP）。ISndContext 本身作为组合接口继承全部角色。
 
 ## 包含文件
 
@@ -19,6 +19,7 @@ ISndContext 的角色接口拆分。9 个窄接口按职责分解，遵循接口
 | `ISndSaveOperations.cs` | 存档列表/读/写 + 关卡切换 + continue 目标 + meta 贡献者注册（8 成员） |
 | `ISndLifecycleOperations.cs` | Continue/Initial/MainMenu 生命周期入口（4 成员） |
 | `ISndEntityOperations.cs` | 实体操作：标记销毁 + 批量清空（2 成员） |
+| `ISndFileAccess.cs` | 文件访问：结构化读写 + 强类型读写 + 存在检查（5 成员）。所有文件内容读写统一通过 `IDataSourceIoGateway` 边界，策略无需自行处理原始文本解析 |
 
 ## ISndContext 组合
 
@@ -26,6 +27,7 @@ ISndContext 的角色接口拆分。9 个窄接口按职责分解，遵循接口
 ISndContext : ISndBlackboardAccess + ISndSessionAccess + ISndDeferredActions
             + ISndTemplateAccess + ISndConsoleAccess + ISndStateMachineAccess
             + ISndSaveOperations + ISndLifecycleOperations + ISndEntityOperations
+            + ISndFileAccess
 ```
 
 ISndContext 自身不声明任何成员——所有成员均来自继承的角色接口。
@@ -43,7 +45,7 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 
 ### 为什么拆分 ISndContext
 
-将 30 成员的接口拆分为 9 个窄接口，每个消费者可按需依赖窄接口：
+将 30 成员的接口拆分为 10 个窄接口，每个消费者可按需依赖窄接口：
 
 - 仅需黑板访问的代码可依赖 `ISndBlackboardAccess`
 - 仅需延迟队列的代码可依赖 `ISndDeferredActions`
@@ -72,6 +74,16 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 ### 为什么 GetProgressStateMachines() 返回 IStateMachineContainer
 
 Abstractions 层接口的返回值不得引用 Runtime 层具体实现类型。`IStateMachineContainer` 定义在 `Origo.Core.Abstractions.StateMachine` 中，返回此抽象接口而非具体的 `StateMachineContainer`，确保 `ISndStateMachineAccess` 的消费者不传递性依赖到 Runtime 层内部实现（`StackStateMachine`、`SndStrategyPool` 等）。
+
+### 为什么 ISndFileAccess 暴露 DataSourceNode 而非裸文件文本
+
+所有文件内容读写必须经过 `IDataSourceIoGateway` 边界——这是框架的硬性 I/O 约束。`ISndFileAccess` 暴露的三个层级方法均遵守此边界：
+
+- `ReadFile` / `WriteFile` → `IDataSourceIoGateway.ReadTree` / `WriteTree` → 结构化 `DataSourceNode` 树
+- `ReadObject<T>` / `WriteObject<T>` → 在 Gateway 基础上集成 `DataSourceConverterRegistry` → 强类型对象
+- `FileExists` → `IDataSourceIoGateway.Exists`
+
+策略不应直接调用 `IFileSystem.ReadAllText` 或自行解析原始 JSON/Map 文本——后缀路由、编解码策略与 I/O 错误语义统一在 Gateway 一侧治理。
 
 ---
 

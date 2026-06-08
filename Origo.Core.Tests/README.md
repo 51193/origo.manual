@@ -9,7 +9,7 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 
 - **不测试 internal 实现细节**：每个测试验证 `usage/` 或模块文档中描述的某条行为契约，而非代码的内部形状。原则：若可通过 `ISndContext`/`ISessionManager` 等公共接口验证行为，则不应使用 `InternalsVisibleTo` 直接访问 internal 类型。详见 [测试文档元指令 — InternalsVisibleTo 白名单原则](META-TEST.md#internalsvisibleto-白名单原则)。
 - **正确路径、错误路径、边界路径同等覆盖**：每个能力文档按三类路径组织测试方法。
-- **使用 TestFileSystem**：所有文件 I/O 测试使用内存文件系统（`TestFileSystem`），不涉及真实磁盘操作。
+- **使用 TestFileSystem**：所有文件 I/O 测试使用内存文件系统（`TestFileSystem`），不涉及真实磁盘操作。策略测试上下文（`StrategyTestContext`）内置 `MemoryFileSystem` 全链路，支持 ISndFileAccess 行为验证。
 - **策略隔离测试**：`StrategyTestScenario` 框架允许在完全无运行时的环境下测试单个策略的生命周期。
 
 ## 测试辅助设施
@@ -57,6 +57,8 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | SND 场景 | [Snd-Scene.md](Snd-Scene.md) | StubSndSceneHost、FullMemorySndSceneHost 直接测试、NullNodeFactory、ProcessAll/Spawn/Kill 批量缩放性能 |
 | SND 策略 | [Snd-Strategy.md](Snd-Strategy.md) | 策略优先级排序、池引用计数/回收、实体策略生命周期钩子、主动策略 Invoke、策略池与 Manager 性能基准 |
 | SND 上下文 | [Snd-Context.md](Snd-Context.md) | SndContext save/load/continue 工作流、NullSndContext、LevelBuilder、模板解析 |
+| 文件访问 | [Snd-FileAccess.md](Snd-FileAccess.md) | ISndFileAccess 在 SndContext 上的 DataSourceNode 读写往返、强类型往返、overwrite 语义、错误/边界路径 |
+| 策略测试上下文文件访问 | [StrategyTestContext-FileAccess.md](StrategyTestContext-FileAccess.md) | ISndFileAccess 在 StrategyTestContext 上的内存文件系统行为、DataSourceNode 和强类型往返 |
 | 状态机 | [StateMachine.md](StateMachine.md) | StackStateMachine 压栈/出栈/恢复/FlushAfterLoad、空栈/空串/Dispose 边界测试、容器 CreateOrGet/序列化 |
 | 策略测试框架 | [StrategyTestScenario.md](StrategyTestScenario.md) | 三阶段模式（configure/run/assert）、EntityStrategy harness、ActiveStrategy harness |
 
