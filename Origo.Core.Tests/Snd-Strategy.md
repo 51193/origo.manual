@@ -16,8 +16,9 @@
 | `StrategyPriorityTests.cs` | 策略按 Priority 升序排列、同优先级按插入顺序、所有生命周期钩子遵循优先级 |
 | `StrategyPoolAndRuntimeTests.cs` | 策略池注册/复用/释放/引用计数、SndRuntime 代理到 SceneHost |
 | `StrategyPoolTypeSafetyAndExtensionTests.cs` | 策略池类型安全、无状态校验、注册与释放的边缘情况 |
-| `EntityStrategyBaseTests.cs` | 默认钩子不改变实体数据 |
+| `EntityStrategyBaseTests.cs` | 默认钩子不改变实体数据；Process 中 RequestKill 对自身和其他实体的影响；多策略 Process 中 Kill 自己的后续策略执行验证 |
 | `ActiveStrategyTests.cs` | 主动策略 Invoke 调用、实体 InvokeStrategy 委托链 |
+| `SndStrategyPerformanceTests.cs` | 策略池 Get/Release 吞吐基准、Process 策略数缩放、TriggerAll ToArray 分配 |
 
 ## StrategyPriorityTests 测试详情
 
@@ -139,7 +140,8 @@
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| Process 钩子中删除当前策略对迭代的影响 | 策略管理器使用 ToArray() 快照的稳定性 | Snd/Strategy |
+
+（无已知缺口）
 
 ---
 

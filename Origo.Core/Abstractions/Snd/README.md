@@ -16,7 +16,7 @@ ISndContext 的角色接口拆分。9 个窄接口按职责分解，遵循接口
 | `ISndTemplateAccess.cs` | 模板克隆（1 成员） |
 | `ISndConsoleAccess.cs` | 控制台命令提交/处理/输出订阅（4 成员） |
 | `ISndStateMachineAccess.cs` | 流程级状态机容器访问（1 成员）。返回 `IStateMachineContainer?`（Abstractions 层接口），而非具体 `StateMachineContainer` |
-| `ISndSaveOperations.cs` | 存档列表/读/写 + 关卡切换 + continue 目标 + meta 贡献者注册（9 成员） |
+| `ISndSaveOperations.cs` | 存档列表/读/写 + 关卡切换 + continue 目标 + meta 贡献者注册（8 成员） |
 | `ISndLifecycleOperations.cs` | Continue/Initial/MainMenu 生命周期入口（4 成员） |
 | `ISndEntityOperations.cs` | 实体操作：标记销毁 + 批量清空（2 成员） |
 

@@ -7,15 +7,18 @@
 ## 被测行为概览
 
 验证 SND 场景宿主层的实现：StubSndSceneHost 的实体容器管理、
-NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFactory 的公共 API。
+FullMemorySndSceneHost 的边界行为、NullNodeFactory 的无操作行为、
+SndRuntime 的钩子编排、SndEntityFactory 的公共 API、ProcessAll/Spawn/Kill 批量缩放性能。
 
 ## 测试文件清单
 
 | 文件 | 验证侧重点 |
 |------|-----------|
 | `StubSndSceneHostTests.cs` | StubSndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
+| `FullMemorySndSceneHostTests.cs` | FullMemorySndSceneHost 的边界行为：CreateEntity 前置条件、RemoveEntity/RequestKillEntity 错误路径 |
 | `NullNodeFactoryTests.cs` | NullNodeFactory 返回 NullNodeHandle，不抛异常 |
-| `SndEntityLifecycleBatchTests.cs` | SndRuntime 全面钩子编排：Spawn/SpawnMany/KillPendingEntities/ClearAll、CreateEntity 不触发钩子、RemoveEntity 不触发钩子、SndEntityFactory 公共 API |
+| `SndEntityLifecycleBatchTests.cs` | SndRuntime 全面钩子编排：Spawn/SpawnMany/KillPendingEntities/ClearAll、CreateEntity 不触发钩子、RemoveEntity 不触发钩子、SndEntityFactory 公共 API、ProcessAll 多实体帧处理 |
+| `SndScenePerformanceTests.cs` | 场景操作缩放性能：ProcessAll 实体数量缩放、数据读/写帧模拟、ToArray 快照分配、Spawn/Kill/ClearAll 批量缩放 |
 
 ## 测试详情
 
@@ -44,6 +47,13 @@ NullNodeFactory 的无操作行为、SndRuntime 的钩子编排、SndEntityFacto
 | RemoveEntity 不触发 BeforeDead | 直接调用 RemoveEntity | 策略钩子不触发 |
 | Spawn/SpawnMany 处理非 IEntityLifecycle 实体 | StubSndEntity 等无生命周期实体 | 不抛异常，正常返回 |
 | ProcessAll 空场景不抛异常 | 无实体的场景 | 不抛异常 |
+| ProcessAll 单实体调用策略 Process | 单个实体帧处理 | 策略 Process 被调用，delta 正确传播 |
+| ProcessAll 多实体全部被处理 | 多实体帧处理 | 所有实体策略 Process 均被调用 |
+| ProcessAll 中 AddStrategy 新策略不执行 | Process 中添加策略 | 当前帧不执行新策略（快照固定） |
+| ProcessAll 中 RemoveStrategy 后续策略仍执行 | Process 中移除策略 | 后续策略仍正常执行 |
+| FullMemorySndSceneHost CreateEntity 前置条件 | World/Context 未绑定 | InvalidOperationException |
+| FullMemorySndSceneHost RemoveEntity 错误路径 | 不存在的名称 | InvalidOperationException |
+| FullMemorySndSceneHost RequestKillEntity 双重标记 | 重复 kill | InvalidOperationException |
 
 ## 已知覆盖缺口
 

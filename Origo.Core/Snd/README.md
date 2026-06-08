@@ -12,7 +12,7 @@ SND（Strategy + Node + Data）实体系统的完整实现。这是 Origo 的核
 |--------|------|------|
 | [Entity](Entity/README.md) | 运行时实体聚合根 | SndEntity + 数据/节点/策略三个内部管理器 |
 | [Metadata](Metadata/README.md) | 实体元数据模型 | TypedData / SndMetaData / NodeMetaData / StrategyMetaData / DataMetaData |
-| [Scene](Scene/README.md) | 场景宿主与运行时门面 | SndRuntime + FullMemorySndSceneHost + MemorySndSceneHost |
+| [Scene](Scene/README.md) | 场景宿主与运行时门面 | SndRuntime + FullMemorySndSceneHost + StubSndSceneHost |
 | [Strategy](Strategy/README.md) | 策略系统核心 | BaseStrategy → EntityStrategyBase \| ActiveStrategyBase。策略池、双管理器（被动/主动） |
 
 ## 本层核心文件

@@ -52,10 +52,10 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | 持久化：存储 | [Save-Storage.md](Save-Storage.md) | 两阶段写入、write_in_progress marker 契约、关卡三件套完整性、路径策略、快照读写、幂等去重 |
 | 持久化：序列化 | [Save-Serialization.md](Save-Serialization.md) | BlackboardSerializer、SndSceneSerializer、SaveContext 编排 |
 | 持久化：元数据 | [Save-Meta.md](Save-Meta.md) | ISaveMetaContributor、SaveMetaMerger、meta.map 编解码 |
-| SND 实体 | [Snd-Entity.md](Snd-Entity.md) | StubSndEntity CRUD、AfterLoad 钩子、AutoInitializer 恢复、批量生命周期 |
+| SND 实体 | [Snd-Entity.md](Snd-Entity.md) | StubSndEntity CRUD、AfterLoad 钩子、AutoInitializer 恢复、批量生命周期、SetData/GetData 性能基准、观察者清理性能 |
 | SND 元数据 | [Snd-Metadata.md](Snd-Metadata.md) | TypedData struct 值语义、SndMetaData 深拷贝、TypedDataGeneratedTests（SG 输出验证）、TypedDataPerformanceTests（零分配基准 + SG 工厂性能对比） |
-| SND 场景 | [Snd-Scene.md](Snd-Scene.md) | StubSndSceneHost、NullNodeFactory |
-| SND 策略 | [Snd-Strategy.md](Snd-Strategy.md) | 策略优先级排序、池引用计数/回收、实体策略生命周期钩子、主动策略 Invoke |
+| SND 场景 | [Snd-Scene.md](Snd-Scene.md) | StubSndSceneHost、FullMemorySndSceneHost 直接测试、NullNodeFactory、ProcessAll/Spawn/Kill 批量缩放性能 |
+| SND 策略 | [Snd-Strategy.md](Snd-Strategy.md) | 策略优先级排序、池引用计数/回收、实体策略生命周期钩子、主动策略 Invoke、策略池与 Manager 性能基准 |
 | SND 上下文 | [Snd-Context.md](Snd-Context.md) | SndContext save/load/continue 工作流、NullSndContext、LevelBuilder、模板解析 |
 | 状态机 | [StateMachine.md](StateMachine.md) | StackStateMachine 压栈/出栈/恢复/FlushAfterLoad、空栈/空串/Dispose 边界测试、容器 CreateOrGet/序列化 |
 | 策略测试框架 | [StrategyTestScenario.md](StrategyTestScenario.md) | 三阶段模式（configure/run/assert）、EntityStrategy harness、ActiveStrategy harness |
