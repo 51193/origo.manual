@@ -69,6 +69,8 @@
 |---------|-----------|---------|
 | `BlackboardSet_UnknownLayer_ReturnsError` | bb_set unknown key 42 | 返回 false + error 含 "layer" |
 | `EntitySetData_EntityNotFound_ReturnsError` | entity_set_data nonexistent hp 50 | 返回 false + error 含 "not found" |
+| `RequestSaveGame_ThrowsOnNullId` | null saveId | ArgumentException |
+| `RequestLoadGame_ThrowsOnNullId` | null loadId | ArgumentException |
 
 ## ConsoleTests 测试详情
 

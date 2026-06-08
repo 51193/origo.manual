@@ -9,6 +9,7 @@
 验证 SND 元数据的核心类型：
 - **TypedData**：只读 partial struct，通过 Source Generator 生成类型化工厂与 IEquatable 实现，值类型语义，内联存储
 - **SndMetaData**：实体元数据的深拷贝，Node/Strategy/Data 三大模块全部正确复制
+- **TypedDataPerformanceTests**：struct vs class 性能基准、零分配验证、SG 工厂 vs 隐式构造对比
 
 ## 测试文件清单
 
@@ -16,7 +17,7 @@
 |------|-----------|
 | `TypedDataTests.cs` | TypedData 构造、类型保留、值/引用类型行为、struct 值语义 |
 | `TypedDataGeneratedTests.cs` | Source Generator 输出验证：生成的工厂方法、IEquatable 实现、显式转换、多层 KindResolver 链、ObjectConverter fallback |
-| `TypedDataPerformanceTests.cs` | 零分配基准测试：struct 内联存储与装箱消除、实体帧模拟 |
+| `TypedDataPerformanceTests.cs` | 零分配基准测试：struct 内联存储与装箱消除、实体帧模拟、SG 工厂 Create vs 隐式转换性能对比 |
 | `TypedDataDispatchPerformanceTests.cs` | 分发性能基准：Kind 检查 vs `is T` 模式匹配、工厂 TryExtract vs `is T`、ToObject switch vs Data 属性、混合类型分发 |
 | `SndMetaDataTests.cs` | SndMetaData 默认值、DeepClone 深拷贝、修改不影响原对象 |
 

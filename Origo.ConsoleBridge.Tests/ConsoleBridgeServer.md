@@ -63,6 +63,8 @@
 | `ClientDisconnect_ServerAcceptsNewConnection` | 断开后新连接可建立 | ConsoleBridge |
 | `ClientDisconnect_ThenThirdAccepted` | 多次断开→重连都正常 | ConsoleBridge |
 | `ClientImmediateDisconnect_ServerRecovers` | 立即断开后服务器恢复正常 | ConsoleBridge |
+| `MidSession_ClientHardDisconnect_ServerRecovers` | 客户端强制关闭 socket（非正常 Dispose），服务器恢复 | ConsoleBridge |
+| `MidSession_ClientAbort_NextConnectionAccepted` | 会话中客户端中断后新连接可建立 | ConsoleBridge |
 
 ### 线程安全
 
@@ -97,7 +99,6 @@
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| 网络异常（SocketException 中途断开）时的恢复 | 网络故障必须处理 | ConsoleBridge |
 | 极高并发（100+ 并发客户端尝试连接）时的拒绝行为 | 连接风暴 | ConsoleBridge: 单连接模式 |
 
 ---

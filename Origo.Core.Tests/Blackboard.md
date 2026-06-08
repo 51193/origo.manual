@@ -38,12 +38,13 @@
 | `Blackboard_TryGet_ThrowsOnNullKey` | null 键 | ArgumentException |
 | `Blackboard_Set_ThrowsOnWhitespaceKey` | 空白键 | ArgumentException |
 
+| `Blackboard_DeserializeAll_Null_Throws` | null 数据传入 | 抛出 Exception |
+
 ## 已知覆盖缺口
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
 | 大量键值（10k+）时的性能 | 黑板是大规模键值存储时 | — |
-| DeserializeAll 传入 null 时的行为 | 防御性编程 | Blackboard Abstraction |
 
 ---
 

@@ -98,6 +98,25 @@
 |---------|-----------|---------|
 | 验证 ActiveStrategy 的 Invoke 调用 | Invoke 正确调用策略方法 | snd-entity-model |
 | 验证 InvokeStrategy 委托链 | 实体 InvokeStrategy 正确委托到 ActiveStrategy | snd-entity-model |
+| `SameEntity_HasBothTypeStrategies` | 同一实体同时挂 EntityStrategy 和 ActiveStrategy | snd-entity-model |
+| `RemoveEntityStrategy_LeavesActiveStrategy` | 移除 EntityStrategy 后 ActiveStrategy 仍可 Invoke | snd-entity-model |
+| `RemoveActiveStrategy_LeavesEntityStrategy` | 移除 ActiveStrategy 后 EntityStrategy 仍可 Process | snd-entity-model |
+
+## EntityStrategyBaseTests 测试详情
+
+### 正确路径
+
+| 测试方法 | 验证的行为 | 文档出处 |
+|---------|-----------|---------|
+| `DefaultHooks_DoNotMutateEntityData` | 默认钩子实现不改变实体数据 | snd-entity-model |
+
+### 边界路径
+
+| 测试方法 | 边界条件 | 预期行为 |
+|---------|---------|---------|
+| `Process_AddsNewStrategy_DoesNotThrow` | Process 中调用 Add 添加新策略 | 不抛异常 |
+| `Process_KillsItself_MarksEntity` | Process 中调用 RequestKillEntity | 实体被标记为 pending kill |
+| `Remove_NonexistentStrategy_DoesNotThrow` | 移除不存在的策略 | 不抛异常 |
 
 ## 测试辅助策略
 
@@ -114,14 +133,13 @@
 | `DemoStrategy` | StrategyPoolAndRuntimeTests.cs | 简单标记策略，验证池引用计数 |
 | `RecoverSafeStrategy` | StrategyPoolAndRuntimeTests.cs | 验证 Spawn 失败时回滚 |
 | `TestEntityStrategy` | EntityStrategyBaseTests.cs | 不重写任何钩子的空白策略 |
-| `Rec`（静态记录器） | StrategyPriorityTests.cs | 全局执行顺序日志收集器 |
+| `Rec`（AsyncLocal 记录器） | StrategyPriorityTests.cs | 执行顺序日志收集器（使用 AsyncLocal 实现线程隔离） |
 
 ## 已知覆盖缺口
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
 | Process 钩子中删除当前策略对迭代的影响 | 策略管理器使用 ToArray() 快照的稳定性 | Snd/Strategy |
-| 同一实体上混合 EntityStrategy + ActiveStrategy 的行为 | 两种策略类型在 SndEntity 上的共存 | snd-entity-model |
 
 ---
 

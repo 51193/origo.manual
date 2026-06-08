@@ -16,6 +16,7 @@ PopAllRuntime/PopAllOnQuit 批量操作、序列化/反序列化往返。
 | 文件 | 验证侧重点 |
 |------|-----------|
 | `StateMachineStrategyBaseTests.cs` | 默认钩子不调度动作 |
+| `StackStateMachineTests.cs` | StackStateMachine 原子操作边界：Push/Pop/Peek/Dispose/Restore 全场景 |
 | `RandomAndStateMachineTests.StringStack.cs` | StringStack 核心操作：Push/Pop/恢复/FlushAfterLoad |
 | `RandomAndStateMachineTests.Container.cs` | Container：CreateOrGet/序列化/反序列化/批量Pop |
 | `RandomAndStateMachineTests.SessionAndAdapter.cs` | 状态机在会话和适配层中的集成 |
@@ -29,6 +30,40 @@ PopAllRuntime/PopAllOnQuit 批量操作、序列化/反序列化往返。
 | 测试方法 | 边界条件 | 预期行为 |
 |---------|---------|---------|
 | `DefaultHooks_DoNotScheduleActions` | 全部 4 个默认钩子调用 | EnqueueCount = 0 |
+
+## StackStateMachineTests 测试详情
+
+### 正确路径
+
+| 测试方法 | 验证的行为 | 文档出处 |
+|---------|-----------|---------|
+| `Push_ValidValue_SetsPeek` | Push("state_a") → Peek 返回 (true, "state_a") | state-machine |
+| `Push_MultipleValues_PeekReturnsLast` | Push a→b→c → Peek 返回 c | state-machine |
+| `TryPopRuntime_AfterPush_ReturnsTrueAndPopsTop` | Push a→b → TryPop → Peek 返回 a | state-machine |
+| `PushPopPush_RoundTrip_PreservesStackState` | Push→Pop→Push→Pop 全往返栈状态正确 | state-machine |
+| `RestoreStackWithoutHooks_ThenPeek_ReturnsTop` | Restore {x,y} → Peek 返回 y | state-machine |
+
+### 错误路径
+
+| 测试方法 | 触发的错误 | 预期行为 |
+|---------|-----------|---------|
+| `Push_NullValue_Throws` | Push(null) | ArgumentException |
+| `Push_EmptyString_Throws` | Push("") | ArgumentException |
+| `Push_WhitespaceString_Throws` | Push("   ") | ArgumentException |
+| `Push_AfterDispose_Throws` | Dispose 后 Push | ObjectDisposedException |
+| `TryPopRuntime_AfterDispose_Throws` | Dispose 后 TryPopRuntime | ObjectDisposedException |
+| `Peek_AfterDispose_Throws` | Dispose 后 Peek | ObjectDisposedException |
+| `RestoreStackWithoutHooks_NullList_Throws` | Restore(null) | ArgumentNullException |
+
+### 边界路径
+
+| 测试方法 | 边界条件 | 预期行为 |
+|---------|---------|---------|
+| `TryPopRuntime_EmptyStack_ReturnsFalse` | 空栈 TryPopRuntime | false |
+| `TryPopOnQuit_EmptyStack_ReturnsFalse` | 空栈 TryPopOnQuit | false |
+| `Peek_EmptyStack_ReturnsNull` | 空栈 Peek | (false, null) |
+| `Dispose_IsIdempotent` | 连续两次 Dispose | 不抛异常 |
+| `RestoreStackWithoutHooks_EmptyList_ResultsInEmptyStack` | Restore(empty) | Peek = (false, null) |
 
 ## StringStack 测试详情
 
@@ -90,9 +125,6 @@ PopAllRuntime/PopAllOnQuit 批量操作、序列化/反序列化往返。
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
 | RestoreStackWithoutHooks 后 Peek 返回栈顶 | 恢复后栈状态验证 | state-machine |
-| Push 空字符串 | 空字符串状态值 | IStateMachine |
-| Pop 空栈后连续 Push 的行为 | 栈为空后的正常操作 | IStateMachine |
-| RestoreStackWithoutHooks 传入 null 或空列表 | 防御性校验 | IStateMachine |
 
 ---
 

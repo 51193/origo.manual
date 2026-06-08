@@ -55,7 +55,9 @@
 | 测试方法 | 触发的错误 | 预期行为 |
 |---------|-----------|---------|
 | `RequestSaveGame_ThrowsOnEmptyId` | 空 saveId | ArgumentException |
+| `RequestSaveGame_ThrowsOnNullId` | null saveId | ArgumentException |
 | `RequestLoadGame_ThrowsOnEmptyId` | 空 saveId | ArgumentException |
+| `RequestLoadGame_ThrowsOnNullId` | null saveId | ArgumentException |
 | `RequestSwitchForegroundLevel_ThrowsOnEmptyId` | 空 levelId | ArgumentException |
 | `TrySubmitConsoleCommand_ReturnsFalseForEmptyCommand` | 空白命令 | 返回 false |
 | `TrySubmitConsoleCommand_ReturnsFalseWhenNoConsoleInput` | 无控制台输入源 | 返回 false |

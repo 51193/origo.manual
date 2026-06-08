@@ -27,6 +27,7 @@ AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycle
 | StubSndEntity SetData/TryGetData 往返 | 数据正确存取，类型保留 | snd-entity-model: TypedData |
 | AfterLoad 钩子按预期顺序触发 | Load 恢复后策略 AfterLoad 被调用 | snd-entity-model: 生命周期钩子 |
 | AutoInitializer 从 SndMetaData 恢复策略列表 | 策略索引从 metadata 正确加载 | Snd/Entity |
+| KillAll 触发 BeforeDead 钩子 | 通过 IEntityLifecycle.FireBeforeDeadHooks 触发 | snd-entity-model: 批量生命周期 |
 
 ### 边界路径
 

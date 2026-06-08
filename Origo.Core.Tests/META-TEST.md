@@ -76,6 +76,53 @@
 - **禁止演进标记**：不得出现"新增"、"旧版"、"v0.x 起"等标记版本演进历史的字样。测试的存在本身即代表当前需要验证的行为。
 - **不确定的行为描述必须询问维护者**，不得依据代码实现编造
 
+### InternalsVisibleTo 白名单原则
+
+Origo 将大量编排逻辑（`OrigoRuntime`、`SndWorld`、`SessionRun`、`ProgressRun`、`SndStrategyPool`、`SndStrategyManager` 等）设为 `internal`。测试通过 `InternalsVisibleTo` 访问这些类型，但必须遵守以下白名单原则：
+
+**允许使用 InternalsVisibleTo 的情况（白名单）**：
+
+1. **框架守卫契约**：内部类型在注册/构造时的防御性校验，没有公共 API 可触发
+   - 示例：`SndWorld.RegisterStrategy()` 拒绝有实例字段的策略（`AutoInitializerGuardTests`）
+   - 示例：`SaveCoordinator` 构造函数 null 参数校验（`SaveCoordinatorTests`）
+
+2. **内部编排的正确性契约**：策略池的引用计数、类型分支安全、回滚行为等
+   - 示例：`SndStrategyPool` 的 `GetStrategy`/`ReleaseStrategy` 引用计数正确性
+   - 示例：`StackStateMachine` 构造时 `SndStrategyPool` 获取失败的回滚行为
+
+3. **测试基础设施构造**：`OrigoRuntime`、`SndContextParameters` 等根对象，测试需要构造它们来搭建测试环境
+
+4. **静态方法的直接调用**：`OrigoAutoInitializer.DiscoverAndRegisterStrategies()` 等引导期工具方法
+
+**禁止使用 InternalsVisibleTo 的情况（应通过公共接口验证）**：
+
+1. **会话生命周期的编排方法**：`SessionRun.PersistLevelState()`、`SessionRun.SerializeToPayload()`、`SessionRun.LoadFromPayload()` 等内部方法的行为应通过 `ISndContext.RequestSaveGame()` + `ISaveStorageService` 公共流程验证
+
+2. **场景宿主的内部方法**：`FullMemorySndSceneHost.ProcessAll()` 应通过 `ISessionManager.ProcessAllSessions()` 触发
+
+3. **会话挂载键的内部属性**：`SessionRun.MountKey` 应通过 `ISessionManager.Contains()` / `ISessionManager.TryGet()` 验证
+
+4. **SessionManager 的 Clear/LoadSessionFromPayload**：应通过 `DestroySession()` / `ISndContext.RequestLoadGame()` 验证
+
+**判断标准**：如果我改了内部实现但行为契约不变，这个测试应该仍然通过。如果不能通过公共接口验证到同等的行为语义，则可以使用 `InternalsVisibleTo`。请牢记：`InternalsVisibleTo` 是"白名单"——如无必要，不得使用。
+
+### 静态可变状态隔离原则
+
+框架要求策略必须无状态（无实例字段、无可写实例属性），这是通过 `SndStrategyPool.Register()` 的反射检查强制执行的。测试中的 spy 策略因此只能使用 `static` 字段收集事件。
+
+但纯 `static` 字段会导致测试间数据污染。解决方案是使用 `AsyncLocal<T>` 包装静态字段：
+
+```csharp
+// ✅ 正确：AsyncLocal 隔离，兼容策略池的静态要求
+private static readonly AsyncLocal<ICollection<string>?> _events = new();
+public static void Bind(ICollection<string> events) => _events.Value = events;
+
+// ❌ 错误：纯静态，测试间污染
+private static ICollection<string>? EventSink { get; set; }
+```
+
+此原则确保 spy 策略在满足框架约束的同时，各测试拥有独立的事件收集器。
+
 ## 同步规则
 
 ### 需同步更新的情况

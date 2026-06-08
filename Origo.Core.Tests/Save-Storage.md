@@ -57,12 +57,13 @@
 |---------|---------|---------|
 | `TryReadLevelPayload_AllThreeMissing_ReturnsNull` | 关卡三件套全缺 | 返回 null（视为无存档） |
 | `TryReadLevelPayload_AllThreePresent_Succeeds` | 关卡三件套全存 | 返回完整 LevelPayload |
+| `StaleWriteMarker_AfterDeleteCurrentDirectory_WriteThenSucceeds` | stale marker → DeleteCurrentDirectory → 重写 | 新数据可正常写入和读取 |
+| `RecoverFromStaleWriteMarker_CleanStateAfterRecovery` | 恢复后 current/ 状态干净 | 无 marker 残留，数据正常 |
 
 ## 已知覆盖缺口
 
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
-| 两阶段写入中途失败（阶段2失败）后 marker 残留拒绝读取 | 写入中断恢复场景未充分验证 | persistence-flow: "如果阶段2失败，current/ 数据完整但 marker 残留" |
 | 阶段2中 rename 失败的原子性 | 快照过程的 .tmp 残留清理 | persistence-flow: 阶段2描述 |
 | SaveStorageFacade 写入时并发请求的排队行为 | 并发安全 | — |
 

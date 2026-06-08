@@ -66,8 +66,6 @@
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
 | Core 公共 API 中不应暴露 internal 类型的具体名字 | API 稳定性 | architecture-overview: public 白名单 |
-| 测试并行化因 TypedData 静态状态全局禁用 | 因 `TypedData.KindTypeMap` 和 `TypedDataLayeredRegistry` 为静态可变状态，多测试并行执行时会竞态。通过 `[assembly: CollectionBehavior(DisableTestParallelization = true)]` 全局串行化 | Strategy/README.md: 策略无状态约束 |
-| 策略测试使用静态字段作为事件接收器 | 框架要求策略无实例字段，测试策略使用 `static List<string>?` 在各策略实例间共享事件收集。相关测试类通过 `[Collection("StrategyStateTests")]` 串行化以避免并行竞态 | Strategy/README.md: 为什么策略强制无状态 |
 
 ---
 

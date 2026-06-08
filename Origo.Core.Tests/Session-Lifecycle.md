@@ -69,10 +69,10 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 
 | 测试方法 | 边界条件 | 预期行为 |
 |---------|---------|---------|
-| `SessionRun_MountKey_IsNull_WhenNotMounted` | 未挂载时 MountKey 为 null | — |
-| `SessionRun_MountKey_SetOnMount_ClearedOnUnmount` | 挂载/卸载时 MountKey 正确设置/清除 | — |
-| `SessionRun_Dispose_AutoUnmountsFromManager` | Dispose 时自动从 Manager 卸载 | — |
-| `SessionManager_Clear_EmptiesAllSessions` | Clear 后所有会话清空 | — |
+| `SessionRun_MountKey_IsNull_WhenNotMounted` | 创建会话后销毁，通过 ISessionManager.Contains 验证已卸载 | 返回 false |
+| `SessionRun_MountKey_SetOnMount_ClearedOnUnmount` | 创建会话后 Contains 为 true，销毁后为 false | ISessionManager 正确管理挂载 |
+| `SessionRun_Dispose_AutoUnmountsFromManager` | Dispose 时自动从 Manager 卸载，Contains 返回 false | ISessionManager 自动清理 |
+| `SessionManager_Clear_EmptiesAllSessions` | 逐个 DestroySession 后 Keys 为空 | 全部清空 |
 
 ## DisposeSemanticsTests 测试详情
 
@@ -80,11 +80,11 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
-| `SessionRun_Dispose_DoesNotWriteFilesToCurrent` | Dispose 不自动写入文件 | session-model: Dispose 不持久化 |
+| `SessionRun_Dispose_DoesNotWriteFilesToCurrent` | Dispose 不自动写入文件（通过 ISaveStorageService 检查） | session-model: Dispose 不持久化 |
 | `SessionRun_Dispose_DoesNotTriggerBeforeSave` | Dispose 不触发 BeforeSave 钩子 | session-model: Dispose 不持久化 |
 | `SessionRun_Dispose_TriggersBeforeQuit` | Dispose 触发 BeforeQuit 钩子 | session-model |
-| `SessionRun_ExplicitPersistLevelState_WritesToCurrent_BeforeDispose` | 显式 PersistLevelState 写入文件 | session-model |
-| `SessionRun_ExplicitPersistLevelState_TriggersBeforeSave` | 显式 PersistLevelState 触发 BeforeSave | session-model |
+| `SessionRun_ExplicitPersistLevelState_WritesToCurrent_BeforeDispose` | 通过 ISndContext.RequestSaveGame 持久化写入文件 | session-model |
+| `SessionRun_ExplicitPersistLevelState_TriggersBeforeSave` | 通过 ISndContext.RequestSaveGame 触发 BeforeSave | session-model |
 | `ProgressRun_Dispose_DoesNotCallPersistProgress` | ProgressRun.Dispose 不调用 PersistProgress | session-model |
 | `ProgressRun_Dispose_DeletesCurrentDirectory` | ProgressRun.Dispose 删除 current/ | session-model |
 | `ExplicitSave_ThenDispose_ThenContinue_LoadsSavedState` | 显式保存→Dispose→Continue 往返 | persistence-flow |
@@ -104,12 +104,11 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 
 | 测试方法 | 触发的错误 | 预期行为 |
 |---------|-----------|---------|
-| `SessionRun_AfterDispose_SerializeToPayload_ThrowsObjectDisposed` | Dispose 后序列化 | ObjectDisposedException |
-| `SessionRun_AfterDispose_LoadFromPayload_ThrowsObjectDisposed` | Dispose 后加载 | ObjectDisposedException |
-| `SessionRun_AfterDispose_PersistLevelState_ThrowsObjectDisposed` | Dispose 后 PersistLevelState | ObjectDisposedException |
-| `SessionRun_AfterDispose_SessionBlackboard_ThrowsObjectDisposed` | Dispose 后访问黑板 | ObjectDisposedException |
-| `SessionRun_AfterDispose_SceneHost_ThrowsObjectDisposed` | Dispose 后访问 SceneHost | ObjectDisposedException |
-| `SessionRun_AfterDispose_GetSessionStateMachines_ThrowsObjectDisposed` | Dispose 后获取状态机 | ObjectDisposedException |
+| `SessionRun_AfterDispose_SaveDoesNotPersistSessionData` | Dispose 后保存不包含已释放会话的数据 | 文件不存在 |
+| `SessionRun_AfterDispose_SaveExcludesDisposedSession` | Dispose 后 RequestSaveGame 排除已释放会话 | 文件不存在 |
+| `SessionRun_AfterDispose_SessionBlackboard_ThrowsObjectDisposed` | Dispose 后访问黑板（ISessionRun 公共属性） | ObjectDisposedException |
+| `SessionRun_AfterDispose_SceneHost_ThrowsObjectDisposed` | Dispose 后访问 SceneHost（ISessionRun 公共属性） | ObjectDisposedException |
+| `SessionRun_AfterDispose_GetSessionStateMachines_ThrowsObjectDisposed` | Dispose 后获取状态机（ISessionRun 公共方法） | ObjectDisposedException |
 | `ProgressRun_AfterDispose_ForegroundSession_IsNull` | Dispose 后 ForegroundSession 为 null | — |
 | `ProgressRun_AfterDispose_SessionManagerKeys_IsEmpty` | Dispose 后 Keys 为空 | — |
 | `ProgressRun_AfterDispose_ProgressBlackboard_IsCleared` | Dispose 后 ProgressBlackboard 清空 | — |

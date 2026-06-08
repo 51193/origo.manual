@@ -63,6 +63,7 @@ DataSourceTests 是该能力最大的测试文件（1491 行）。
 |---------|-----------|---------|
 | `ObjectNode_IndexerByKey_ThrowsOnMissingKey` | obj["missing"] | KeyNotFoundException |
 | `ObjectNode_TryGetValue_ReturnsFalseForMissingKey` | TryGetValue("nope") | 返回 false |
+| `AsInt_OnNonNumericString_Throws` | CreateString("hello")→AsInt() | FormatException |
 | `MapCodec_Encode_ThrowsForNonObjectNode` | Map 编码非 Object 节点 | InvalidOperationException |
 | `Registry_Get_ThrowsForUnregisteredType` | 获取未注册类型转换器 | InvalidOperationException |
 | `Registry_RuntimeRead_ThrowsForUnregisteredType` | 运行时读未注册类型 | InvalidOperationException |
