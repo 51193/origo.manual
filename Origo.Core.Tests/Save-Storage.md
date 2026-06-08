@@ -19,7 +19,7 @@
 | `SaveIdempotencyTests.cs` | 幂等去重：相同 payload 覆盖写入不重复创建 |
 | `SavePathLayoutTests.cs` | 路径布局：默认策略下的目录文件路径拼装 |
 | `SavePathPolicyContractTests.cs` | 路径策略接口契约：各方法返回有效相对路径 |
-| `SavePathResolverTests.cs` | 路径解析：root + policy 组合路径正确性 |
+| `SaveFileHandleTests.cs` | SaveFileHandle 路径操作：父目录确保、相对路径提取、遍历防护 |
 
 ## SaveStorageContractTests 测试详情
 

@@ -14,7 +14,6 @@
 | `DelegateSaveMetaContributor.cs` | 委托适配的贡献者实现 |
 | `SaveMetaBuildContext.cs` | 单次存档时的只读构建上下文 |
 | `SaveMetaDataEntry.cs` | 存档槽条目模型（SaveId + MetaData 字典） |
-| `SaveMetaMapCodec.cs` | meta.map 文件的编解码 |
 | `SaveMetaMerger.cs` | 合并贡献者 + 入参覆写的合并逻辑 |
 
 ## 模块详解
@@ -25,7 +24,7 @@
 2. **构建上下文**：存档时创建 `SaveMetaBuildContext`（含 saveId、levelId、黑板、场景访问）
 3. **收集**：`SaveMetaMerger.Merge()` 按注册顺序调用每个贡献者的 `Contribute()`，同名键后者覆盖前者
 4. **覆写**：调用方提供的 `customMeta` 参数再次键级覆盖
-5. **序列化**：最终字典通过 `SaveMetaMapCodec.Serialize()` 转为 key:value 文本，写入 `meta.map`
+5. **持久化**：最终字典通过 `BuildStringMapNode()` 转为 JSON DataSourceNode 树，由 `SavePayloadWriter` 写入 `meta.map`
 
 ### ISaveMetaContributor
 
@@ -35,11 +34,6 @@ IReadOnlyDictionary<string, string> Contribute(in SaveMetaBuildContext context);
 ```
 
 贡献者返回自己产出的键值对字典，而非修改外部传入的可变字典。多个贡献者的结果由 `SaveMetaMerger` 按注册顺序合并——同名键后者覆盖前者。此设计防止贡献者调用 `target.Clear()` 或 `target.Remove()` 破坏其他贡献者的输出。
-
-### SaveMetaMapCodec
-
-- **Parse**：委托给 `KeyValueFileParser.Parse`（见 DataSource 模块）
-- **Serialize**：按键字典序输出 `"key: value"` 行
 
 ### SaveMetaMerger
 

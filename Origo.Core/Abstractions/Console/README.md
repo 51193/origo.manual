@@ -4,13 +4,13 @@
 
 ## 概述
 
-定义 Core 层与外部控制台系统之间的输入输出抽象。Core 不直接依赖具体的控制台实现（如 Godot 调试器、TCP 桥接），只通过这两个接口完成轮询输入和推送输出。
+定义 Core 层与外部控制台系统之间的输入输出抽象。Core 不直接依赖具体的控制台实现（如 Godot 调试器、TCP 桥接），只通过这两个接口完成双向通信：适配层通过 `Enqueue` 投递命令，Core 通过 `TryDequeueCommand` 按帧消费。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
-| `IConsoleInputSource.cs` | 轮询式命令输入源，无 UI/线程依赖 |
+| `IConsoleInputSource.cs` | 双向命令输入抽象：适配层投递命令（Enqueue），Core 按帧消费（TryDequeueCommand），无 UI/线程依赖 |
 | `IConsoleOutputChannel.cs` | 发布-订阅式输出通道，支持多监听者 |
 
 ## 接口详细
@@ -20,6 +20,8 @@
 | 成员 | 说明 |
 |------|------|
 | `TryDequeueCommand(out string? line)` | 非阻塞取出一行待解析命令；队列空时返回 false |
+| `Enqueue(string line)` | 向队列追加命令行；空白行被自动忽略 |
+| `Clear()` | 清空队列中所有待处理命令 |
 
 ### IConsoleOutputChannel
 
@@ -30,6 +32,10 @@
 | `Publish(string line)` | 发布一条输出消息给所有监听者 |
 
 ## 设计决策
+
+### 为什么 Enqueue 和 Clear 也在接口上
+
+原 `IConsoleInputSource` 仅暴露 `TryDequeueCommand`，适配层和 ConsoleBridge 需依赖具体类 `ConsoleInputQueue` 调用 `Enqueue` 和 `Clear`，造成抽象泄漏。将这两个方法提升到接口后，所有外部消费者可通过 `IConsoleInputSource` 完成投递、消费和清空的全生命周期操作，消除对具体类的编译期依赖。
 
 ### 为什么输入用轮询而非事件
 

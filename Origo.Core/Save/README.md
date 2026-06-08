@@ -22,6 +22,8 @@ Origo 的持久化系统。负责存档的完整生命周期：Payload 构建、
 | `PersistentBlackboard.cs` | 持久化黑板：自动从磁盘加载/保存，修改写入 `current/` 目录 |
 | `SavePayloads.cs` | 存档载荷模型：`SaveGamePayload` / `LevelPayload` / 序列化容器 |
 | `WellKnownKeys.cs` | 黑板键常量：`SessionTopology` / `ActiveSaveSlot` 等 |
+| `SaveCoordinator.cs` | 存档协调器：从 ProgressRun 提取的独立类，负责构建存档 payload、持久化 progress 状态、管理元数据 |
+| `SaveFileHandle.cs` | 统一 I/O 上下文（位于 Storage 子模块）：封装 FileSystem + IoGateway + SaveRootPath + PathPolicy |
 
 ## 持久化流程
 
@@ -29,8 +31,9 @@ Origo 的持久化系统。负责存档的完整生命周期：Payload 构建、
 ProgressRun.RequestSaveGame(saveId)
     │
     ▼
-SaveContext.SaveGame(...)
-    │
+SaveCoordinator.BuildSavePayload(...)
+    ├── BuildSaveMetaContext()
+    │       └── 收集 SaveMetaBuildContext (saveId, levelId, 黑板, 场景)
     ├── SerializeProgress()  →  progress.json
     ├── SerializeSession()   →  session.json
     └── BuildSndScene()  →  snd_scene.json
@@ -39,7 +42,7 @@ SaveContext.SaveGame(...)
 SaveGamePayload (完整存档对象)
     │
     ▼
-SavePayloadWriter.WriteToCurrent()
+SavePayloadWriter.WriteToCurrent(handle, payload)
     ├── 创建 .write_in_progress marker
     ├── 写入 current/progress.json
     ├── 写入 current/level_*/snd_scene.json
@@ -50,7 +53,7 @@ SavePayloadWriter.WriteToCurrent()
     └── 删除 .write_in_progress
     │
     ▼
-SaveStorageFacade.WriteSavePayloadToCurrentThenSnapshot()
+DefaultSaveStorageService.WriteSavePayloadToCurrentThenSnapshot(...)
     ├── 检查 save_{id}/.payload.sha 是否存在且 hash 相同 → 跳过（幂等去重）
     ├── 重建 .write_in_progress marker
     ├── 复制 current/ → save_{id}.tmp/

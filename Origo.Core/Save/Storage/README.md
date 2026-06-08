@@ -12,15 +12,13 @@
 |------|------|
 | `ISaveStorageService.cs` | 存档读写服务公开接口（跨程序集） |
 | `ISavePathPolicy.cs` | 存档路径策略接口（可替换布局） |
-| `DefaultSaveStorageService.cs` | ISaveStorageService 默认实现 |
+| `DefaultSaveStorageService.cs` | ISaveStorageService 默认实现，内部委托给 SaveFileHandle + SavePayloadWriter/Reader |
 | `DefaultSavePathPolicy.cs` | ISavePathPolicy 默认实现，委托给 SavePathLayout |
+| `SaveFileHandle.cs` | 统一 I/O 上下文：封装 IFileSystem + IDataSourceIoGateway + saveRootPath + ISavePathPolicy，合并原 SavePathResolver 的路径工具方法和 SaveStorageGatewayFactory 的网关创建 |
 | `SavePathLayout.cs` | 标准路径布局常量与方法（current/、save_*、level_*） |
-| `SavePathResolver.cs` | 路径工具（父目录确保、相对路径提取、遍历防护） |
 | `SavePayloadWriter.cs` | 存档写入编排（两阶段写入 + marker 管理） |
 | `SavePayloadReader.cs` | 存档读取编排（严格读取 + 完整性校验） |
-| `SaveStorageFacade.cs` | 存档 I/O 门面：编排 Reader/Writer + 快照 |
 | `SaveGamePayloadFactory.cs` | 构造 SaveGamePayload（业务数据聚合） |
-| `SaveStorageGatewayFactory.cs` | 创建 IDataSourceIoGateway 实例的工厂 |
 
 ## 文件布局
 
@@ -72,9 +70,9 @@
 
 不同平台（桌面、移动、云存档）可能需要不同路径布局。将布局策略注入 `DefaultSaveStorageService` 而非硬编码，允许在适配层注入平台特定策略。
 
-### 为什么 SaveStorageFacade 是静态门面
+### 为什么 SaveFileHandle 统一封装 I/O 依赖
 
-保存逻辑是纯数据变换 + I/O 操作，无实例状态。静态方法减少依赖注入的工厂复杂度。但内部 Reader/Writer 通过参数接收所有依赖（fileSystem、dataSourceIo、pathPolicy），保持可测试性。
+SavePayloadReader/SavePayloadWriter/SaveStorageFacade 的所有方法原本需要逐层传递 `(IFileSystem, IDataSourceIoGateway, string saveRootPath, ISavePathPolicy)` 四件套，导致每个公共方法产生三级重载链（~36 个签名派生 11 个实际实现）。引入 `SaveFileHandle` 后，这四个依赖封装为单一参数对象，方法与实现一对一映射（~36 → ~16 个签名），`DefaultSaveStorageService` 内部从 4 个字段简化为 1 个字段。`SaveFileHandle` 同时合并了原 `SavePathResolver` 的路径工具方法和 `SaveStorageGatewayFactory` 的网关创建逻辑，消除了独立辅助类的碎片化。
 
 ### 为什么通过 SHA 摘要实现幂等去重
 

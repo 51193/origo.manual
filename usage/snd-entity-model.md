@@ -103,7 +103,7 @@ public readonly partial struct TypedData : IEquatable<TypedData>
 - **读取时**：`TypedDataFactory<T>.TryExtract(td, out var value)` 通过判别值分发；注册类型直接字段读取或 Kind 检查，未注册类型走 `is T` 兜底
 - **序列化时**：`TypedData.Data` 属性按需装箱值，`TypedDataConverter` 将类型转字符串并通过 `TypeStringMapping` 双向映射
 - **多适配层支持**：GodotAdapter 通过 `[assembly: SndInlineTypes(startKind: 128, ...)]` 注册 14 种引擎类型，运行时通过 `TypedDataLayeredRegistry` 委托链解析 Kind 值。`TypedDataTypeMap.GetKindForType(typeof(Vector3))` 返回确定值 130，避免 `is T` 模式匹配
-- **未注册类型**：走 `_ref` 兜底路径（kind=255），性能等同 class 方案
+- **未注册类型**：走 `_ref` 兜底路径（kind=`TypedData.UnregisteredKind`），性能等同 class 方案
 
 ### 安全读取
 

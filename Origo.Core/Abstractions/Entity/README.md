@@ -117,7 +117,7 @@ enum EntityLifecycleEvent {
 
 ### 为什么拆分为六个访问接口
 
-策略代码通常只需访问具体某一方面的实体能力（例如只读写数据而不管理节点）。ISP 拆分让策略声明依赖时更精确，也便于测试时只 mock 需要的部分。
+六个子接口（`ISndDataAccess`、`ISndNodeAccess`、`ISndStrategyAccess`、`ISndActiveStrategyAccess`、`ISndEntityLifecycleAccess`、`ISndObservation`）是 `ISndEntity` 的组合契约，旨在实现清晰的职责划分和内部可测试性。外部代码应直接依赖 `ISndEntity` 统一使用，无需分别引用各子接口。子接口的 ISP 拆分服务于框架内部实现清晰度和测试 mock 的细粒度控制。
 
 ### 为什么主动策略独立为 ISndActiveStrategyAccess
 

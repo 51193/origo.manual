@@ -6,9 +6,9 @@
 
 ## 被测行为概览
 
-验证 `meta.map` 展示元数据的构建、合并与编解码。
+验证 `meta.map` 展示元数据的构建、合并与持久化。
 覆盖 `ISaveMetaContributor` 贡献者接口、`SaveMetaMerger` 多来源合并、
-`SaveMetaBuildContext` 上下文传递、`SaveMetaMapCodec` 编解码往返。
+`SaveMetaBuildContext` 上下文传递。
 
 ## 测试文件清单
 
@@ -17,8 +17,6 @@
 | `DelegateSaveMetaContributorTests.cs` | ISaveMetaContributor 委托包装正确性 |
 | `SaveMetaBuildContextTests.cs` | SaveMetaBuildContext 上下文数据传递 |
 | `SaveMetaIntegrationTests.cs` | 完整链路：RegisterSaveMetaContributor → RequestSaveGame → CustomMeta 写入 meta.map |
-| `SaveMetaMapCodecTests.cs` | meta.map 编解码往返 |
-| `SaveMetaMapCodecExtendedTests.cs` | meta.map 编解码边缘路径 |
 | `SaveMetaMergerTests.cs` | SaveMetaMerger 多贡献者合并 |
 
 ## 测试详情
@@ -29,7 +27,6 @@
 |---------|-----------|---------|
 | MetaContributor 通过 Contribute 添加键值 | ISaveMetaContributor 正确注入元数据 | persistence-flow: meta.map |
 | SaveMetaMerger 合并多个贡献者 | 多来源元数据不冲突地合并到同一字典 | persistence-flow |
-| SaveMetaMapCodec 编解码往返 | meta.map 写入后读回一致 | persistence-flow: meta.map |
 | SaveMetaBuildContext 携带上下文数据 | Context 传递 Session/Progress 引用 | ISaveMetaContributor |
 | RegisterSaveMetaContributor 注册并保存 | ISaveMetaContributor 或委托注册后，RequestSaveGame 携带 CustomMeta | persistence-flow: meta.map |
 | NullSndContext / SessionSndContext 注册行为 | NullSndContext 抛异常，SessionSndContext 委托到全局 | ISndSaveOperations |
