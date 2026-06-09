@@ -1,6 +1,6 @@
 # Origo.Core.Tests
 
-> [↑ 回到 Origo.manual](../../README.md)
+> [↑ 回到 Origo.manual](../README.md)
 > [↔ 测试文档元指令](META-TEST.md)
 
 ## 测试策略概述
@@ -65,4 +65,4 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 
 ---
 
-[↑ 回到 Origo.manual](../../README.md)
+[↑ 回到 Origo.manual](../README.md)

@@ -1,7 +1,7 @@
 # 策略测试
 
 > [↑ 回到 usage](README.md)
-> [↔ 相关测试: 策略测试框架](../../Origo.Core.Tests/StrategyTestScenario.md)
+> [↔ 相关测试: 策略测试框架](../Origo.Core.Tests/StrategyTestScenario.md)
 
 ## 概述
 

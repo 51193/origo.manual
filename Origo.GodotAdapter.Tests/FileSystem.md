@@ -1,7 +1,7 @@
 # 文件系统 测试（适配层）
 
 > [↑ 回到 Origo.GodotAdapter.Tests](README.md)
-> [↔ 被测模块: Origo.GodotAdapter/FileSystem](../../Origo.GodotAdapter/FileSystem/README.md)
+> [↔ 被测模块: Origo.GodotAdapter/FileSystem](../Origo.GodotAdapter/FileSystem/README.md)
 
 ## 被测行为概览
 

@@ -1,8 +1,8 @@
 # SND 上下文 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Snd](../../Origo.Core/Snd/README.md)
-> [↔ 被测行为: usage/snd-entity-model](../../usage/snd-entity-model.md)
+> [↔ 被测模块: Origo.Core/Snd](../Origo.Core/Snd/README.md)
+> [↔ 被测行为: usage/snd-entity-model](../usage/snd-entity-model.md)
 
 ## 被测行为概览
 

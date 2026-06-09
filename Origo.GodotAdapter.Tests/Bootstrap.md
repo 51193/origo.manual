@@ -1,7 +1,7 @@
 # 启动编排 测试（适配层）
 
 > [↑ 回到 Origo.GodotAdapter.Tests](README.md)
-> [↔ 被测模块: Origo.GodotAdapter/Bootstrap](../../Origo.GodotAdapter/Bootstrap/README.md)
+> [↔ 被测模块: Origo.GodotAdapter/Bootstrap](../Origo.GodotAdapter/Bootstrap/README.md)
 
 ## 被测行为概览
 

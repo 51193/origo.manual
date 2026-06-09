@@ -12,14 +12,14 @@ Origo.Core 的稳定公共抽象层。所有接口在此层定义为平台无关
 |--------|------|------|
 | [Blackboard](Blackboard/README.md) | 通用键值黑板接口，保留类型信息 | `IBlackboard`：Set/Get + 序列化 |
 | [Console](Console/README.md) | 控制台输入输出抽象 | `IConsoleInputSource`（轮询）+ `IConsoleOutputChannel`（发布-订阅）|
-| [Entity](Entity/README.md) | SND 实体的四项能力接口 | `ISndDataAccess` + `ISndNodeAccess` + `ISndStrategyAccess` + `IEntityLifecycle` → `ISndEntity` |
+| [Entity](Entity/README.md) | SND 实体的六项能力接口 + 独立的生命周期接口 | `ISndEntity` = `ISndDataAccess` + `ISndNodeAccess` + `ISndStrategyAccess` + `ISndActiveStrategyAccess` + `ISndEntityLifecycleAccess` + `ISndObservation`；`IEntityLifecycle` 为独立接口（框架内部使用）|
 | [FileSystem](FileSystem/README.md) | 平台无关文件系统抽象 | `IFileSystem`：13 个文件/目录操作，含路径拼接和父目录。策略不直接使用此接口，而是通过 `ISndFileAccess`（经 `IDataSourceIoGateway` 边界）|
 | [Lifecycle](Lifecycle/README.md) | 会话管理抽象接口 | `ISessionManager`（会话生命周期）+ `ISessionRun`（会话运行时门面） |
 | [Logging](Logging/README.md) | 引擎无关日志接口 | `ILogger` + `LogLevel` 枚举（Debug/Info/Warning/Error）|
 | [Node](Node/README.md) | 抽象引擎节点操作 | `INodeFactory` + `INodeHandle` + `INodeHost`(internal) |
 | [Runtime](Runtime/README.md) | 抽象调度接口 | `IScheduler`：Enqueue/Tick/Clear |
 | [Scene](Scene/README.md) | SND 场景访问与宿主 | `ISndSceneAccess` + `ISndSceneHost`（SpawnEntity/FindByName/ProcessAll）|
-| [Snd](Snd/README.md) | ISndContext 10 个角色接口 | IStateMachineContext 也继承其中部分 |
+| [Snd](Snd/README.md) | ISndContext 11 个角色接口 | IStateMachineContext 也继承其中部分 |
 | [StateMachine](StateMachine/README.md) | 字符串栈状态机体系 | `IStateMachine` + `IStateMachineContext` + `IStateMachineContainer` |
 
 ## 接口层级
@@ -29,12 +29,15 @@ IBlackboard  IConsole*  IFileSystem  ILogger  IScheduler  INode*
 
 ISessionManager  ISessionRun → IStateMachineContainer
 
-ISndEntity ─── ISndDataAccess + ISndNodeAccess + ISndStrategyAccess + IEntityLifecycle
+ISndEntity ─── ISndDataAccess + ISndNodeAccess + ISndStrategyAccess
+                + ISndActiveStrategyAccess + ISndEntityLifecycleAccess + ISndObservation
+
+IEntityLifecycle                (独立接口，框架内部，非 ISndEntity 子接口)
 
 ISndContext ─── ISndBlackboardAccess + ISndSessionAccess + ISndDeferredActions
                + ISndTemplateAccess + ISndConsoleAccess + ISndStateMachineAccess
                + ISndSaveOperations + ISndLifecycleOperations + ISndEntityOperations
-               + ISndFileAccess
+               + ISndFileAccess + ISndArchiveFileAccess
 
 ISndSceneHost ─── ISndSceneAccess
 

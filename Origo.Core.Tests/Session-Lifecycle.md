@@ -1,8 +1,8 @@
 # 会话生命周期 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Runtime/Lifecycle](../../Origo.Core/Runtime/Lifecycle/README.md)
-> [↔ 被测行为: usage/session-model](../../usage/session-model.md)
+> [↔ 被测模块: Origo.Core/Runtime/Lifecycle](../Origo.Core/Runtime/Lifecycle/README.md)
+> [↔ 被测行为: usage/session-model](../usage/session-model.md)
 
 ## 被测行为概览
 

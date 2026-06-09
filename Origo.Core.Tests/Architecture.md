@@ -1,8 +1,8 @@
 # 架构守卫 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/README.md](../../Origo.Core/README.md)
-> [↔ 被测行为: usage/architecture-overview](../../usage/architecture-overview.md)
+> [↔ 被测模块: Origo.Core/README.md](../Origo.Core/README.md)
+> [↔ 被测行为: usage/architecture-overview](../usage/architecture-overview.md)
 
 ## 被测行为概览
 

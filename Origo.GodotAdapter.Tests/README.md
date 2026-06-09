@@ -1,6 +1,6 @@
 # Origo.GodotAdapter.Tests
 
-> [↑ 回到 Origo.manual](../../README.md)
+> [↑ 回到 Origo.manual](../README.md)
 
 ## 测试策略概述
 
@@ -25,4 +25,4 @@ Origo.GodotAdapter 的测试验证 Godot 4 适配层的正确性。
 
 ---
 
-[↑ 回到 Origo.manual](../../README.md)
+[↑ 回到 Origo.manual](../README.md)

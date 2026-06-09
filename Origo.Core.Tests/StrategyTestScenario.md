@@ -1,8 +1,8 @@
 # 策略测试框架 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测代码: Origo.Core/Testing](../../Origo.Core/Testing/README.md)
-> [↔ 被测行为: usage/strategy-testing](../../usage/strategy-testing.md)
+> [↔ 被测代码: Origo.Core/Testing](../Origo.Core/Testing/README.md)
+> [↔ 被测行为: usage/strategy-testing](../usage/strategy-testing.md)
 
 ## 被测行为概览
 

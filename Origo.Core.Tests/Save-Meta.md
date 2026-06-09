@@ -1,8 +1,8 @@
 # 持久化：元数据 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Save/Meta](../../Origo.Core/Save/Meta/README.md)
-> [↔ 被测行为: usage/persistence-flow](../../usage/persistence-flow.md)
+> [↔ 被测模块: Origo.Core/Save/Meta](../Origo.Core/Save/Meta/README.md)
+> [↔ 被测行为: usage/persistence-flow](../usage/persistence-flow.md)
 
 ## 被测行为概览
 

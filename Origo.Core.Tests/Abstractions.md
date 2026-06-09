@@ -1,7 +1,7 @@
 # 测试替身 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Abstractions/FileSystem](../../Origo.Core/Abstractions/FileSystem/README.md)
+> [↔ 被测模块: Origo.Core/Abstractions/FileSystem](../Origo.Core/Abstractions/FileSystem/README.md)
 
 ## 被测行为概览
 

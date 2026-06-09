@@ -1,6 +1,6 @@
 # Origo.GodotAdapter
 
-> [↑ 回到 Origo.manual](../../README.md)
+> [↑ 回到 Origo.manual](../README.md)
 
 ## 模块概述
 
@@ -50,7 +50,7 @@ OrigoDefaultEntry._Ready()
 - **不冲刷延迟管线**：帧循环中不绕过 Core 直接调用 `FlushDeferredActionsForCurrentFrame`
 - **`OrigoAutoHost._Process` 为唯一帧入口**：在其中依次委托 Core 的 `ProcessAll` → `FlushEndOfFrameDeferred` → `Console.ProcessPending`，适配层仅做调度，不做决策
 
-所有这些编排由 `SndRuntime`（Core 层）统一负责。详细分离原则见 [架构总览](../../usage/architecture-overview.md#适配层与-core-层分离原则)。
+所有这些编排由 `SndRuntime`（Core 层）统一负责。详细分离原则见 [架构总览](../usage/architecture-overview.md#适配层与-core-层分离原则)。
 
 ### 桥接模式
 
@@ -74,7 +74,7 @@ Origo.GodotAdapter 引用 `Origo.SourceGeneration` 源码生成器，通过 `[as
 - **TypedDataInitializer**（`Origo.GodotAdapter.Snd`）：公开的 `IsLoaded` 入口，访问此类型触发 GodotAdapter 程序集加载，确保所有 `[ModuleInitializer]` 执行完毕。测试项目通过此类强制加载适配层。
 - **Kind 范围 128–141**：不与 Core 层 1–13 冲突，确保 Core 创建的 `(TypedData)42` 不会在 GodotAdapter 中被误解析为 `Vector2`。
 
-详见 [Origo.SourceGeneration 文档](../../Origo.SourceGeneration/README.md)。
+详见 [Origo.SourceGeneration 文档](../Origo.SourceGeneration/README.md)。
 
 ---
-[↑ 回到 Origo.manual](../../README.md)
+[↑ 回到 Origo.manual](../README.md)

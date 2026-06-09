@@ -1,8 +1,8 @@
 # SND 场景 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Snd/Scene](../../Origo.Core/Snd/Scene/README.md)
-> [↔ 被测行为: usage/snd-entity-model](../../usage/snd-entity-model.md)
+> [↔ 被测模块: Origo.Core/Snd/Scene](../Origo.Core/Snd/Scene/README.md)
+> [↔ 被测行为: usage/snd-entity-model](../usage/snd-entity-model.md)
 
 ## 被测行为概览
 

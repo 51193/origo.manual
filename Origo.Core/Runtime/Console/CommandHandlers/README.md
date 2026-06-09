@@ -1,6 +1,6 @@
 # CommandHandlers
 
-> [↑ 回到 Console](../README.md) · [↔ Usage: console-commands](../../../../../../usage/console-commands.md)
+> [↑ 回到 Console](../README.md) · [↔ Usage: console-commands](../../../../usage/console-commands.md)
 
 ## 概述
 

@@ -1,8 +1,8 @@
 # 控制台系统 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Runtime/Console](../../Origo.Core/Runtime/Console/README.md)
-> [↔ 被测行为: usage/console-commands](../../usage/console-commands.md)
+> [↔ 被测模块: Origo.Core/Runtime/Console](../Origo.Core/Runtime/Console/README.md)
+> [↔ 被测行为: usage/console-commands](../usage/console-commands.md)
 
 ## 被测行为概览
 

@@ -1,7 +1,7 @@
 # 序列化 测试（适配层）
 
 > [↑ 回到 Origo.GodotAdapter.Tests](README.md)
-> [↔ 被测模块: Origo.GodotAdapter/Serialization](../../Origo.GodotAdapter/Serialization/README.md)
+> [↔ 被测模块: Origo.GodotAdapter/Serialization](../Origo.GodotAdapter/Serialization/README.md)
 
 ## 被测行为概览
 

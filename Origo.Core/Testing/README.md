@@ -1,6 +1,6 @@
 # Testing
 
-> [↑ 回到 Origo.Core](../README.md) · [↔ Usage: strategy-testing](../../../../usage/strategy-testing.md)
+> [↑ 回到 Origo.Core](../README.md) · [↔ Usage: strategy-testing](../../usage/strategy-testing.md)
 
 ## 概述
 

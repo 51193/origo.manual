@@ -1,6 +1,6 @@
 # Origo.Core
 
-> [↑ 回到 Origo.manual](../../README.md)
+> [↑ 回到 Origo.manual](../README.md)
 
 ## 模块概述
 
@@ -24,7 +24,7 @@
 | [StateMachine](StateMachine/README.md) | 字符串栈状态机 | StackStateMachine + 策略钩子 + 持久化模型 |
 | [Testing](Testing/README.md) | 测试基础设施 | StrategyTestScenario：策略隔离测试框架 |
 
-> TypedData 源码生成器已提升为独立项目 [Origo.SourceGeneration](../../Origo.SourceGeneration/README.md)，不再作为 Core 的子目录。
+> TypedData 源码生成器已提升为独立项目 [Origo.SourceGeneration](../Origo.SourceGeneration/README.md)，不再作为 Core 的子目录。
 
 ## 本层文件
 
@@ -51,4 +51,4 @@ Origo.ConsoleBridge (独立服务)
 适配层依赖 Core 的抽象接口并注入具体实现，Core 绝不反向依赖适配层。
 
 ---
-[↑ 回到 Origo.manual](../../README.md)
+[↑ 回到 Origo.manual](../README.md)

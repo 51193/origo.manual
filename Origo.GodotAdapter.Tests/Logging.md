@@ -1,7 +1,7 @@
 # 日志 测试（适配层）
 
 > [↑ 回到 Origo.GodotAdapter.Tests](README.md)
-> [↔ 被测模块: Origo.GodotAdapter/Logging](../../Origo.GodotAdapter/Logging/README.md)
+> [↔ 被测模块: Origo.GodotAdapter/Logging](../Origo.GodotAdapter/Logging/README.md)
 
 ## 被测行为概览
 

@@ -1,8 +1,8 @@
 # 控制台桥接服务器 测试
 
 > [↑ 回到 Origo.ConsoleBridge.Tests](README.md)
-> [↔ 被测模块: Origo.ConsoleBridge](../../Origo.ConsoleBridge/README.md)
-> [↔ 被测行为: usage/console-commands](../../usage/console-commands.md)
+> [↔ 被测模块: Origo.ConsoleBridge](../Origo.ConsoleBridge/README.md)
+> [↔ 被测行为: usage/console-commands](../usage/console-commands.md)
 
 ## 被测行为概览
 

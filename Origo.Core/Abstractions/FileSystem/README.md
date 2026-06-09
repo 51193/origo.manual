@@ -22,6 +22,7 @@
 | `WriteAllText(path, content, overwrite)` | 写入文本；可控制覆盖行为 |
 | `Copy(src, dst, overwrite)` | 复制文件或目录 |
 | `EnumerateFiles(dir, pattern, recursive)` | 枚举文件，支持搜索模式和递归 |
+| `EnumerateDirectories(dir)` | 枚举目录（非递归） |
 | `CreateDirectory(path)` | 创建目录（含父目录） |
 | `Delete(path)` | 删除文件；不存在则忽略 |
 | `DeleteDirectory(path)` | 递归删除目录；不存在则忽略 |

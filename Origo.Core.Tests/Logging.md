@@ -1,7 +1,7 @@
 # 日志 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Logging](../../Origo.Core/Logging/README.md)
+> [↔ 被测模块: Origo.Core/Logging](../Origo.Core/Logging/README.md)
 
 ## 被测行为概览
 

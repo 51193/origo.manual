@@ -1,8 +1,8 @@
 # 文件访问 测试
 
 > [↑ 回到 Origo.Core.Tests](README.md)
-> [↔ 被测模块: Origo.Core/Abstractions/Snd](../../Origo.Core/Abstractions/Snd/README.md)
-> [↔ 被测行为: usage/agent-reference](../../../usage/agent-reference.md)
+> [↔ 被测模块: Origo.Core/Abstractions/Snd](../Origo.Core/Abstractions/Snd/README.md)
+> [↔ 被测行为: usage/agent-reference](../usage/agent-reference.md)
 
 ## 被测行为概览
 
