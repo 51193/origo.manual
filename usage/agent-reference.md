@@ -88,12 +88,12 @@ public interface IBlackboard
 
 ### ISndContext
 
-ISndContext 是策略钩子接收的统一门面接口，组合了 10 个角色接口。命名空间 `Origo.Core.Snd`。
+ISndContext 是策略钩子接收的统一门面接口，组合了 11 个角色接口。命名空间 `Origo.Core.Snd`。
 
 ```csharp
 public interface ISndContext : ISndBlackboardAccess, ISndSessionAccess, ISndDeferredActions,
     ISndTemplateAccess, ISndConsoleAccess, ISndStateMachineAccess, ISndSaveOperations,
-    ISndLifecycleOperations, ISndEntityOperations, ISndFileAccess
+    ISndLifecycleOperations, ISndEntityOperations, ISndFileAccess, ISndArchiveFileAccess
 {
 }
 
@@ -170,6 +170,16 @@ public interface ISndFileAccess {
     bool FileExists(string path);
     T ReadObject<T>(string path);
     void WriteObject<T>(string path, T value, bool overwrite = true);
+}
+
+// 存档内文件访问（路径相对于存档活动目录的 extra/ 子目录，随存档生命周期）
+public interface ISndArchiveFileAccess {
+    DataSourceNode ReadFile(string relativePath);
+    void WriteFile(string relativePath, DataSourceNode node, bool overwrite = true);
+    bool FileExists(string relativePath);
+    T ReadObject<T>(string relativePath);
+    void WriteObject<T>(string relativePath, T value, bool overwrite = true);
+    void DeleteFile(string relativePath);
 }
 ```
 

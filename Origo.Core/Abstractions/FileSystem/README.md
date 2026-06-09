@@ -45,7 +45,7 @@
 
 ### 为什么策略不直接使用 IFileSystem
 
-`IFileSystem` 仅暴露原始文本读写，不提供解析能力。策略通过 `ISndFileAccess`（`ISndContext` 的第 10 个角色接口）访问文件——此接口的文件内容操作均经过 `IDataSourceIoGateway` 边界，自动处理后缀路由（`.json` / `.map` 等）并返回已解析的 `DataSourceNode` 树或强类型对象。这确保：
+`IFileSystem` 仅暴露原始文本读写，不提供解析能力。策略通过 `ISndFileAccess`（静态资源文件访问，`ISndContext` 的第 10 个角色接口）和 `ISndArchiveFileAccess`（存档内文件访问，第 11 个角色接口）访问文件——这些接口的文件内容操作均经过 `IDataSourceIoGateway` 边界，自动处理后缀路由（`.json` / `.map` 等）并返回已解析的 `DataSourceNode` 树或强类型对象。`ISndArchiveFileAccess` 额外提供 `DeleteFile` 方法，其路径相对于存档活动目录的 `extra/` 子目录，写入的文件随存档生命周期管理。这确保：
 
 - 所有文件内容读写统一经过 `IDataSourceIoGateway`（框架的硬性 I/O 边界）
 - 策略无需自行解析原始 JSON/Map 文本
