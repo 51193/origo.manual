@@ -156,7 +156,10 @@ class MySaveMetaContributor : ISaveMetaContributor
 // 注册（在 OrigoDefaultEntry.ConfigureSaveMetadataContributors 或策略中）
 ctx.RegisterSaveMetaContributor(new MySaveMetaContributor());
 // 也可使用委托重载：
-ctx.RegisterSaveMetaContributor((ctx, meta) => meta["custom"] = "value");
+ctx.RegisterSaveMetaContributor((context) => new Dictionary<string, string>
+{
+    ["custom"] = "value"
+});
 ```
 
 ## 路径策略

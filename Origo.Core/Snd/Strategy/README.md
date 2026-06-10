@@ -15,6 +15,7 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 | `BaseStrategy.cs` | 所有策略的抽象根基类 |
 | `EntityStrategyBase.cs` | 实体策略基类：8 个生命周期虚方法钩子 |
 | `ActiveStrategyBase.cs` | 主动策略基类：`Invoke(entity, ctx, input)` — 外部按索引主动调用 |
+| `ActiveStrategyExtensions.cs` | `ISndEntity` 扩展方法：泛型 `InvokeStrategy<TInput, TOutput>` 消除 JSON 序列化样板 |
 | `ActiveStrategyManager.cs` | 单实体主动策略管理器：Dictionary 容器 + 增删 + 序列化 |
 | `SndStrategyPool.cs` | 策略池：注册、实例化、引用计数、无状态校验 |
 | `SndStrategyManager.cs` | 单实体被动策略管理器：策略容器的增删 + 生命周期钩子协调 |
@@ -72,6 +73,22 @@ BaseStrategy
 - **Add / Remove**：动态增删主动策略
 - **Invoke**：按索引查找策略实例，调用 `Invoke(entity, ctx, input)` 并返回结果
 - **序列化**：`SerializeIndices()` 返回当前持有的全部索引
+
+### ActiveStrategyExtensions
+
+`ISndEntity` 的扩展方法，提供类型安全的泛型 ActiveStrategy 调用：
+
+```csharp
+// 泛型调用（输入和输出强类型）
+var result = entity.InvokeStrategy<SearchInput, PathResult>("traversability.find_path", input);
+
+// 无输入泛型调用
+var list = entity.InvokeStrategy<List<FoodEntry>>("food.get_registry");
+```
+
+扩展方法内部透明处理 JSON 序列化/反序列化。调用者无需手动 `JsonSerializer.Serialize` / `Deserialize`，消除调用侧的样板代码。
+
+原始 `entity.InvokeStrategy(string, object?)` 接口保持不变，泛型扩展方法作为可选便利层。
 
 ### 实体生命周期中的策略顺序
 

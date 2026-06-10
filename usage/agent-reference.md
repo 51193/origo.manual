@@ -28,6 +28,11 @@ public interface ISndDataAccess
     void Unsubscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback);
 }
 
+// TryGetNumeric 扩展方法（Origo.Core.Snd.TryGetNumericExtensions）：
+// bool entity.TryGetNumeric(string key, out float value)
+// float entity.GetNumeric(string key, float fallback = 0f)
+// 按 float → int → long → double 顺序尝试读取，桥接类型不匹配。
+
 public interface ISndEntityLifecycleAccess
 {
     void SubscribeLifecycle(Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
@@ -65,6 +70,11 @@ public interface ISndActiveStrategyAccess
     void RemoveActiveStrategy(string index);
     object? InvokeStrategy(string strategyIndex, object? input = null);
 }
+
+// ActiveStrategy 泛型扩展方法（Origo.Core.Snd.ActiveStrategyExtensions）：
+// TOutput? entity.InvokeStrategy<TOutput>(string strategyIndex)
+// TOutput? entity.InvokeStrategy<TInput, TOutput>(string strategyIndex, TInput input)
+// 透明处理 JSON 序列化/反序列化，消除调用侧样板代码。
 
 public enum EntityLifecycleEvent
 {
@@ -146,7 +156,7 @@ public interface ISndSaveOperations {
     void SetContinueTarget(string saveId);
     void RequestSwitchForegroundLevel(string newLevelId);
     void RegisterSaveMetaContributor(ISaveMetaContributor contributor);
-    void RegisterSaveMetaContributor(Action<SaveMetaBuildContext, IDictionary<string, string>> contribute);
+    void RegisterSaveMetaContributor(Func<SaveMetaBuildContext, IReadOnlyDictionary<string, string>> contribute);
 }
 
 // 生命周期入口

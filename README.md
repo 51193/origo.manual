@@ -65,7 +65,7 @@ Root (this file)
 
 | 子系统 | 职责 |
 |--------|------|
-| [Abstractions](Origo.Core/Abstractions/README.md) | 10 组公共接口（IBlackboard、IFileSystem、ISndEntity、ISessionManager、IStateMachineContainer...） |
+| [Abstractions](Origo.Core/Abstractions/README.md) | 11 组公共接口（IBlackboard、IFileSystem、ISndEntity、ISessionManager、IStateMachineContainer...） |
 | [Snd](Origo.Core/Snd/README.md) | SND 实体系统（Strategy + Node + Data） |
 | [Runtime](Origo.Core/Runtime/README.md) | 四层运行时生命周期 + 控制台 |
 | [Save](Origo.Core/Save/README.md) | 持久化（两阶段写入 + 严格读取） |

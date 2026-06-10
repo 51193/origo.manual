@@ -10,17 +10,18 @@
 
 | 子系统 | 能力 | 详情 |
 |--------|------|------|
-| [Abstractions](Abstractions/README.md) | 9 组公共抽象接口 | IBlackboard / IFilesystem / ILogger / ISndEntity / IStateMachine ... |
+| [Abstractions](Abstractions/README.md) | 11 组公共抽象接口 | IBlackboard / IFilesystem / ILogger / ISndEntity / IStateMachine ... |
 | [Addons](Addons/README.md) | Vendor 第三方库 | FastNoiseLite v1.1.1（噪声生成）|
 | [Blackboard](Blackboard/README.md) | IBlackboard 默认实现 | 基于 Dictionary + TypedData 的内存黑板 |
 | [DataSource](DataSource/README.md) | 数据源抽象层 | DataSourceNode 树模型 + JSON/Map 编解码 + 类型转换器注册 |
+| [Grid](Grid/README.md) | 网格坐标系工具 | GridCoordinateSystem：网格 ↔ 世界坐标双向转换 |
 | [Logging](Logging/README.md) | 日志系统 | LogMessageBuilder（结构化构建）+ NullLogger（测试静默）|
-| [Random](Random/README.md) | 随机数系统 | XorShift128+ 伪随机数 + Simplex/Worley 噪声图 |
+| [Random](Random/README.md) | 随机数系统 | XorShift128+ 伪随机数 + PersistentRandom + Simplex/Worley 噪声图 |
 | [Runtime](Runtime/README.md) | 运行时核心 | 四层生命周期 + 控制台 + 状态机容器 + OrigoRuntime |
 | [Save](Save/README.md) | 持久化系统 | 两阶段写入 + 严格读取 + 路径策略 + meta.map |
 | [Scheduling](Scheduling/README.md) | 延迟调度 | ActionScheduler + 线程安全 ConcurrentActionQueue |
 | [Serialization](Serialization/README.md) | 类型映射 | TypeStringMapping（CLR 类型 ↔ 稳定字符串标识）|
-| [Snd](Snd/README.md) | SND 实体系统 | 策略→实体→数据→场景宿主 完整堆栈 |
+| [Snd](Snd/README.md) | SND 实体系统 | 策略→实体→数据→场景宿主→原型加载 完整堆栈 |
 | [StateMachine](StateMachine/README.md) | 字符串栈状态机 | StackStateMachine + 策略钩子 + 持久化模型 |
 | [Testing](Testing/README.md) | 测试基础设施 | StrategyTestScenario：策略隔离测试框架 |
 

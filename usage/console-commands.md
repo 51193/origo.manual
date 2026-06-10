@@ -99,15 +99,41 @@ health = 100 (type: Int32)
 
 类型推断规则同 `bb_set`（int/float/bool/string）。若键已存在，则**保留已有键的类型**再写入（如已有 `float` 类型的 `hunger` 键，执行 `entity_set_data player hunger 15` 会写为 `Single(15)` 而非 `Int32(15)`）。
 
+### invoke_strategy
+
+```
+> invoke_strategy FoodManager food.get_registry
+InvokeStrategy 'food.get_registry' on 'FoodManager': [{"K":"food_001","T":"berry",...}]
+```
+
+```
+> invoke_strategy TraversabilityManager traversability.is_passable 10,10
+InvokeStrategy 'traversability.is_passable' on 'TraversabilityManager': true
+```
+
+对指定实体调用其主动策略（ActiveStrategyBase）。第一个位置参数为实体名称，第二个为策略索引，第三个可选为 JSON 输入参数。结果以字符串形式输出。若实体不存在或策略非主动类型，输出错误。
+
+### tree_debug（适配层）
+
+```
+> tree_debug
+Scene tree:
+  - OrigoEntryBridge (OrigoEntryBridge)
+    - GodotSndManager (GodotSndManager)
+      - Player (GodotSndEntity)
+      - FoodManager (GodotSndEntity)
+```
+
+递归打印当前 Godot 场景树结构，输出节点名和脚本类型名。用于运行时调试场景拓扑。
+
 ## 添加自定义命令
 
 ### Core 层命令
 
-继承 `ConsoleCommandHandlerBase`：
+继承 `ConsoleCommandHandlerBase`（`public` 类，外部项目可直接派生）：
 
 ```csharp
-[StrategyIndex("my_game.my_command")]
-internal sealed class MyCommandHandler : ConsoleCommandHandlerBase
+public sealed class MyCommandHandler : ConsoleCommandHandlerBase
 {
     private readonly OrigoRuntime _runtime;
     public MyCommandHandler(OrigoRuntime runtime) { _runtime = runtime; }
@@ -134,10 +160,10 @@ internal sealed class MyCommandHandler : ConsoleCommandHandlerBase
 
 ### 适配层命令
 
-继承 `Origo.GodotAdapter.Console.CommandHandlerBase`：
+继承 `Origo.GodotAdapter.Console.CommandHandlerBase`（`public` 类）：
 
 ```csharp
-internal sealed class MyGodotCommand : CommandHandlerBase
+public sealed class MyGodotCommand : CommandHandlerBase
 {
     public MyGodotCommand(OrigoRuntime runtime) : base(runtime) { }
     public override string Name => "my_godot_cmd";

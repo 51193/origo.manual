@@ -11,7 +11,8 @@
 | 文件 | 职责 |
 |------|------|
 | `RandomNumberGenerator.cs` | XorShift128+ 伪随机数生成器，状态由调用方显式维护 |
-| `NoiseMapGenerator.cs` | Simplex + Worley 混合噪声图生成，行优先一维数组输出 |
+| `PersistentRandom.cs` | 将随机状态持久化到进度黑板，提供 InitSeed / TryNextInt32 / NextInt32 / NextFloat |
+| `NoiseMapGenerator.cs` | Simplex + Worley 混合噪声图生成，行优先一维数组输出。基础重载 + 扩展重载（自定义 octaves/lacunarity/gain） |
 
 ## 实现详解
 
@@ -29,6 +30,16 @@
 - **输出**：行优先 `float[size*size]` 数组，值域 `[0, 1]`
 - **归一化**：`(value + 1) * 0.5`，通过 `Math.Clamp` 确保安全
 - **默认参数**：seed=1337, frequency=0.01
+- **扩展重载**：支持 `octaves`、`lacunarity`、`gain`、`worleyFrequencyMultiplier` 参数，用于精细控制噪声细节层次
+
+### PersistentRandom
+
+- 包装 `IBlackboard`，将随机状态（两个 `ulong`）存储为黑板键值对
+- **InitSeed(seed)**：字符串种子 → FNV-1a散列 → XorShift128+ 状态对 → 写入黑板
+- **TryNextInt32**：原子读取状态 → 推进 → 写回黑板。未初始化时返回 false
+- **NextInt32(min, max)**：范围整数随机（含安全包装）。未初始化时抛出 `InvalidOperationException`
+- **NextFloat**：返回 `[0, 1)` 区间浮点。未初始化时抛出异常
+- 构造函数接受可选的自定义状态键名（默认 `"rand.state1"`、`"rand.state2"`）
 
 ## 设计决策
 
