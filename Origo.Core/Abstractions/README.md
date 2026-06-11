@@ -10,7 +10,7 @@ Origo.Core 的稳定公共抽象层。所有接口在此层定义为平台无关
 
 | 子模块 | 能力 | 详情 |
 |--------|------|------|
-| [Blackboard](Blackboard/README.md) | 通用键值黑板接口，保留类型信息 | `IBlackboard`：Set/Get + 序列化 |
+| [Blackboard](Blackboard/README.md) | 通用键值黑板接口，保留类型信息 | `IBlackboard`：SetValue/Get + 序列化 |
 | [Console](Console/README.md) | 控制台输入输出抽象 | `IConsoleInputSource`（轮询）+ `IConsoleOutputChannel`（发布-订阅）|
 | [Entity](Entity/README.md) | SND 实体的六项能力接口 + 独立的生命周期接口 | `ISndEntity` = `ISndDataAccess` + `ISndNodeAccess` + `ISndStrategyAccess` + `ISndActiveStrategyAccess` + `ISndEntityLifecycleAccess` + `ISndObservation`；`IEntityLifecycle` 为独立接口（框架内部使用）|
 | [FileSystem](FileSystem/README.md) | 平台无关文件系统抽象 | `IFileSystem`：13 个文件/目录操作，含路径拼接和父目录。策略不直接使用此接口，而是通过 `ISndFileAccess`（经 `IDataSourceIoGateway` 边界）|

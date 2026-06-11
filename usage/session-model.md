@@ -58,7 +58,7 @@ var bgSession = sessionManager.CreateBackgroundSession(
 
 // 后台会话拥有独立的实体、黑板和状态机
 bgSession.SceneHost.CreateEntity(dungeonEntityMeta);
-bgSession.SessionBlackboard.Set("explored", true);
+bgSession.SessionBlackboard.SetValue("explored", true);
 ```
 
 **levelId 唯一性约束：** 同一时刻，一个 levelId 只能被一个会话持有。若尝试创建后台会话时已有前台或其他后台使用了该 levelId，`CreateBackgroundSession` 会抛出 `InvalidOperationException`。
@@ -71,7 +71,7 @@ bgSession.SessionBlackboard.Set("explored", true);
 // 方式一：自动处理（推荐）—— SwitchForeground 内部完成保存 + 销毁
 var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
 bg.SceneHost.CreateEntity(...);
-bg.SessionBlackboard.Set("data", value);
+bg.SessionBlackboard.SetValue("data", value);
 
 // 直接切换，SwitchForeground 会自动保存并销毁 bg
 ctx.RequestSwitchForegroundLevel("game");

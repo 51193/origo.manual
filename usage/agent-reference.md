@@ -87,7 +87,7 @@ public enum EntityLifecycleEvent
 ```csharp
 public interface IBlackboard
 {
-    void Set<T>(string key, T value);
+    void SetValue<T>(string key, T value);
     (bool found, T value) TryGet<T>(string key);
     void Clear();
     IReadOnlyCollection<string> GetKeys();
@@ -271,7 +271,7 @@ OrigoAutoHost._Ready()
 ├── 3. 创建 GodotSndManager
 ├── 4. 注册 TypeStringMapping + Converters (BCL + Godot types)
 ├── 5. 创建 PersistentBlackboard → LoadFromDisk
-├── 6. 创建 ConsoleInputQueue + ConsoleOutputChannel
+├── 6. 创建 ConsoleInputBuffer + ConsoleOutputChannel
 ├── 7. 创建 OrigoRuntime
 │   ├── SndWorld (策略池 + 转换器注册表)
 │   ├── SystemRun (持有 SystemBlackboard)

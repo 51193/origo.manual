@@ -14,8 +14,8 @@
 
 ## 实现细节
 
-- **键校验**：`Set` 和 `TryGet` 均对空/null 键做防御性检查，抛出 `ArgumentException`
-- **Set**：通过 `TypedDataFactory<T>.Create(value)` 创建值类型实例存入字典，泛型类型在编译期捕获
+- **键校验**：`SetValue` 和 `TryGet` 均对空/null 键做防御性检查，抛出 `ArgumentException`
+- **SetValue**：通过 `TypedDataFactory<T>.Create(value)` 创建值类型实例存入字典，泛型类型在编译期捕获
 - **TryGet**：先查找 `TypedData`，再通过 `TypedDataFactory<T>.TryExtract(td, out var value)` 提取并校验运行时类型
 - **SerializeAll/DeserializeAll**：全量导出/导入，不涉及增量合并。`DeserializeAll` 先清空再填充，替换语义
 

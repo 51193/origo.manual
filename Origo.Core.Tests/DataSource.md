@@ -6,7 +6,7 @@
 
 ## 被测行为概览
 
-验证 DataSourceNode 树模型：节点创建（Object/Array/String/Number/Boolean/Null）、
+验证 DataSourceNode 树模型：节点创建（Map/Array/Text/Number/Bool/Null）、
 值访问（AsInt/AsLong/AsString 等）、懒展开（Lazy 延迟求值 + 失败可重试）、
 JSON 编解码往返（嵌套对象/顶层数组、懒展开保护）、Map 编解码（注释/冒号值/空值跳过）、
 ConverterRegistry（14 种基本类型 + 14 种数组类型 + 领域类型）完整往返、

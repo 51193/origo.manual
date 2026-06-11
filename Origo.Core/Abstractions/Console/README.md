@@ -35,7 +35,7 @@
 
 ### 为什么 Enqueue 和 Clear 也在接口上
 
-原 `IConsoleInputSource` 仅暴露 `TryDequeueCommand`，适配层和 ConsoleBridge 需依赖具体类 `ConsoleInputQueue` 调用 `Enqueue` 和 `Clear`，造成抽象泄漏。将这两个方法提升到接口后，所有外部消费者可通过 `IConsoleInputSource` 完成投递、消费和清空的全生命周期操作，消除对具体类的编译期依赖。
+原 `IConsoleInputSource` 仅暴露 `TryDequeueCommand`，适配层和 ConsoleBridge 需依赖具体类 `ConsoleInputBuffer` 调用 `Enqueue` 和 `Clear`，造成抽象泄漏。将这两个方法提升到接口后，所有外部消费者可通过 `IConsoleInputSource` 完成投递、消费和清空的全生命周期操作，消除对具体类的编译期依赖。
 
 ### 为什么输入用轮询而非事件
 

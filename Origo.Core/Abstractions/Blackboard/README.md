@@ -10,13 +10,13 @@
 
 | 文件 | 职责 |
 |------|------|
-| `IBlackboard.cs` | 黑板核心接口：Set/Get/Clear/Keys + 序列化/反序列化 |
+| `IBlackboard.cs` | 黑板核心接口：SetValue/Get/Clear/Keys + 序列化/反序列化 |
 
 ## 接口成员
 
 | 方法 | 说明 |
 |------|------|
-| `Set<T>(string key, T value)` | 写入键值对，保留完整类型信息 |
+| `SetValue<T>(string key, T value)` | 写入键值对，保留完整类型信息 |
 | `TryGet<T>(string key)` | 安全读取：返回 `(found, value)` 元组 |
 | `Clear()` | 清空所有键值 |
 | `GetKeys()` | 枚举全部键名 |

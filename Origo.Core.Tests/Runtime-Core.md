@@ -24,7 +24,7 @@
 | 测试方法 | 验证的行为 | 文档出处 |
 |---------|-----------|---------|
 | `OrigoRuntime_Constructor_CreatesSndWorld` | 构造后 SndWorld 和 Logger 可用 | Runtime: OrigoRuntime |
-| `OrigoRuntime_ConsoleInputQueue_NullWithoutInjection` | 未注入控制台时 Console 相关属性为 null | Runtime: Console |
+| `OrigoRuntime_ConsoleInputBuffer_NullWithoutInjection` | 未注入控制台时 Console 相关属性为 null | Runtime: Console |
 | `OrigoRuntime_WithConsole_CreatesConsole` | 注入控制台输入/输出后 Console 可用 | Runtime: Console |
 | `OrigoRuntime_ResetConsoleState_ClearsInputQueue` | 重置只清理输入队列 | Runtime: Console |
 | `OrigoRuntime_FlushEndOfFrameDeferred_ExecutesDeferredActions` | Business 和 System 延迟动作全部执行 | Scheduling |

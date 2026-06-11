@@ -15,7 +15,7 @@
 |------|-----------|
 | `ConsoleCommandParserTests.cs` | 命令解析：空行/空白行/单命令/位置参数/命名参数/无效命名参数 |
 | `ConsoleCommandRouterTests.cs` | 命令路由：注册/分发/未注册命令/help 命令 |
-| `ConsoleInputQueueTests.cs` | 输入队列：Enqueue/Dequeue/FIFO/空队列 |
+| `ConsoleInputBufferTests.cs` | 输入队列：Enqueue/Dequeue/FIFO/空队列 |
 | `ConsoleOutputChannelTests.cs` | 输出通道：Subscribe/Publish/Unsubscribe/多订阅者 |
 | `ConsoleTests.cs` | 集成测试：spawn 命令 positional/named 模式、模板不存在、重名 |
 | `ConsoleCommandExtendedTests.cs` | 命令扩展/边缘测试 |
@@ -102,7 +102,7 @@
 | 缺口描述 | 影响 | 文档依据 |
 |---------|------|---------|
 | ConsoleCommandRouter 移除已注册 Handler 后的行为 | 动态卸载命令 | — |
-| 并发 TryDequeueCommand 和 Enqueue 的线程安全 | 多线程输入 | ConsoleInputQueue |
+| 并发 TryDequeueCommand 和 Enqueue 的线程安全 | 多线程输入 | ConsoleInputBuffer |
 | TCP 远程控制台断开重连后的输出缓冲 | 重连时历史输出是否推送 | Origo.ConsoleBridge |
 
 ---
