@@ -70,7 +70,7 @@ public class MenuPushStrategy : StateMachineStrategyBase
     {
         // context.AfterTop 是新栈顶（刚 push 的值）
         if (context.AfterTop == "main_menu")
-            ctx.RequestKillAll();  // 立即标记所有实体为待销毁（帧末统一执行）
+            ctx.SessionBlackboard?.SetValue("active_menu", context.AfterTop);
     }
 }
 

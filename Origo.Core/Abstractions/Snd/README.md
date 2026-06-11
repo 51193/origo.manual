@@ -82,10 +82,9 @@ Abstractions 层接口的返回值不得引用 Runtime 层具体实现类型。`
 
 - `ReadFile` / `WriteFile` → `IDataSourceIoGateway.ReadTree` / `WriteTree` → 结构化 `DataSourceNode` 树
 - `ReadObject<T>` / `WriteObject<T>` → 在 Gateway 基础上集成 `DataSourceConverterRegistry` → 强类型对象
-- `FileExists` / `DirectoryExists` → `IFileMetaAccess.FileExists` / `DirectoryExists`
-- 路径拼接 → `IPathResolver.CombinePath` / `GetParentDirectory`
+- `FileExists` → `IFileMetaAccess.FileExists`
 
-策略不应直接调用 `IFileSystem`（已完全内部化）或自行解析原始 JSON/Map 文本——后缀路由、编解码策略与 I/O 错误语义统一在 Gateway 一侧治理，元数据操作与路径运算分别由 `IFileMetaAccess` 和 `IPathResolver` 提供。
+策略不应直接调用 `IFileSystem`（已完全内部化）或自行解析原始 JSON/Map 文本——后缀路由、编解码策略与 I/O 错误语义统一在 Gateway 一侧治理。路径拼接（`CombinePath`、`GetParentDirectory`）和目录检查（`DirectoryExists`）由框架内部的 `IPathResolver` 和 `IFileMetaAccess` 提供，不通过 `ISndFileAccess` 暴露给策略层。
 
 ---
 

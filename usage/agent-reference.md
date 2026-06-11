@@ -144,7 +144,7 @@ public interface ISndConsoleAccess {
 
 // 状态机
 public interface ISndStateMachineAccess {
-    StateMachineContainer? GetProgressStateMachines();
+    IStateMachineContainer? GetProgressStateMachines();
 }
 
 // 存档操作
@@ -201,6 +201,7 @@ public interface ISndArchiveFileAccess {
 public interface ISessionManager
 {
     const string ForegroundKey = "__foreground__";
+    bool CanCreateSessions { get; }
     ISessionRun? ForegroundSession { get; }
     IReadOnlyCollection<string> Keys { get; }
     ISessionRun? TryGet(string key);
@@ -241,13 +242,18 @@ public interface IStateMachine
 ```
 
 ```csharp
-public interface IStateMachineContext
+public interface IStateMachineContext : ISndBlackboardAccess, ISndDeferredActions
 {
-    IBlackboard SystemBlackboard { get; }
-    IBlackboard? ProgressBlackboard { get; }
+    // 继承自 ISndBlackboardAccess:
+    //   IBlackboard SystemBlackboard { get; }
+    //   IBlackboard? ProgressBlackboard { get; }
+    // 继承自 ISndDeferredActions:
+    //   void EnqueueBusinessDeferred(Action action);
+    //   void FlushDeferredActionsForCurrentFrame();
+    //   int GetPendingPersistenceRequestCount();
+
     IBlackboard? SessionBlackboard { get; }
     ISndSceneAccess SceneAccess { get; }
-    void EnqueueBusinessDeferred(Action action);
 }
 ```
 

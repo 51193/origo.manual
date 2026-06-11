@@ -146,10 +146,13 @@ player_name: Alice
 // 贡献者实现
 class MySaveMetaContributor : ISaveMetaContributor
 {
-    public void Contribute(in SaveMetaBuildContext context, IDictionary<string, string> target)
+    public IReadOnlyDictionary<string, string> Contribute(in SaveMetaBuildContext context)
     {
-        target["play_time"] = CalculatePlayTime();
-        target["player_name"] = context.Session.GetData<string>("player_name");
+        return new Dictionary<string, string>
+        {
+            ["play_time"] = CalculatePlayTime(),
+            ["player_name"] = context.ProgressBlackboard?.TryGet<string>("player_name").value ?? ""
+        };
     }
 }
 

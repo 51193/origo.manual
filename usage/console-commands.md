@@ -116,15 +116,14 @@ InvokeStrategy 'traversability.is_passable' on 'TraversabilityManager': true
 ### tree_debug（适配层）
 
 ```
-> tree_debug
-Scene tree:
-  - OrigoEntryBridge (OrigoEntryBridge)
-    - GodotSndManager (GodotSndManager)
-      - Player (GodotSndEntity)
-      - FoodManager (GodotSndEntity)
+> tree_debug Player
+实体 'Player' 的节点树：
+  [GodotSndEntity] "Player"
+    [Sprite3D] "CharacterSprite"
+    [CollisionShape3D] "Collider"
 ```
 
-递归打印当前 Godot 场景树结构，输出节点名和脚本类型名。用于运行时调试场景拓扑。
+打印指定实体的完整 Godot 节点子树，输出节点类型名和节点名。要求 1 个位置参数（实体名称）。若实体不存在或非 Godot 实体，输出错误。
 
 ## 添加自定义命令
 

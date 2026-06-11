@@ -28,7 +28,7 @@ public interface ISessionRun : IDisposable
     ISndSceneHost SceneHost { get; }       // 支持完整实体操作
     string LevelId { get; }
     bool IsFrontSession { get; }
-    StateMachineContainer GetSessionStateMachines();
+    IStateMachineContainer GetSessionStateMachines();
 }
 ```
 
@@ -38,6 +38,7 @@ public interface ISessionRun : IDisposable
 public interface ISessionManager
 {
     const string ForegroundKey = "__foreground__";
+    bool CanCreateSessions { get; }
     ISessionRun? ForegroundSession { get; }
     IReadOnlyCollection<string> Keys { get; }
     ISessionRun? TryGet(string key);
