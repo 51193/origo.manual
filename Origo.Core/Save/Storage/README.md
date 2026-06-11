@@ -4,7 +4,7 @@
 
 ## 概述
 
-存档存储层的完整实现。负责文件 I/O（读写、目录管理、快照）、路径布局策略、Payload 构造。所有文件操作通过 `IFileSystem` + `IDataSourceIoGateway` 进行，不直接调用 `File.*` API。
+存档存储层的完整实现。负责文件 I/O（读写、目录管理、快照）、路径布局策略、Payload 构造。所有文件操作通过 `IFileMetaAccess` + `IDataSourceIoGateway` + `IPathResolver` 进行，不直接调用 `File.*` API（`IFileSystem` 内部化）。
 
 ## 包含文件
 
@@ -14,7 +14,7 @@
 | `ISavePathPolicy.cs` | 存档路径策略接口（可替换布局） |
 | `DefaultSaveStorageService.cs` | ISaveStorageService 默认实现，内部委托给 SaveFileHandle + SavePayloadWriter/Reader |
 | `DefaultSavePathPolicy.cs` | ISavePathPolicy 默认实现，委托给 SavePathLayout |
-| `SaveFileHandle.cs` | 统一 I/O 上下文：封装 IFileSystem + IDataSourceIoGateway + saveRootPath + ISavePathPolicy，合并原 SavePathResolver 的路径工具方法和 SaveStorageGatewayFactory 的网关创建 |
+| `SaveFileHandle.cs` | 统一 I/O 上下文：封装 IFileMetaAccess + IDataSourceIoGateway + IPathResolver + saveRootPath + ISavePathPolicy，合并原 SavePathResolver 的路径工具方法和 SaveStorageGatewayFactory 的网关创建 |
 | `SavePathLayout.cs` | 标准路径布局常量与方法（current/、save_*、level_*） |
 | `SavePayloadWriter.cs` | 存档写入编排（两阶段写入 + marker 管理） |
 | `SavePayloadReader.cs` | 存档读取编排（严格读取 + 完整性校验） |

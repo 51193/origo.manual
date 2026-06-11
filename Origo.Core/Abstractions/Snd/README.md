@@ -78,13 +78,14 @@ Abstractions 层接口的返回值不得引用 Runtime 层具体实现类型。`
 
 ### 为什么 ISndFileAccess 暴露 DataSourceNode 而非裸文件文本
 
-所有文件内容读写必须经过 `IDataSourceIoGateway` 边界——这是框架的硬性 I/O 约束。`ISndFileAccess` 暴露的三个层级方法均遵守此边界：
+所有文件操作通过三个基础接口完成——`IDataSourceIoGateway`（内容 I/O）、`IFileMetaAccess`（文件元数据）、`IPathResolver`（路径运算）。`ISndFileAccess` 暴露的方法分别委托到对应接口：
 
 - `ReadFile` / `WriteFile` → `IDataSourceIoGateway.ReadTree` / `WriteTree` → 结构化 `DataSourceNode` 树
 - `ReadObject<T>` / `WriteObject<T>` → 在 Gateway 基础上集成 `DataSourceConverterRegistry` → 强类型对象
-- `FileExists` → `IDataSourceIoGateway.Exists`
+- `FileExists` / `DirectoryExists` → `IFileMetaAccess.FileExists` / `DirectoryExists`
+- 路径拼接 → `IPathResolver.CombinePath` / `GetParentDirectory`
 
-策略不应直接调用 `IFileSystem.ReadAllText` 或自行解析原始 JSON/Map 文本——后缀路由、编解码策略与 I/O 错误语义统一在 Gateway 一侧治理。
+策略不应直接调用 `IFileSystem`（已完全内部化）或自行解析原始 JSON/Map 文本——后缀路由、编解码策略与 I/O 错误语义统一在 Gateway 一侧治理，元数据操作与路径运算分别由 `IFileMetaAccess` 和 `IPathResolver` 提供。
 
 ---
 

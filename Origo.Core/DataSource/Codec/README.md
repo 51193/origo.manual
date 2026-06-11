@@ -4,14 +4,15 @@
 
 ## 概述
 
-`IDataSourceCodec` 接口的具体编解码实现。负责将 `DataSourceNode` 与外部数据格式（JSON、自定义 `.map` 格式）互相转换。所有编解码器均为 `internal`，仅通过 `DataSourceIoGateway` 按文件后缀路由调用。
+`IDataSourceCodec` 接口的具体编解码实现。负责将 `DataSourceNode` 与外部数据格式（JSON、自定义 `.map` 格式、原始文本）互相转换。所有编解码器均为 `internal`，仅通过 `DataSourceIoGateway` 按文件后缀路由调用。所有文件内容 I/O 均经 codec 路由，零旁路。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
 | `JsonDataSourceCodec.cs` | JSON ↔ DataSourceNode 编解码，支持延迟展开 |
-| `MapDataSourceCodec.cs` | key:value 格式（`.map`）编解码，扁平结构 |
+| `MapDataSourceCodec.cs` | key:value 格式（`.map`）编解码，扁平结构，strict 模式（格式错误抛 `FormatException`） |
+| `RawStringDataSourceCodec.cs` | 原始文本 ↔ DataSourceNode 编解码（`.sha`/`.write_in_progress`），将整个文件内容包装/解包为单字符串节点 |
 
 ## 实现详解
 
@@ -27,6 +28,14 @@
 - 所有值均为字符串类型
 - 不支持延迟加载（`.map` 文件通常较小且扁平，无需延迟）
 - 编码时按键的字典序输出，null 值被跳过
+- **Strict 模式（`strict: true`）**：遇到格式错误的行时立即抛出 `FormatException`，Gateway 将其包装为包含文件路径信息的 `InvalidOperationException`（fail-fast）
+
+### RawStringDataSourceCodec
+
+- 处理 `.sha` 和 `.write_in_progress` 等原始文本文件
+- 解码时将整个文件内容作为单个字符串值包装为 `DataSourceNode`
+- 编码时从 `DataSourceNode` 中解包字符串值写入文件
+- 确保所有文件内容 I/O 均经 codec 路由，消除直读直写旁路
 
 ## 设计决策
 

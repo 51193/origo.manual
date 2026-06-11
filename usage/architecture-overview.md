@@ -6,7 +6,7 @@
 
 Origo 框架遵循以下核心设计约束：
 
-- **平台无关**：Core 零引擎依赖，所有 I/O 通过 `IFileSystem` + `IDataSourceIoGateway`
+- **平台无关**：Core 零引擎依赖，所有 I/O 通过 `IDataSourceIoGateway` + `IFileMetaAccess` + `IPathResolver`（`IFileSystem` 内部化）
 - **适配层隔离**：适配层仅提供能力封装和桥接，不得触发策略钩子、管理策略生命周期
 - **接口隔离（ISP）**：`ISndContext` 拆分为 11 个角色接口；`ISessionRun` 返回抽象 `IStateMachineContainer`
 - **依赖方向单向**：Abstractions → Core 实现 → Adapter，反向严格禁止
@@ -115,15 +115,20 @@ Origo 采用单线程帧循环模型：
 
 ## I/O 边界
 
-Core 层所有文件操作通过 `IFileSystem` 和 `IDataSourceIoGateway`，禁止直接 `File.*` API：
+Core 层所有文件操作通过三个接口完成：
+- `IDataSourceIoGateway`：内容读写，仅 2 个方法——`ReadTree(filePath)` 和 `WriteTree(filePath, node, overwrite)`，所有文件内容 I/O 均通过 codec 路由，零旁路
+- `IFileMetaAccess`：文件元数据操作（FileExists、目录管理、枚举、删除、复制）
+- `IPathResolver`：平台路径运算（CombinePath、GetParentDirectory）
+
+`IFileSystem` 仅为上述三个接口的内部实现，不对外暴露。
 
 ```
-业务模块 → DataSourceNode → IDataSourceIoGateway → IFileSystem → 文件系统
+业务模块 → DataSourceNode → IDataSourceIoGateway / IFileMetaAccess / IPathResolver → IFileSystem（内部） → 文件系统
 ```
 
-后缀路由、编解码策略与 I/O 错误语义集中在 Gateway 一侧统一治理。
+后缀路由、编解码策略与 I/O 错误语义集中在 Gateway 一侧统一治理。`.sha` 和 `.write_in_progress` 等原始文本文件同样经由 `RawStringDataSourceCodec` 走 codec 路由，不存在直读直写旁路。Gateway 采用 fail-fast 策略：codec 解码失败（如 `.map` 文件格式错误）时，Gateway 将异常包装为包含文件路径信息的 `InvalidOperationException` 立即抛出，不吞没错误。
 
-`IDataSourceIoGateway` 是框架的硬性 I/O 边界：**系统内的任何模块（包括策略）都应通过此边界访问文件内容**。策略通过 `ISndFileAccess` 和 `ISndArchiveFileAccess` 接口暴露的文件操作（`ReadFile` / `WriteFile` / `ReadObject<T>` / `WriteObject<T>`）均通过此边界，策略无需自行处理原始文本解析。`IFileSystem` 仅在适配层作为 Gateway 的底层实现，不直接暴露给策略。
+`IDataSourceIoGateway` 是框架的硬性 I/O 内容边界：**系统内的任何模块（包括策略）都应通过此边界访问文件内容**。文件元数据操作（存在性检查、目录管理等）通过 `IFileMetaAccess`，路径运算通过 `IPathResolver`。策略通过 `ISndFileAccess` 和 `ISndArchiveFileAccess` 接口暴露的文件操作均委托到上述三个接口，策略无需自行处理原始文本解析或平台路径差异。
 
 ## 适配层与 Core 层分离原则
 
