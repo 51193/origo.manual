@@ -1,0 +1,72 @@
+name: Release Documentation Snapshot
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 0.0.7)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            VERSION="${VERSION#v}"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "create_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+            echo "create_tag=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag (workflow_dispatch only)
+        if: steps.version.outputs.create_tag == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Package documentation snapshot
+        run: |
+          DIRNAME="origo-manual-${{ steps.version.outputs.version }}"
+          mkdir -p "${DIRNAME}"
+          find . -name '*.md' -not -path './.git/*' -not -path "./${DIRNAME}/*" | while read -r f; do
+            dest="${DIRNAME}/${f#./}"
+            mkdir -p "$(dirname "${dest}")"
+            cp "${f}" "${dest}"
+          done
+          tar -czf "${DIRNAME}.tar.gz" "${DIRNAME}"
+          zip -r "${DIRNAME}.zip" "${DIRNAME}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Origo Manual ${{ steps.version.outputs.version }}"
+          body: |
+            Documentation snapshot for Origo framework v${{ steps.version.outputs.version }}.
+
+            This archive contains the complete manual at the time of the v${{ steps.version.outputs.version }} release.
+            Unpack the archive to browse the documentation offline.
+          files: |
+            origo-manual-${{ steps.version.outputs.version }}.tar.gz
+            origo-manual-${{ steps.version.outputs.version }}.zip
