@@ -19,6 +19,7 @@
 | `SavePayloadWriter.cs` | 存档写入编排（两阶段写入 + marker 管理） |
 | `SavePayloadReader.cs` | 存档读取编排（严格读取 + 完整性校验） |
 | `SaveGamePayloadFactory.cs` | 构造 SaveGamePayload（业务数据聚合） |
+| `SaveStorageFacade.cs` | 存档 I/O 编排层（internal static）：EnumerateSaveIds / EnumerateSavesWithMetaData / 读写编排 / SHA-256 幂等去重 / 快照复制。纯编排逻辑，具体文件解析/序列化委托给 SavePayloadReader / SavePayloadWriter |
 
 ## 文件布局
 

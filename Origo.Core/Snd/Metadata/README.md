@@ -38,7 +38,7 @@ public readonly partial struct TypedData : IEquatable<TypedData>
 
 SND 系统的核心类型保留与内联存储机制。值类型（`int`、`float`、`bool` 等）直接存储在结构体的 `_inlineBits` 字段中，零装箱零堆分配。引用类型（`string`）存储在 `_ref` 字段中，无额外包装。
 
-`TypedData` 是一个由 Source Generator 增强的 partial struct——编译时生成的代码提供每种注册类型的强类型访问器（`AsInt32()` / `TryGetSingle(out v)` 等）、显式转换运算符和泛型工厂类（`TypedDataFactory<T>`），详见 [SourceGeneration](../../SourceGeneration/README.md)。
+`TypedData` 是一个由 Source Generator 增强的 partial struct——编译时生成的代码提供每种注册类型的强类型访问器（`AsInt32()` / `TryGetSingle(out v)` 等）、显式转换运算符和泛型工厂类（`TypedDataFactory<T>`），详见 [Origo.SourceGeneration](../../../Origo.SourceGeneration/README.md)。
 
 类型判别通过 `_kind` 字段实现。判别值 `0` 为 `Null` 哨兵（`default(TypedData)`）。`DataType` 属性根据 `_kind` 从生成的查找表中返回对应的 `System.Type`。`Data` 属性用于序列化边界，按需将内联值装箱为 `object`。
 
