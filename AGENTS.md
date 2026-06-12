@@ -51,6 +51,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ...
 ```
 
+> **Nightly 包（如 `0.0.8-nightly.20260612`）不是正式发布版本，不产生独立的版本区块。** 所有变更（无论所属 nightly）均归入 `[Unreleased]`，仅无后缀的正式语义化版本号（`x.y.z`）才产生 `## [x.y.z] - YYYY-MM-DD` 区块。
+
 ### 变动分类
 
 | 类别 | 含义 |
@@ -64,11 +66,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### 关键约束
 
-1. **基线是上一个正式发布版本的 tag。** 编写 changelog 时，必须对比上一个正式版本到当前状态的差异，提炼面向用户的显著变更。
-2. **禁止记录版本内的来回变动。** 如果一个功能在本版本周期内引入又删除、或引入后又修复了自身引入的 bug，这些来回变动不应出现在 changelog 中。最终状态才是记录对象。
-3. **禁止记录版本内自身引入问题的修复。** 例如：nightly-0608 引入了一个 bug，nightly-0610 修复了它——如果两者都在同一个正式版本周期内，则 changelog 中既不记录该 bug 的引入，也不记录其修复。
-4. **面向用户撰写。** 每条记录描述行为变化对使用者的影响，而非内部实现细节。
-5. **日常变更写入 `[Unreleased]`。** Nightly 每日构建，变更持续累积在 `[Unreleased]` 区块中。当积累足够更新发布正式版本时，将 `[Unreleased]` 内容移入带版本号和日期的新区块。
+1. **基线是上一个正式发布版本的 tag。** 编写 changelog 时，必须对比上一个正式版本到当前状态的差异，提炼面向用户的显著变更。Nightly tag（如 `v0.0.8-nightly.20260612`）不作为基线。
+2. **Nightly 不视为版本。** 带 `-nightly`、`-alpha`、`-preview` 等预发布后缀的包号是快照标识，不是语义化版本。这些包对应的变更一律留在 `[Unreleased]` 中。仅无后缀的正式语义化版本（如 `0.0.7`）才产生带日期标题的版本区块。Nightly 间存在的功能反复（引入又删除）应在日常迭代中清理，不体现在任何版本区块中。
+3. **禁止记录版本内的来回变动。** 如果一个功能在本版本周期内引入又删除、或引入后又修复了自身引入的 bug，这些来回变动不应出现在 changelog 中。最终状态才是记录对象。
+4. **禁止记录版本内自身引入问题的修复。** 例如：nightly-0608 引入了一个 bug，nightly-0610 修复了它——如果两者都在同一个正式版本周期内，则 changelog 中既不记录该 bug 的引入，也不记录其修复。
+5. **面向用户撰写。** 每条记录描述行为变化对使用者的影响，而非内部实现细节。
+6. **日常变更写入 `[Unreleased]`。** Nightly 每日构建，变更持续累积在 `[Unreleased]` 区块中。当积累足够更新发布正式版本时，将 `[Unreleased]` 内容移入带版本号和日期的新区块。
 
 ### 编写流程
 
@@ -80,10 +83,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### 发版流程
 
-1. 将 `[Unreleased]` 中的内容移入新版本区块 `## [x.y.z] - YYYY-MM-DD`
-2. 清空 `[Unreleased]`（保留空分类标题或删除空分类均可）
-3. 更新 `Directory.Build.props` 中的 `<Version>`
-4. 提交并打 tag
+1. 确定新版本号（正式语义化版本，如 `0.1.0`，不可带 `-nightly` 等预发布后缀）
+2. 将 `[Unreleased]` 中的内容移入新版本区块 `## [x.y.z] - YYYY-MM-DD`
+3. 清空 `[Unreleased]`（保留空分类标题或删除空分类均可）
+4. 更新 `Directory.Build.props` 中的 `<Version>`
+5. 提交并打 tag（tag 名称 `vx.y.z`，与版本号对应）
 
 ---
 
