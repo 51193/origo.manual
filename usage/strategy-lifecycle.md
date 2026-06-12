@@ -85,7 +85,27 @@ public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 }
 ```
 
-### 4. BeforeSave 用于延迟同步
+### 4. BeforeQuit 可安全访问会话资源
+
+`BeforeQuit` 执行期间，`ctx.CurrentSession.SceneHost` 和 `ctx.CurrentSession.SessionBlackboard` 保证可访问。框架的 Dispose 流程使用两阶段标志确保会话资源在 BeforeQuit 钩子执行完毕后才标记为 disposed。
+
+即使某个 BeforeQuit 钩子抛出异常，框架通过 `try/finally` 保证实体清理和场景容器清空必定完成，不会残留实体导致无限错误循环。
+
+```csharp
+// ✅ 安全：BeforeQuit 中访问会话资源
+public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
+{
+    var session = ctx.CurrentSession;
+    if (session == null) return;
+
+    var mgr = session.SceneHost.FindByName("MyManager");
+    mgr?.InvokeStrategy("my.unregister", entity.Name);
+}
+```
+
+> 注意：虽然手动 Unsubscribe/UnobserveLifecycle 在 BeforeQuit 中是安全的，但框架的 `TeardownOnly` 阶段会自动清理所有 outgoing 订阅。对于仅需释放订阅的场景，可省略手动释放。
+
+### 5. BeforeSave 用于延迟同步
 
 对于引擎管理的状态（如 `Node3D.GlobalTransform`），不需要每帧写入 entity Data。只在 `BeforeSave` 时一次性同步，减少不必要的数据写入开销。
 

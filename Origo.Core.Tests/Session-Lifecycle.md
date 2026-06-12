@@ -83,6 +83,7 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 | `SessionRun_Dispose_DoesNotWriteFilesToCurrent` | Dispose 不自动写入文件（通过 ISaveStorageService 检查） | session-model: Dispose 不持久化 |
 | `SessionRun_Dispose_DoesNotTriggerBeforeSave` | Dispose 不触发 BeforeSave 钩子 | session-model: Dispose 不持久化 |
 | `SessionRun_Dispose_TriggersBeforeQuit` | Dispose 触发 BeforeQuit 钩子 | session-model |
+| `SessionRun_Dispose_BeforeQuit_CanAccessSceneHost` | BeforeQuit 中可安全访问 ctx.CurrentSession.SceneHost 和 SessionBlackboard（不抛 ObjectDisposedException） | strategy-lifecycle: BeforeQuit 会话访问保证 |
 | `SessionRun_ExplicitPersistLevelState_WritesToCurrent_BeforeDispose` | 通过 ISndContext.RequestSaveGame 持久化写入文件 | session-model |
 | `SessionRun_ExplicitPersistLevelState_TriggersBeforeSave` | 通过 ISndContext.RequestSaveGame 触发 BeforeSave | session-model |
 | `ProgressRun_Dispose_DoesNotCallPersistProgress` | ProgressRun.Dispose 不调用 PersistProgress | session-model |
@@ -99,6 +100,8 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 | `ProgressRun_Dispose_Twice_IsIdempotent` | 两次 Dispose 不抛异常 | 幂等 |
 | `ProgressRun_Dispose_DeletesCurrentDirectory_EvenWhenEmpty` | 空 current/ 时 Dispose 安全 | 幂等 |
 | `ProgressRun_Dispose_SafeEvenWhenNoCurrentDirectory` | 无 current/ 时 Dispose 安全 | 幂等 |
+| `SessionRun_Dispose_BeforeQuitThrows_EntitiesStillRemoved` | BeforeQuit 抛异常后实体仍被移除（try/finally 保证） | 异常安全 |
+| `SessionRun_Dispose_BeforeQuitThrows_DoubleDisposeStillIdempotent` | BeforeQuit 抛异常后再次 Dispose 不抛异常 | 幂等 + 异常安全 |
 
 ### 错误路径
 

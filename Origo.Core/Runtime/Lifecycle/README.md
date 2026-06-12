@@ -84,7 +84,7 @@ SystemRuntime
 ### 退出
 
 - `Dispose` 级联：SessionRun → SessionManager → ProgressRun → SystemRun
-- `SessionRun.Dispose` 先批量触发 BeforeQuit 钩子（`FireBeforeQuitHooks`）和释放策略，再拆卸实体节点/数据，最后清空场景集合和黑板
+- `SessionRun.Dispose` 使用两阶段标志：先设 `_disposing`（防重入），执行 BeforeQuit 钩子（此时会话资源仍可访问）和释放策略，再通过 `try/finally` 保证场景集合清空和黑板清除必定执行，最后设 `_disposed`（外部访问正式禁止）
 - 退出前的数据保存应由应用层显式调用 `RequestSaveGame` 完成；`current/` 目录作为临时工作区，在退出时被安全清理
 
 ## 设计决策
