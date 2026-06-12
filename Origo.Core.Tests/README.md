@@ -43,10 +43,11 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | 跨实体观察 | 测试文件 `CrossEntityObserverTests.cs` | 统一观察模型：自身/跨实体数据观察、自身/跨实体生命周期观察、Teardown 自动清理、批量场景、生命周期事件通知顺序 |
 | 数据源 | [DataSource.md](DataSource.md) | DataSourceNode 创建/访问/懒展开、JSON 编解码、Map 编解码、类型转换器注册、TypedData 转换器、SndMetaData 转换器、IDisposable |
 | 日志 | [Logging.md](Logging.md) | LogMessageBuilder 结构化构建（prefix/suffix/elapsed） |
+| 网格 | [Grid.md](Grid.md) | GridCoordinateSystem 单/双轴转换、A* 寻路、GridParser 坐标解析 |
 | 随机数 | [Random.md](Random.md) | XorShift128+ 种子确定性、噪声图生成 |
 | 类型序列化 | [TypeStringMapping.md](TypeStringMapping.md) | TypeStringMapping 双向映射、BCL 预注册、冲突检测 |
 | 调度 | [Scheduling.md](Scheduling.md) | ConcurrentActionQueue 入队/排空/并发安全/递归深度保护 |
-| 控制台 | [Console.md](Console.md) | 命令解析器/路由器/输入队列/输出通道、11 个内置命令处理、类型推断 |
+| 控制台 | [Console.md](Console.md) | 命令解析器/路由器/输入队列/输出通道、13 个内置命令处理（11 Core + 2 GodotAdapter）、类型推断 |
 | 运行时核心 | [Runtime-Core.md](Runtime-Core.md) | OrigoRuntime 构造、控制台注入、帧延迟动作执行 |
 | 会话生命周期 | [Session-Lifecycle.md](Session-Lifecycle.md) | 会话创建/销毁/切换、Dispose 语义、前后台协议一致、拓扑编解码 |
 | 持久化：存储 | [Save-Storage.md](Save-Storage.md) | 两阶段写入、write_in_progress marker 契约、关卡三件套完整性、路径策略、快照读写、幂等去重 |
