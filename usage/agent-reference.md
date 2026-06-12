@@ -21,7 +21,6 @@ public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess
 public interface ISndDataAccess
 {
     void SetData<T>(string name, T value);
-    T GetData<T>(string name);
     (bool found, T? value) TryGetData<T>(string name);
     void Subscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback,
         Func<ISndEntity, ISndEntity, TypedData, TypedData, bool>? filter = null);

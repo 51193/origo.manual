@@ -54,8 +54,10 @@ public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     var node = entity.GetNode("root")?.Native;
     if (node is Node3D node3d)
     {
-        var pos = GridToWorld(entity.GetData<int>("grid_x"), entity.GetData<int>("grid_z"));
-        node3d.GlobalPosition = pos;
+        var (fx, gx) = entity.TryGetData<int>("grid_x");
+        var (fz, gz) = entity.TryGetData<int>("grid_z");
+        if (fx && fz)
+            node3d.GlobalPosition = GridToWorld(gx, gz);
     }
 }
 
@@ -64,8 +66,10 @@ public override void AfterLoad(ISndEntity entity, ISndContext ctx)
     var node = entity.GetNode("root")?.Native;
     if (node is Node3D node3d)
     {
-        var pos = GridToWorld(entity.GetData<int>("grid_x"), entity.GetData<int>("grid_z"));
-        node3d.GlobalPosition = pos;
+        var (fx, gx) = entity.TryGetData<int>("grid_x");
+        var (fz, gz) = entity.TryGetData<int>("grid_z");
+        if (fx && fz)
+            node3d.GlobalPosition = GridToWorld(gx, gz);
     }
 }
 ```
@@ -259,7 +263,7 @@ P35  检测层      逐帧检测条件 → 触发结果
 
 ### 模板必须包含策略所需的全部 data 键
 
-策略运行时通过 `GetData<T>("key")` 读取数据。如果模板未声明该键，运行时抛出异常。
+策略运行时通过 `TryGetData<T>("key")` 读取数据。虽然接口层面不再抛异常（返回 `found=false`），但模板缺失必需键会导致策略逻辑静默跳过或走 fallback 路径，难以调试。
 
 ```json
 {

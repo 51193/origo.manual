@@ -150,7 +150,7 @@ sm.TryPopRuntime(out var popped);  // popped == "settings"
 | 特性 | 实体策略 (EntityStrategyBase) | 状态机策略 (StateMachineStrategyBase) |
 |------|------|------|
 | 挂载位置 | 实体 (SndEntity) | 状态机 (StackStateMachine) |
-| 数据访问 | `entity.SetData/GetData` | `ctx.SessionBlackboard` |
+| 数据访问 | `entity.SetData/TryGetData` | `ctx.SessionBlackboard` |
 | 生命周期 | 8 个钩子 (Spawn→Dead) | 4 个钩子 (Push/Pop) |
 | 适用场景 | 实体行为（移动、血量、渲染） | 流程控制（菜单栈、关卡切换） |
 

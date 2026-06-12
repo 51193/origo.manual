@@ -108,12 +108,12 @@ public readonly partial struct TypedData : IEquatable<TypedData>
 ### 安全读取
 
 ```csharp
-// ❌ 错误：值类型的 default 无法区分"不存在"和"值为0"
-int hp = entity.GetData<int>("hp");
-
-// ✅ 正确：先判断 found 再取值
+// 接口仅提供 TryGetData<T>，先判断 found 再取值
 var (found, hp) = entity.TryGetData<int>("hp");
 if (found) { /* 使用 hp */ }
+
+// 数值类型跨精度读取（int/float/long/double 统一输出 float）
+if (entity.TryGetNumeric("speed", out var speed)) { /* 使用 speed */ }
 ```
 
 ### 数据观察者
