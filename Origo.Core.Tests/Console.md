@@ -20,7 +20,7 @@
 | `ConsoleTests.cs` | 集成测试：spawn 命令 positional/named 模式、模板不存在、重名 |
 | `ConsoleCommandExtendedTests.cs` | 命令扩展/边缘测试 |
 | `ConsoleTypeInferenceTests.cs` | 类型推断：bb_set Int32/Single/Boolean/String、entity_set_data 新键推断+已有键类型保留 |
-| `OrigoConsoleLoggingTests.cs` | 控制台日志记录 |
+| `OrigoConsoleLoggingTests.cs` | 控制台日志记录：日志级别正确性、消息顺序、Tag 一致性、内容完整性（行为验证，不耦合格式字符串） |
 | `EntityDataCommandHandlerTests.cs` | entity_get_data / entity_set_data 命令 |
 | `InvokeStrategyCommandHandlerTests.cs` | invoke_strategy 命令 |
 | `SndCountCommandHandlerTests.cs` | snd_count 命令 |

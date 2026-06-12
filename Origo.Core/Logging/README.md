@@ -10,7 +10,7 @@
 
 | 文件 | 职责 |
 |------|------|
-| `LogMessageBuilder.cs` | 流式构建结构化日志消息（前缀/后缀上下文 + 耗时） |
+| `LogMessageBuilder.cs` | 流式构建结构化日志消息（上下文 + 耗时） |
 | `NullLogger.cs` | 无输出日志实现，单例模式 |
 
 ## 实现详解
@@ -20,14 +20,14 @@
 流式 API，支持链式调用：
 
 ```
-builder.SetElapsedMs(12.3).AddPrefix("entity", "player").AddSuffix("hp", 100).Build("damage applied")
-// 输出: [+12.3ms] entity=player | damage applied | hp=100
+builder.SetElapsedMs(12.3).AddContext("entity", "player").AddContext("hp", 100).Build("damage applied")
+// 输出: [+12.30ms] damage applied | entity=player, hp=100
 ```
 
-- **前缀上下文**：消息前插入的元数据（如实体名、会话 ID）
-- **后缀上下文**：消息后插入的元数据（如结果值、状态）
-- **耗时**：可选，以 `[+Xms]` 格式前置
-- **空值过滤**：key 非空且 value 非 null 才添加
+- **耗时**：可选，以 `[+X.XXms]` 格式前置
+- **上下文**：消息后以 ` | key=val, key=val` 格式追加
+- **空值过滤**：key 非空白且 value 非 null 才添加
+- **多次调用 AddContext**：按添加顺序拼接，用逗号分隔
 
 ### NullLogger
 
@@ -35,9 +35,9 @@ builder.SetElapsedMs(12.3).AddPrefix("entity", "player").AddSuffix("hp", 100).Bu
 
 ## 设计决策
 
-### 为什么 LogMessageBuilder 是 Builder 模式而非直接拼接
+### 为什么 LogMessageBuilder 使用统一的 AddContext 而非 Prefix/Suffix 分离
 
-结构化日志格式（前缀 | 正文 | 后缀）在不同上下文中前缀/后缀不同，但正文相同。Builder 让调用方可以预设上下文（如会话信息），逐步追加数据点，最后一次性 Build。避免重复传递相同的上下文参数。
+前缀/后缀的区分在实际使用中没有带来语义清晰度。统一的上下文集合（按添加顺序输出）简化了 API，同时保持了结构化能力。
 
 ### 为什么不直接在 ILogger 提供结构化方法
 
@@ -48,4 +48,5 @@ builder.SetElapsedMs(12.3).AddPrefix("entity", "player").AddSuffix("hp", 100).Bu
 `NullLogger` 无任何可变状态，创建多个实例是资源浪费。私有构造函数 + 静态 Instance 属性确保全局唯一。
 
 ---
+
 [↑ 回到 Origo.Core](../README.md)

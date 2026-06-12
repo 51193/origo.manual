@@ -14,7 +14,7 @@
 | 文件 | 验证侧重点 |
 |------|-----------|
 | `MemoryFileSystemTests.cs` | TestFileSystem: 读写/枚举/复制/重命名/删除/父目录/路径拼接 |
-| `NullLoggerTests.cs` | NullLogger.Instance 不抛异常 |
+| `NullLoggerTests.cs` | NullLogger.Instance 不抛异常、TestLogger 级别过滤行为 |
 | `TestFileSystemAdditionalTests.cs` | TestFileSystem 额外边缘路径 |
 
 ## MemoryFileSystemTests 测试详情

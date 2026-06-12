@@ -4,13 +4,13 @@
 
 ## 概述
 
-`ILogger` 接口的 Godot 实现。通过构造函数注入输出委托（delegate），将日志消息转发到 Godot 引擎的日志系统（`GD.Print` / `GD.PushWarning` / `GD.PushError`）。
+`ILogger` 接口的 Godot 实现。通过构造函数注入输出委托（delegate），将日志消息转发到 Godot 引擎的日志系统（`GD.Print` / `GD.PushWarning` / `GD.PushError`）。支持最低日志级别过滤。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
-| `GodotLogger.cs` | Godot 日志实现，委托注入 `Action<LogLevel, string, string>` |
+| `GodotLogger.cs` | Godot 日志实现，委托注入 + 级别过滤 |
 
 ## 实现详解
 
@@ -18,12 +18,21 @@
 public sealed class GodotLogger : ILogger
 {
     private readonly Action<LogLevel, string, string>? _handler;
-    public GodotLogger(Action<LogLevel, string, string>? handler = null);
-    public void Log(LogLevel level, string tag, string message) => _handler?.Invoke(level, tag, message);
+    private readonly LogLevel _minimumLevel;
+
+    public GodotLogger(
+        Action<LogLevel, string, string>? handler = null,
+        LogLevel minimumLevel = LogLevel.Info);
+
+    public void Log(LogLevel level, string tag, string message)
+    {
+        if (level < _minimumLevel) return;
+        _handler?.Invoke(level, tag, message);
+    }
 }
 ```
 
-不包含任何静态状态。实际的输出行为（格式化、级别路由）由外部委托控制。典型用法（来自 `OrigoAutoHost`）：
+不包含任何静态状态。实际的输出行为（格式化、级别路由）由外部委托控制。`minimumLevel` 默认为 `Info`，低于此级别的 `Debug` 消息不触发委托。典型用法（来自 `OrigoAutoHost`）：
 
 ```csharp
 new GodotLogger((level, tag, message) =>
@@ -51,5 +60,10 @@ new GodotLogger((level, tag, message) =>
 
 格式化（`[tag] message`）的责任留给委托实现。Core 层的 `LogMessageBuilder` 已经处理结构化消息构建。在 `GodotLogger` 中重复格式化会导致不一致的输出风格。
 
+### 为什么默认最低级别是 Info 而非 Debug
+
+`Debug` 级别的日志主要用于开发期的细节诊断（策略实例创建/释放、实体生命周期挂钩等）。在生产环境（Demo 运行、正式发布）中，这些消息数量大、信息密度低，默认关闭可避免日志泛滥。需要诊断时显式传入 `LogLevel.Debug` 即可。
+
 ---
+
 [↑ 回到 Origo.GodotAdapter](../README.md)
