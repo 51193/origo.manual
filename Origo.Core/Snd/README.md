@@ -14,7 +14,7 @@ SND（Strategy + Node + Data）实体系统的完整实现。这是 Origo 的核
 | [Metadata](Metadata/README.md) | 实体元数据模型 | TypedData / SndMetaData / NodeMetaData / StrategyMetaData / DataMetaData / SndMetaFluentBuilder |
 | [Scene](Scene/README.md) | 场景宿主与运行时门面 | SndRuntime + FullMemorySndSceneHost + StubSndSceneHost |
 | [Strategy](Strategy/README.md) | 策略系统核心 | BaseStrategy → EntityStrategyBase \| ActiveStrategyBase。策略池、双管理器（被动/主动）+ 泛型调用扩展 |
-| [Archetype](Archetype/README.md) | 原型加载 | SndArchetypeLoader：.map 文件解析与类型推断 |
+| [Archetype](Archetype/README.md) | 数值配方加载 | SndArchetypeLoader：键值对文件解析与类型推断 |
 
 ## 本层核心文件
 

@@ -21,7 +21,7 @@
 | [Save](Save/README.md) | 持久化系统 | 两阶段写入 + 严格读取 + 路径策略 + meta.map |
 | [Scheduling](Scheduling/README.md) | 延迟调度 | ActionScheduler + 线程安全 ConcurrentActionQueue |
 | [Serialization](Serialization/README.md) | 类型映射 | TypeStringMapping（CLR 类型 ↔ 稳定字符串标识）|
-| [Snd](Snd/README.md) | SND 实体系统 | 策略→实体→数据→场景宿主→原型加载 完整堆栈 |
+| [Snd](Snd/README.md) | SND 实体系统 | 策略→实体→数据→场景宿主→数值配方加载 完整堆栈 |
 | [StateMachine](StateMachine/README.md) | 字符串栈状态机 | StackStateMachine + 策略钩子 + 持久化模型 |
 | [Testing](Testing/README.md) | 测试基础设施 | StrategyTestScenario：策略隔离测试框架 |
 

@@ -156,7 +156,7 @@ Priority: 6205 (默认) → Strategy D
     }
   },
   "strategy": {
-    "indices": ["my_game.health", "my_game.movement"]
+    "entity_indices": ["my_game.health", "my_game.movement"]
   },
   "data": {
     "pairs": {

@@ -88,7 +88,7 @@ public class HealthInitStrategy : EntityStrategyBase
   {
     "name": "player",
     "strategy": {
-      "indices": ["my_game.health"]
+      "entity_indices": ["my_game.health"]
     },
     "data": {
       "pairs": {

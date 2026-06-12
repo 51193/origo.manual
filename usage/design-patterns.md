@@ -84,7 +84,7 @@ public class EntityInitStrategy : EntityStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
-        // 展开原型属性
+        // 加载数值配方
         LoadArchetypeAttributes(entity, ctx);
 
         // 动态添加运行时策略
@@ -263,7 +263,7 @@ P35  检测层      逐帧检测条件 → 触发结果
 
 ```json
 {
-  "strategy": { "indices": ["game.camera.zoom"] },
+  "strategy": { "entity_indices": ["game.camera.zoom"] },
   "data": {
     "pairs": {
       "camera.zoom_level": { "type": "Single", "data": 0.5 },
@@ -273,27 +273,31 @@ P35  检测层      逐帧检测条件 → 触发结果
 }
 ```
 
-### 两级模板设计
+### Template 与 Archetype 的职责分离
 
-- **第一级：SND 模板** — 定义策略拓扑（挂载哪些策略、绑定哪些节点）
-- **第二级：Archetype 原型文件** — 定义具体属性数值（`.map` 格式的扁平键值对）
+- **Template（实体拓扑）** — 实体的完备定义：策略组合、节点绑定、数据键声明及缺省值。Template 自身即可运行——无需任何外部数据即可生成功能完整的实体。
+- **Archetype（数值配方）** — 灵活的数值外部化工具：扁平键值对形式的属性集合，不含任何行为定义。
 
-SND 模板只包含 `archetype` 键指向原型文件名，策略在 `AfterSpawn` 中加载原型属性展开到 entity Data。
+两者没有强制对应关系。Template 可以不使用配方（依赖自身缺省值），可以在创建时加载一个配方覆盖缺省值，也可以在生命周期内按需加载多个配方：
 
 ```json
 {
-  "strategy": { "indices": ["game.entity.init"] },
+  "strategy": { "entity_indices": ["item.food"] },
   "data": {
     "pairs": {
-      "archetype": { "type": "String", "data": "warrior" }
+      "food.archetype": { "type": "String", "data": "berry" }
     }
   }
 }
 ```
 
-好处：
-- 同一模板、不同原型 = 不同属性的实体变体（无需每个变体独立模板）
-- 原型文件使用 `.map` 格式（扁平键值对），编辑轻便
+策略根据 `food.archetype` 数据键按需加载对应的数值配方文件，获取 `food.hunger_restore`、`food.texture_index` 等属性值并写入实体数据。
+
+使用原则：
+- 行为能力不同（策略组合变化） → 新建 Template
+- 属性数值需要外部化管理（避免硬编码、便于复用和调参） → 新建 Archetype
+- Archetype 的加载时机和数量完全由策略决定——AfterSpawn 时批量加载、生命周期内按需查询（如装备属性计算）、或完全不使用，都是合法的
+- Archetype 的文件格式由框架文件抽象决定，不限于特定后缀
 
 ### 只声明初始策略
 
