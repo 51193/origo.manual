@@ -60,6 +60,7 @@ Root (this file)
 | **测试: GodotAdapter** | [README](Origo.GodotAdapter.Tests/README.md) | 适配层 6 个能力的行为测试文档 |
 | **测试: ConsoleBridge** | [README](Origo.ConsoleBridge.Tests/README.md) | TCP 桥接服务器行为测试文档 |
 | **手册元指令** | [META.md](META.md) | 本手册的编写与维护规范 |
+| **Agent 工作流** | [AGENTS.md](AGENTS.md) | 强制四步闭环：代码→Changelog→文档→测试 |
 
 ## Origo.Core 子系统
 
@@ -87,6 +88,8 @@ Root (this file)
 | 快速接入 Origo | [usage/quick-start](usage/quick-start.md) |
 | 理解整体架构 | [usage/architecture-overview](usage/architecture-overview.md) |
 | 编写游戏策略 | [usage/snd-entity-model](usage/snd-entity-model.md) |
+| 理解生命周期闭环 | [usage/strategy-lifecycle](usage/strategy-lifecycle.md) |
+| 学习设计模式 | [usage/design-patterns](usage/design-patterns.md) |
 | 测试策略 | [usage/strategy-testing](usage/strategy-testing.md) |
 | 使用存档系统 | [usage/persistence-flow](usage/persistence-flow.md) |
 | 使用状态机 | [usage/state-machine](usage/state-machine.md) |

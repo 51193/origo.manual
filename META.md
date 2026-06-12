@@ -2,6 +2,8 @@
 
 > [↑ 回到 Origo.manual](README.md)
 
+> **⚠️ 强制工作流：任何对 Origo 源代码的变更必须完成四步闭环（代码 → Changelog → 文档 → 测试）。完整规则见 [AGENTS.md](AGENTS.md)。**
+
 ## 手册定位
 
 `origo.manual` 是 Origo 框架的文档镜像项目。目标是：**阅读根目录 → 找到目标文件夹 → 进入继续阅读 → 递归下降，避免从源代码从头读起**。

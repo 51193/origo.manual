@@ -15,6 +15,8 @@ Origo 框架的使用方（游戏开发者、AI Agent）文档。按照使用场
 | [persistence-flow](persistence-flow.md) | 进阶开发者 | 两阶段写入、严格读取、文件布局、存档恢复 |
 | [state-machine](state-machine.md) | 策略开发者 | 字符串栈状态机、Push/Pop 钩子、持久化 |
 | [console-commands](console-commands.md) | 调试者 | 内置控制台命令完整参考 |
+| [strategy-lifecycle](strategy-lifecycle.md) | 策略开发者 | 生命周期钩子闭环配对、RAII 资源管理、BeforeSave 延迟同步 |
+| [design-patterns](design-patterns.md) | 策略开发者 | 命名约定、Manager 服务模式、可替换实现、模板最佳实践 |
 | [strategy-testing](strategy-testing.md) | 测试编写者 | StrategyTestScenario 使用指南 |
 | [capabilities](capabilities.md) | 所有用户 | 框架完整能力清单，按功能域索引，快速了解 Origo 能做什么 |
 | [agent-reference](agent-reference.md) | AI Agent | 完整运行时参考：接口签名、生命周期时间线、策略编写模板 |
@@ -26,7 +28,7 @@ Origo 框架的使用方（游戏开发者、AI Agent）文档。按照使用场
   quick-start → capabilities（浏览全部能力）→ architecture-overview → snd-entity-model
 
 策略开发者:
-  snd-entity-model → state-machine → strategy-testing → strategy-testing (agent-reference)
+  snd-entity-model → strategy-lifecycle → design-patterns → state-machine → strategy-testing
 
 存档系统使用者:
   architecture-overview → persistence-flow → session-model
