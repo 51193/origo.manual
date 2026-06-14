@@ -16,6 +16,7 @@
 | [DataSource](DataSource/README.md) | 数据源抽象层 | DataSourceNode 树模型 + JSON/Map 编解码 + 类型转换器注册 |
 | [Grid](Grid/README.md) | 网格坐标系工具 | GridCoordinateSystem：网格 ↔ 世界坐标双向转换 |
 | [Logging](Logging/README.md) | 日志系统 | LogMessageBuilder（结构化构建）+ NullLogger（测试静默）|
+| [Planning](Planning/README.md) | 行为规划系统 | PlanExecutionStrategyBase：意图驱动计划执行 + EnsureReplaceableStrategy 扩展 |
 | [Random](Random/README.md) | 随机数系统 | XorShift128+ 伪随机数 + PersistentRandom + Simplex/Worley 噪声图 |
 | [Runtime](Runtime/README.md) | 运行时核心 | 四层生命周期 + 控制台 + 状态机容器 + OrigoRuntime |
 | [Save](Save/README.md) | 持久化系统 | 两阶段写入 + 严格读取 + 路径策略 + meta.map |

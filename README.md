@@ -73,6 +73,7 @@ Root (this file)
 | [DataSource](Origo.Core/DataSource/README.md) | 数据源抽象层（JSON/Map 编解码 + 类型转换） |
 | [Grid](Origo.Core/Grid/README.md) | 网格坐标系、A* 寻路、坐标解析 |
 | [StateMachine](Origo.Core/StateMachine/README.md) | 字符串栈状态机 |
+| [Planning](Origo.Core/Planning/README.md) | 意图驱动计划执行 |
 | [Scheduling](Origo.Core/Scheduling/README.md) | 延迟动作调度 |
 | [Blackboard](Origo.Core/Blackboard/README.md) | 内存黑板实现 |
 | [Random](Origo.Core/Random/README.md) | 随机数 + 噪声图 |

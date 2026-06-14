@@ -257,6 +257,35 @@ P35  检测层      逐帧检测条件 → 触发结果
 - 持续运行的子系统（寻路、移动）与决策系统（感知、调度）使用不同优先级段
 - 不同层之间通过 data 键通信，无直接耦合
 
+### 调度层的 PlanExecutionStrategyBase
+
+框架提供 [`PlanExecutionStrategyBase`](../Origo.Core/Planning/README.md) 作为调度层（P5）的标准基类。它封装了 intent → plan → step → action 的完整生命周期：
+
+- **订阅 wiring**：自动管理 `intent` 和 `action_status` 的数据订阅 RAII 闭环
+- **计划推进**：intent 变更重启计划；action 完成/失败推进到下一步或终止
+- **Action 生命周期**：每步自动 `AddStrategy(StepToActionIndex(step))`，推进/终止时移除
+
+任何步骤类型（idle、patrol、standby 等）都应实现为独立的 `EntityStrategyBase` Action 策略，通过 `StepToActionIndex` 注册。基类对所有步骤一视同仁，不内置任何特定行为。
+
+用户仅需实现两个抽象方法：
+
+```csharp
+[StrategyIndex("character.scheduling", Priority = 5)]
+public sealed class MySchedulingStrategy : PlanExecutionStrategyBase
+{
+    protected override string IntentKey => "my.intent";
+    protected override string IntentStatusKey => "my.intent_status";
+    protected override string PlanStepKey => "my.plan_step";
+    protected override string ActionKey => "my.action";
+    protected override string ActionStatusKey => "my.action_status";
+
+    protected override string? ResolveNextStep(
+        string intent, string currentStep, bool failed, ISndEntity entity) { ... }
+
+    protected override string? StepToActionIndex(string stepType) { ... }
+}
+```
+
 ---
 
 ## 模板最佳实践
