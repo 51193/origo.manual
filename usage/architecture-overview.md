@@ -24,11 +24,11 @@ Origo 是一个**轻量、平台无关的 C# 游戏框架**，采用 SND（Strat
 ## 四层运行时
 
 ```
-SystemRun (OrigoRuntime)
+SystemRun (持有 SystemRuntime, 内含 OrigoRuntime)
   ↓
-ProgressRun (ProgressRuntime)
+ProgressRun (持有 ProgressRuntime)
   ↓
-SessionManager (SessionManagerRuntime)
+SessionManager (持有 SessionManagerRuntime)
   ↓
 SessionRun (foreground + background)
 ```
@@ -43,10 +43,10 @@ SessionRun (foreground + background)
 
 | 层级 | 容器 | 持有资源 |
 |------|------|---------|
-| System | `SystemRuntime` | SystemBlackboard, SndWorld, ILogger, IScheduler |
-| Progress | `ProgressRuntime` | ProgressBlackboard, SaveContext, SessionManager |
-| Session | `SessionManagerRuntime` | ISessionManager → 管理所有 SessionRun |
-| Instance | `SessionRun` | SessionBlackboard, ISndSceneHost, StateMachineContainer |
+| System | `SystemRuntime` | Logger, PathResolver, SaveRootPath, OrigoRuntime, SaveStorageService, SavePathPolicy, MetaAccess |
+| Progress | `ProgressRuntime` | Logger, SaveStorageService, SndWorld, SndRuntime, SceneHost, StateMachineContext, SndContext, SavePathPolicy |
+| Session | `SessionManagerRuntime` | Logger, SaveStorageService, SndWorld, SndRuntime, SceneHost, StateMachineContext, SndContext, ProgressBlackboard |
+| Instance | `SessionRun` | SessionBlackboard, ISndSceneHost, StateMachineContainer（经 RunStateScope） |
 
 ## SND 实体模型
 
@@ -120,7 +120,7 @@ Core 层所有文件操作通过三个接口完成：
 - `IFileMetaAccess`：文件元数据操作（FileExists、目录管理、枚举、删除、复制）
 - `IPathResolver`：平台路径运算（CombinePath、GetParentDirectory）
 
-`IFileSystem` 仅为上述三个接口的内部实现，不对外暴露。
+`IFileSystem` 是实现细节，上述三个接口是其公共门面。业务代码不应直接依赖 `IFileSystem`。
 
 ```
 业务模块 → DataSourceNode → IDataSourceIoGateway / IFileMetaAccess / IPathResolver → IFileSystem（内部） → 文件系统
@@ -199,7 +199,7 @@ Godot._Process
 
 ```
 Origo.Core/           # 平台无关核心 (~90 个 .cs 文件)
-├── Abstractions/     # 公共接口（Blackboard/Entity/FSM/...）
+├── Abstractions/     # 公共接口（Blackboard/Entity/StateMachine/...）
 ├── Blackboard/       # 黑板实现
 ├── DataSource/       # JSON/Map 编解码 + 类型转换
 ├── Random/           # 随机数 + 噪声

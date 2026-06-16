@@ -8,9 +8,9 @@
 
 ## 前提
 
-- Godot 4.x 项目（.NET 版本）
+- Godot 4.6 项目（.NET 版本）
 - .NET 8.0 SDK
-- 项目中已引用 Origo（NuGet 包或 ProjectReference）
+- 项目中已引用 Origo（当前版本：0.0.8-nightly.20260616，NuGet 包或 ProjectReference）
 
 ## 步骤
 
@@ -114,12 +114,27 @@ public class HealthInitStrategy : EntityStrategyBase
 ```
 OrigoAutoHost._Ready()
   → 创建 GodotFileSystem, GodotLogger
-  → 创建 SndWorld (策略池 + 类型映射 + 转换器)
-  → 创建 OrigoRuntime
-  → 创建 SndContext (Runtime + FileSystem + saveRoot + config)
-  → 加载 SceneAliases + Templates
-  → 加载初始存档 → 启动游戏
-  → 每帧: _Process → Console.ProcessPending
+  → 创建 GodotSndManager
+  → 注册 TypeStringMapping (BCL + Godot types) + DataSourceConverters
+  → 创建 PersistentBlackboard → LoadFromDisk
+  → 创建 ConsoleInputBuffer + ConsoleOutputChannel
+  → 创建 OrigoRuntime (内含 SndWorld + SystemRun + OrigoConsole)
+  → BindRuntimeDependencies → SndManager
+
+OrigoDefaultEntry._Ready()
+  → 注册适配层命令处理器 (press_button, tree_debug)
+  → 创建 SndContext
+  → SndManager.BindContext(context)
+  → ConfigureSaveMetadataContributors(context)
+  → SndContext.Bootstrap()
+      → DiscoverAndRegisterStrategies
+      → LoadSceneAliases + LoadTemplates
+      → RequestLoadMainMenuEntrySave → 启动游戏
+
+每帧: _Process → IOrigoFrameDriver.DriveFrame(delta)
+  → Snd.ProcessAll(delta)          # 实体帧处理
+  → FlushEndOfFrameDeferred()      # 业务队列 → KillPendingEntities → 系统队列
+  → Console.ProcessPending()       # 控制台命令处理
 ```
 
 ## 下一步

@@ -27,7 +27,7 @@
 
 ### 为什么采用 vendor 而非 NuGet 包
 
-FastNoiseLite 为单文件实现，无任何外部依赖。vendor 方式避免了额外的包管理负担，且该库稳定（v1.1.1 后无更新需求）。详见项目根目录的 `THIRD_PARTY_NOTICES.md`。
+FastNoiseLite 为单文件实现，无任何外部依赖。vendor 方式避免了额外的包管理负担，且该库稳定（v1.1.1 后无更新需求）。详见 `origo` 仓库根目录的 `THIRD_PARTY_NOTICES.md`。
 
 ### 为什么不修改源码
 

@@ -109,13 +109,15 @@ key=levelId=syncProcess,key=levelId=syncProcess
 状态机策略钩子通过 `IStateMachineContext` 访问黑板：
 
 ```csharp
-public interface IStateMachineContext
+public interface IStateMachineContext : ISndBlackboardAccess, ISndDeferredActions
 {
-    IBlackboard SystemBlackboard { get; }     // 系统级
-    IBlackboard? ProgressBlackboard { get; }  // 流程级
+    IBlackboard SystemBlackboard { get; }     // 系统级（继承 ISndBlackboardAccess）
+    IBlackboard? ProgressBlackboard { get; }  // 流程级（继承 ISndBlackboardAccess）
     IBlackboard? SessionBlackboard { get; }   // 当前会话级
     ISndSceneAccess SceneAccess { get; }      // 当前会话场景
-    void EnqueueBusinessDeferred(Action action);
+    void EnqueueBusinessDeferred(Action action);           // 继承 ISndDeferredActions
+    void FlushDeferredActionsForCurrentFrame();            // 继承 ISndDeferredActions
+    int GetPendingPersistenceRequestCount();               // 继承 ISndDeferredActions
 }
 ```
 

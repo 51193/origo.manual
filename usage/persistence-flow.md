@@ -151,7 +151,7 @@ class MySaveMetaContributor : ISaveMetaContributor
         return new Dictionary<string, string>
         {
             ["play_time"] = CalculatePlayTime(),
-            ["player_name"] = context.ProgressBlackboard?.TryGet<string>("player_name").value ?? ""
+            ["player_name"] = context.Progress?.TryGet<string>("player_name").value ?? ""
         };
     }
 }
@@ -175,8 +175,15 @@ public interface ISavePathPolicy
     string GetCurrentDirectory();
     string GetSaveDirectory(string saveId);
     string GetProgressFile(string baseDir);
+    string GetProgressStateMachinesFile(string baseDir);
+    string GetCustomMetaFile(string baseDir);
     string GetLevelDirectory(string baseDir, string levelId);
-    // ... 等
+    string GetLevelSndSceneFile(string baseDir, string levelId);
+    string GetLevelSessionFile(string baseDir, string levelId);
+    string GetLevelSessionStateMachinesFile(string baseDir, string levelId);
+    string GetWriteInProgressMarker(string baseDir);
+    string GetPayloadShaFile(string baseDir);
+    string GetExtraDirectory(string baseDir);
 }
 ```
 

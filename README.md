@@ -103,6 +103,9 @@ Root (this file)
 
 ## 版本
 
-本文档与 Origo 代码库同步。代码目录结构变更时，手册应同步更新目录镜像和索引。
+当前同步 Origo 框架版本：**0.0.8-nightly.20260616**。本文档与 Origo 代码库同步。代码目录结构变更时，手册应同步更新目录镜像和索引。
+
+- 框架源码：[origo](https://github.com/51193/origo.stable)
+- 示例项目：[origo.demo](https://github.com/51193/origo.stable)（参见 `origo.demo/` 子目录）
 
 手册维护规则详见 [META.md](META.md)。

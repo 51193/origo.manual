@@ -285,12 +285,15 @@ OrigoAutoHost._Ready()
 ├── 8. BindRuntimeDependencies (World + Logger to SndManager)
 │
 └── OrigoDefaultEntry._Ready() [覆写]
-    ├── 9. 注册适配层命令处理器
-    ├── 10. OrigoAutoInitializer.DiscoverAndRegisterStrategies (反射扫描)
-    ├── 11. SndContext 创建 (注入 Runtime + FileSystem + saveRoot + config)
-    ├── 12. SndManager.BindContext(context)
-    ├── 13. LoadSceneAliases + LoadTemplates
-    └── 14. RequestLoadMainMenuEntrySave → FlushDeferredActions
+    ├── 9. 注册适配层命令处理器 (press_button, tree_debug)
+    ├── 10. 创建 SndContext (注入 Runtime + FileSystem + saveRoot + config)
+    ├── 11. SndManager.BindContext(context)
+    ├── 12. ConfigureSaveMetadataContributors(context)
+    └── 13. SndContext.Bootstrap()
+          ├── 13a. ConfigureConverters
+          ├── 13b. OrigoAutoInitializer.DiscoverAndRegisterStrategies (反射扫描)
+          ├── 13c. LoadSceneAliases + LoadTemplates
+          └── 13d. RequestLoadMainMenuEntrySave → FlushDeferredActions
 ```
 
 ## 完整策略示例
@@ -438,6 +441,43 @@ public void Core_ContainsNoGodotReferences()
     }
 }
 ```
+
+## 辅助接口
+
+### INodeHandle（节点抽象）
+
+```csharp
+// 由适配层实现，Core 不持有引擎节点引用
+// 通过 SndEntityNodeExtensions.GetNativeNode() 扩展方法获取具体节点
+// GetNativeNode() → 返回 Godot Node 对象（GodotAdapter 层）
+```
+
+### INodeFactory（节点工厂）
+
+```csharp
+public interface INodeFactory
+{
+    INodeHandle Create(ISndEntity parentEntity, string resourceId, string nodeName);
+}
+```
+
+### IConsoleInputSource / IConsoleOutputChannel（控制台 I/O）
+
+```csharp
+public interface IConsoleInputSource
+{
+    bool TryDequeue(out string? command);
+}
+
+public interface IConsoleOutputChannel
+{
+    void Publish(string message);
+}
+```
+
+由 `OrigoAutoHost` 创建，供 `ConsoleBridgeServer` 和自定义命令处理器使用。
+
+---
 
 ## 常见陷阱
 

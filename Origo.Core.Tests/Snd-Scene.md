@@ -14,11 +14,12 @@ SndRuntime 的钩子编排、SndEntityFactory 的公共 API、ProcessAll/Spawn/K
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `StubSndSceneHostTests.cs` | StubSndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
+| `MemorySndSceneHostTests.cs` | SndSceneHost 的 CreateEntity/FindByName/BuildMetaList/RecoverFromMetaList/RemoveAllEntities/RemoveEntity |
 | `FullMemorySndSceneHostTests.cs` | FullMemorySndSceneHost 的边界行为：CreateEntity 前置条件、RemoveEntity/RequestKillEntity 错误路径 |
 | `NullNodeFactoryTests.cs` | NullNodeFactory 返回 NullNodeHandle，不抛异常 |
-| `SndEntityLifecycleBatchTests.cs` | SndRuntime 全面钩子编排：Spawn/SpawnMany/KillPendingEntities/ClearAll、CreateEntity 不触发钩子、RemoveEntity 不触发钩子、SndEntityFactory 公共 API、ProcessAll 多实体帧处理 |
 | `SndScenePerformanceTests.cs` | 场景操作缩放性能：ProcessAll 实体数量缩放、数据读/写帧模拟、ToArray 快照分配、Spawn/Kill/ClearAll 批量缩放 |
+
+> `SndEntityLifecycleBatchTests.cs` 与 [Snd-Entity.md](Snd-Entity.md) 共享，此处不再重复列出。
 
 ## 测试详情
 

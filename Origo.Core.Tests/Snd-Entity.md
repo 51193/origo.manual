@@ -13,7 +13,7 @@ AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycle
 
 | 文件 | 验证侧重点 |
 |------|-----------|
-| `StubSndEntityTests.cs` | StubSndEntity 的 SetData/GetData/TryGetData/数据隔离 |
+| `MemorySndEntityTests.cs` | SndEntity 的 SetData/GetData/TryGetData/数据隔离 |
 | `SndEntityAfterLoadTests.cs` | AfterLoad 钩子的触发顺序和数据恢复 |
 | `SndEntityAndAutoInitializerTests.cs` | AutoInitializer 从 metadata 恢复策略和数据 |
 | `SndEntityLifecycleBatchTests.cs` | 批量生命周期：SpawnEntity/RecoverFromMetaList/RemoveAllEntities 整体操作，不再逐实体触发钩子；ProcessAll 多实体帧处理 |

@@ -129,9 +129,11 @@ InvokeStrategy 'traversability.is_passable' on 'TraversabilityManager': true
 
 ## 添加自定义命令
 
+> **内置 vs 自定义：** 所有内置命令处理器均为 `internal sealed class`，通过 `OrigoConsole` 内部注册。用户自定义命令必须声明为 `public sealed class` 并继承 `ConsoleCommandHandlerBase`，通过 `runtime.Console.RegisterHandler()` 注册。
+
 ### Core 层命令
 
-继承 `ConsoleCommandHandlerBase`（`public` 类，外部项目可直接派生）：
+继承 `ConsoleCommandHandlerBase`（`public abstract` 类，外部项目可直接派生）：
 
 ```csharp
 public sealed class MyCommandHandler : ConsoleCommandHandlerBase

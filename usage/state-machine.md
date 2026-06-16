@@ -135,15 +135,17 @@ sm.TryPopRuntime(out var popped);  // popped == "settings"
 
 ## 容器操作
 
-| 操作 | 说明 |
-|------|------|
-| `CreateOrGet(key, pushIdx, popIdx)` | 创建或获取（索引不同则抛异常） |
-| `TryGet(key)` | 查找已有状态机 |
-| `Remove(key)` | 移除并 Dispose |
-| `Clear()` | 释放所有状态机 |
-| `FlushAllAfterLoad()` | 所有机器按插入顺序重放 |
-| `PopAllRuntime()` | 按插入顺序逐个弹空 |
-| `PopAllOnQuit()` | 退出流程按插入顺序逐个弹空 |
+> 下表前三行为 `IStateMachineContainer` 接口方法；`FlushAllAfterLoad`、`PopAllRuntime`、`PopAllOnQuit` 为具体类 `StateMachineContainer` 的内部方法（non-interface）。
+
+| 操作 | 说明 | 来源 |
+|------|------|------|
+| `CreateOrGet(key, pushIdx, popIdx)` | 创建或获取（索引不同则抛异常） | 接口 |
+| `TryGet(key)` | 查找已有状态机 | 接口 |
+| `Remove(key)` | 移除并 Dispose | 接口 |
+| `Clear()` | 释放所有状态机 | 接口 |
+| `FlushAllAfterLoad()` | 所有机器按插入顺序重放 | 实现 |
+| `PopAllRuntime()` | 按插入顺序逐个弹空 | 实现 |
+| `PopAllOnQuit()` | 退出流程按插入顺序逐个弹空 | 实现 |
 
 ## 与实体策略的区别
 

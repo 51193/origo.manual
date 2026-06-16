@@ -202,6 +202,65 @@ public class CharacterCoreStrategy : EntityStrategyBase
 
 ---
 
+## 意图驱动计划执行（Planning）
+
+对于需要多步骤计划执行的实体（如 AI 角色调度），Origo 提供了 `PlanExecutionStrategyBase`（位于 `Origo.Core.Planning` 命名空间）作为高级生命周期封装。
+
+`PlanExecutionStrategyBase` 继承 `EntityStrategyBase`，通过 `sealed` 生命周期钩子自动管理订阅配对、Action 策略插拔和计划推进，将 RAII 闭环保留在框架层。用户仅需实现两个领域映射函数：
+
+| 抽象成员 | 职责 |
+|----------|------|
+| `ResolveNextStep(intent, currentStep, failed, entity)` | 意图 → 计划步骤分解 |
+| `StepToActionIndex(stepType)` | 步骤类型 → Action 策略索引映射 |
+
+**与原始生命周期钩子的关系：**
+
+- 基类 `sealed` 了全部 8 个 `EntityStrategyBase` 生命周期钩子
+- 用户通过虚的 `On*` 钩子（`OnAfterSpawn`、`OnAfterLoad`、`OnProcess` 等）扩展行为
+- 订阅和 Action 策略生命周期完全由基类管理，用户无需关心
+- 不能覆写原始钩子 → 不可能忘记调用基类 → 消除 wiring 失效风险
+
+**示例：**
+
+```csharp
+[StrategyIndex("character.scheduling", Priority = 5)]
+public sealed class CharacterSchedulingStrategy : PlanExecutionStrategyBase
+{
+    public override string IntentKey => "character.intent";
+    public override string IntentStatusKey => "character.intent_status";
+    public override string PlanStepKey => "character.plan_step";
+    public override string ActionKey => "character.action";
+    public override string ActionStatusKey => "character.action_status";
+
+    public override string? ResolveNextStep(string? intent, string? currentStep, 
+        bool failed, ISndEntity entity)
+    {
+        return intent switch
+        {
+            "forage" => "find_target",
+            "combat" => "find_enemy",
+            "wander" => "wander",
+            _ => null
+        };
+    }
+
+    public override string? StepToActionIndex(string stepType)
+    {
+        return stepType switch
+        {
+            "find_target" => "character.action.find_target",
+            "find_enemy" => "character.action.find_enemy",
+            "wander" => "character.action.wander_target",
+            _ => null
+        };
+    }
+}
+```
+
+详见：[Planning 子系统文档](../Origo.Core/Planning/README.md) 和 [设计模式 - 调度层](design-patterns.md)。
+
+---
+
 ## 下一个文档
 
 - [设计模式](design-patterns.md) — 策略系统常用设计模式

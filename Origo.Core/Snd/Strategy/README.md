@@ -16,9 +16,9 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 | `EntityStrategyBase.cs` | 实体策略基类：8 个生命周期虚方法钩子 |
 | `ActiveStrategyBase.cs` | 主动策略基类：`Invoke(entity, ctx, input)` — 外部按索引主动调用 |
 | `ActiveStrategyExtensions.cs` | `ISndEntity` 扩展方法：泛型 `InvokeStrategy<TInput, TOutput>` 消除 JSON 序列化样板；`EnsureStrategy` 惰性策略挂载 + 幂等守卫 |
-| `ActiveStrategyManager.cs` | 单实体主动策略管理器：Dictionary 容器 + 增删 + 序列化 |
-| `SndStrategyPool.cs` | 策略池：注册、实例化、引用计数、无状态校验 |
-| `SndStrategyManager.cs` | 单实体被动策略管理器：策略容器的增删 + 生命周期钩子协调 |
+| `ActiveStrategyManager.cs` | `internal` — 单实体主动策略管理器：Dictionary 容器 + 增删 + 序列化 |
+| `SndStrategyPool.cs` | `internal` — 策略池：注册、实例化、引用计数、无状态校验 |
+| `SndStrategyManager.cs` | `internal` — 单实体被动策略管理器：策略容器的增删 + 生命周期钩子协调 |
 | `StrategyIndexAttribute.cs` | 策略索引声明特性：`[StrategyIndex("core.health")]` |
 
 ## 模块详解

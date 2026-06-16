@@ -70,7 +70,7 @@
 
 ### `ISndEntity.EnsureReplaceableStrategy(implKey, defaultStrategyIndex)`（扩展方法）
 
-位于 `Origo.Core.Snd.EntityStrategyExtensions`。
+位于 `Origo.Core.Snd.Strategy.EntityStrategyExtensions`。
 
 确保实体的某个 resident 策略已挂载，支持模板级覆写（`*_impl` 模式）：
 
