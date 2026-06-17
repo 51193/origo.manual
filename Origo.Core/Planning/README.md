@@ -96,6 +96,9 @@ entity.EnsureReplaceableStrategy("character.path_impl", "character.pathfind.asta
 4. **为什么不在基类中内置 idle / 计时器步骤？**
    idle、patrol、standby 等步骤类型是游戏设计层面的概念，不应进入框架抽象。如果 idle 被内置，则 patrol 同理，框架将无边界膨胀。正确做法：用户将 idle 实现为一个普通的 `EntityStrategyBase` Action 策略，通过 `StepToActionIndex("idle")` 映射到对应的策略索引。框架只做调度编排，不做具体行为。
 
+5. **为什么 `AfterLoad` 不重启计划？**
+   Action 策略（如 `character.action.nav_to`）作为动态添加策略，通过 `SndEntity.BuildMetaData()` → `SndStrategyManager.GetStrategyIndices()` 参与实体序列化。读档时 `SndEntity.RecoverForLifecycle()` → `SndStrategyManager.RecoverStrategiesOnly()` 完整恢复全部策略。恢复后的 Action 策略在下一帧的 `Process` 中继续执行，计划从断点自然推进，无需 `AfterLoad` 中由 `PlanExecutionStrategyBase` 显式重启。`AfterLoad` 仅需重新建立 `IntentKey` 和 `ActionStatusKey` 的数据订阅连接——这是运行时非持久化资源的 RAII 恢复。
+
 ## 文件清单
 
 | 文件 | 职责 |
