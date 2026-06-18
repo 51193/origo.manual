@@ -45,7 +45,7 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | 日志 | [Logging.md](Logging.md) | LogMessageBuilder 结构化构建（prefix/suffix/elapsed） |
 | 网格 | [Grid.md](Grid.md) | GridCoordinateSystem 单/双轴转换、A* 寻路、GridParser 坐标解析 |
 | 随机数 | [Random.md](Random.md) | XorShift128+ 种子确定性、噪声图生成 |
-| 规划 | [Planning.md](Planning.md) | PlanExecutionStrategyBase 密封生命周期、计划推进、Action 策略插拔 |
+| 规划 | [Planning.md](Planning.md) | PlanExecutionStrategyBase：意图驱动计划执行、Action 策略自动插拔、步骤推进 |
 | 类型序列化 | [TypeStringMapping.md](TypeStringMapping.md) | TypeStringMapping 双向映射、BCL 预注册、冲突检测 |
 | 调度 | [Scheduling.md](Scheduling.md) | ConcurrentActionQueue 入队/排空/并发安全/递归深度保护 |
 | 控制台 | [Console.md](Console.md) | 命令解析器/路由器/输入队列/输出通道、13 个内置命令处理（11 Core + 2 GodotAdapter）、类型推断 |
@@ -59,7 +59,7 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | SND 场景 | [Snd-Scene.md](Snd-Scene.md) | SndSceneHost、FullMemorySndSceneHost 直接测试、NullNodeFactory、ProcessAll/Spawn/Kill 批量缩放性能 |
 | SND 策略 | [Snd-Strategy.md](Snd-Strategy.md) | 策略优先级排序、池引用计数/回收、实体策略生命周期钩子、主动策略 Invoke、策略池与 Manager 性能基准 |
 | SND 上下文 | [Snd-Context.md](Snd-Context.md) | SndContext save/load/continue 工作流、NullSndContext、LevelBuilder、模板解析、Archetype 加载 |
-| SND 扩展 | [Snd-Extensions.md](Snd-Extensions.md) | EnsureStrategy 惰性挂载、TryGetNumeric 跨类型读取、ActiveStrategy 泛型调用、EntityStrategy 可替换策略 |
+| SND 扩展 | [Snd-Extensions.md](Snd-Extensions.md) | EnsureStrategy 惰性策略挂载（幂等）、TryGetNumeric 跨数值类型读取、InvokeStrategy 泛型调用 |
 | 文件访问 | [Snd-FileAccess.md](Snd-FileAccess.md) | ISndFileAccess 在 SndContext 上的 DataSourceNode 读写往返、强类型往返、overwrite 语义、错误/边界路径 |
 | 策略测试上下文文件访问 | [StrategyTestContext-FileAccess.md](StrategyTestContext-FileAccess.md) | ISndFileAccess 在 StrategyTestContext 上的内存文件系统行为、DataSourceNode 和强类型往返 |
 | 存档文件访问 | [Snd-ArchiveFileAccess.md](Snd-ArchiveFileAccess.md) | ISndArchiveFileAccess 在 SndContext 上的 extra/ 子目录文件操作、DeleteFile、路径穿越防护、save/load 往返 |

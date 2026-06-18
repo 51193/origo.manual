@@ -64,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 | `Fixed` | 对 bug 的修复 |
 | `Security` | 对安全性的改进 |
 
+> **破坏性变更不另立分类。** 破坏性变更按其性质归入 `Changed`（行为变更）或 `Removed`（API 移除），并在条目开头加 `BREAKING:` 前缀。不使用独立的 `Breaking Changes` 分类。
+
 ### 关键约束
 
 1. **基线是上一个正式发布版本的 tag。** 编写 changelog 时，必须对比上一个正式版本到当前状态的差异，提炼面向用户的显著变更。Nightly tag（如 `v0.0.8-nightly.20260612`）不作为基线。

@@ -22,6 +22,7 @@ Origo.GodotAdapter 的测试验证 Godot 4 适配层的正确性。
 | 文件系统 | [FileSystem.md](FileSystem.md) | GodotFileSystem 的 res:// / user:// 路径处理 |
 | 日志 | [Logging.md](Logging.md) | GodotLogger 委托注入和 null handler |
 | 序列化 | [Serialization.md](Serialization.md) | 14 种 Godot 引擎类型的序列化往返 + TypedData 多层内联 |
+| 测试辅助 | [TestSupport.md](TestSupport.md) | NullFileSystem、TestSndSceneHost、TestLogger、TestRuntimeHelper |
 
 ---
 
