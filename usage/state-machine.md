@@ -149,7 +149,7 @@ sm.TryPopRuntime(out var popped);  // popped == "settings"
 
 ## 与实体策略的区别
 
-| 特性 | 实体策略 (EntityStrategyBase) | 状态机策略 (StateMachineStrategyBase) |
+| 特性 | 实体策略 (LifecycleStrategyBase) | 状态机策略 (StateMachineStrategyBase) |
 |------|------|------|
 | 挂载位置 | 实体 (SndEntity) | 状态机 (StackStateMachine) |
 | 数据访问 | `entity.SetData/TryGetData` | `ctx.SessionBlackboard` |

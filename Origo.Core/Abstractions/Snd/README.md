@@ -54,7 +54,7 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 - 仅需实体操作的代码可依赖 `ISndEntityOperations`
 - 等等
 
-策略钩子（`EntityStrategyBase` 的 8 个虚方法）保持 `ISndContext ctx` 全量参数——策略作为一等公民，应能访问框架全部能力。
+策略钩子（`LifecycleStrategyBase` 的 8 个虚方法）保持 `ISndContext ctx` 全量参数——策略作为一等公民，应能访问框架全部能力。
 
 ### 为什么 ISndContext 仍作为组合接口存在
 

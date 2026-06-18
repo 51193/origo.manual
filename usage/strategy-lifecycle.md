@@ -124,7 +124,7 @@ public override void BeforeSave(ISndEntity entity, ISndContext ctx)
 
 ```csharp
 [StrategyIndex("game.action.move_to")]
-public class MoveToActionStrategy : EntityStrategyBase
+public class MoveToActionStrategy : LifecycleStrategyBase
 {
     public override void AfterAdd(ISndEntity entity, ISndContext ctx)
     {
@@ -147,7 +147,7 @@ public class MoveToActionStrategy : EntityStrategyBase
 
 ```csharp
 [StrategyIndex("game.character.core", Priority = 10)]
-public class CharacterCoreStrategy : EntityStrategyBase
+public class CharacterCoreStrategy : LifecycleStrategyBase
 {
     // 游戏逻辑闭环：注册到管理器
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
@@ -206,7 +206,7 @@ public class CharacterCoreStrategy : EntityStrategyBase
 
 对于需要多步骤计划执行的实体（如 AI 角色调度），Origo 提供了 `PlanExecutionStrategyBase`（位于 `Origo.Core.Planning` 命名空间）作为高级生命周期封装。
 
-`PlanExecutionStrategyBase` 继承 `EntityStrategyBase`，通过 `sealed` 生命周期钩子自动管理订阅配对、Action 策略插拔和计划推进，将 RAII 闭环保留在框架层。用户仅需实现两个领域映射函数：
+`PlanExecutionStrategyBase` 继承 `LifecycleStrategyBase`，通过 `sealed` 生命周期钩子自动管理订阅配对、Action 策略插拔和计划推进，将 RAII 闭环保留在框架层。用户仅需实现两个领域映射函数：
 
 | 抽象成员 | 职责 |
 |----------|------|
@@ -215,7 +215,7 @@ public class CharacterCoreStrategy : EntityStrategyBase
 
 **与原始生命周期钩子的关系：**
 
-- 基类 `sealed` 了全部 8 个 `EntityStrategyBase` 生命周期钩子
+- 基类 `sealed` 了全部 8 个 `LifecycleStrategyBase` 生命周期钩子
 - 用户通过虚的 `On*` 钩子（`OnAfterSpawn`、`OnAfterLoad`、`OnProcess` 等）扩展行为
 - 订阅和 Action 策略生命周期完全由基类管理，用户无需关心
 - 不能覆写原始钩子 → 不可能忘记调用基类 → 消除 wiring 失效风险

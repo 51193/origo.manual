@@ -9,7 +9,7 @@
 
 ## EntityStrategy 测试
 
-用于测试继承自 `EntityStrategyBase` 的被动策略（有 Process 和生命周期钩子）。
+用于测试继承自 `LifecycleStrategyBase` 的被动策略（有 Process 和生命周期钩子）。
 
 ### 三阶段模式
 

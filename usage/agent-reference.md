@@ -304,7 +304,7 @@ using Origo.Core.Snd.Metadata;
 using Origo.Core.Snd.Strategy;
 
 [StrategyIndex("example.simple_health", Priority = 6205)]
-public class SimpleHealthStrategy : EntityStrategyBase
+public class SimpleHealthStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
@@ -338,7 +338,7 @@ using Origo.Core.DataSource;
 using Origo.Core.Snd.Strategy;
 
 [StrategyIndex("example.config_loader")]
-public class ConfigLoadStrategy : EntityStrategyBase
+public class ConfigLoadStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
@@ -361,7 +361,7 @@ public class ConfigLoadStrategy : EntityStrategyBase
 
 ```csharp
 [StrategyIndex("enemy.watcher")]
-public sealed class EnemyWatcherStrategy : EntityStrategyBase
+public sealed class EnemyWatcherStrategy : LifecycleStrategyBase
 {
     private static void OnBossHpChanged(ISndEntity target, ISndEntity observer,
         TypedData oldVal, TypedData newVal)

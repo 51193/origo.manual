@@ -22,7 +22,7 @@ SND 模型将游戏实体拆分为三个正交维度：
 
 ```
 BaseStrategy (抽象，所有策略的基类)
-├── EntityStrategyBase     → 8 个实体生命周期钩子
+├── LifecycleStrategyBase     → 8 个实体生命周期钩子
 ├── ActiveStrategyBase     → Invoke(entity, ctx, input)
 ├── ObserverStrategyBase   → OnMounted / OnDataChanged / OnUnmounted
 └── StateMachineStrategyBase → 4 个状态机钩子
@@ -30,7 +30,7 @@ BaseStrategy (抽象，所有策略的基类)
 
 ### 观察者策略
 
-`ObserverStrategyBase` 是 SND 策略体系中与 `EntityStrategyBase`、`ActiveStrategyBase` 平级的第一公民。观察者策略负责响应数据变更和绑定生命周期，框架自动管理接线持久化。
+`ObserverStrategyBase` 是 SND 策略体系中与 `LifecycleStrategyBase`、`ActiveStrategyBase` 平级的第一公民。观察者策略负责响应数据变更和绑定生命周期，框架自动管理接线持久化。
 
 三个虚方法：
 
@@ -91,7 +91,7 @@ entity.UnmountObserverStrategy(entity.Name, "character.intent_watcher");
 
 ```csharp
 [StrategyIndex("my_game.damage_tick", Priority = 100)]
-public class DamageTickStrategy : EntityStrategyBase
+public class DamageTickStrategy : LifecycleStrategyBase
 {
     public override void Process(ISndEntity entity, double delta, ISndContext ctx)
     {

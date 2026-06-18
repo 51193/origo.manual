@@ -62,7 +62,7 @@ using Origo.Core.Abstractions.Entity;
 using Origo.Core.Snd.Strategy;
 
 [StrategyIndex("my_game.health")]
-public class HealthInitStrategy : EntityStrategyBase
+public class HealthInitStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {

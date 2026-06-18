@@ -84,7 +84,7 @@ public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 
 ```csharp
 [StrategyIndex("game.entity.init")]
-public class EntityInitStrategy : EntityStrategyBase
+public class EntityInitStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
@@ -115,7 +115,7 @@ public class EntityInitStrategy : EntityStrategyBase
 ```csharp
 // Manager 策略：维护数据，无 Process 循环
 [StrategyIndex("food.manager")]
-public class FoodManagerStrategy : EntityStrategyBase
+public class FoodManagerStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
@@ -151,7 +151,7 @@ public class FoodFindNearestStrategy : ActiveStrategyBase
 ```csharp
 // 调度器读取 impl 键，动态选择策略
 [StrategyIndex("game.scheduling")]
-public class SchedulingStrategy : EntityStrategyBase
+public class SchedulingStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
@@ -212,7 +212,7 @@ entity.Subscribe("intent", (target, observer, oldVal, newVal) =>
 ```csharp
 // 策略：决策逻辑
 [StrategyIndex("ui.main_menu")]
-public class MainMenuStrategy : EntityStrategyBase
+public class MainMenuStrategy : LifecycleStrategyBase
 {
     public override void AfterLoad(ISndEntity entity, ISndContext ctx)
     {
@@ -265,7 +265,7 @@ P35  检测层      逐帧检测条件 → 触发结果
 - **计划推进**：intent 变更重启计划；action 完成/失败推进到下一步或终止
 - **Action 生命周期**：每步自动 `AddStrategy(StepToActionIndex(step))`，推进/终止时移除
 
-任何步骤类型（idle、patrol、standby 等）都应实现为独立的 `EntityStrategyBase` Action 策略，通过 `StepToActionIndex` 注册。基类对所有步骤一视同仁，不内置任何特定行为。
+任何步骤类型（idle、patrol、standby 等）都应实现为独立的 `LifecycleStrategyBase` Action 策略，通过 `StepToActionIndex` 注册。基类对所有步骤一视同仁，不内置任何特定行为。
 
 用户仅需实现两个抽象方法：
 

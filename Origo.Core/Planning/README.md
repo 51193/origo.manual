@@ -6,11 +6,11 @@
 
 ## 接口
 
-### `PlanExecutionStrategyBase : EntityStrategyBase`
+### `PlanExecutionStrategyBase : LifecycleStrategyBase`
 
 意图驱动的计划执行基类。封装了从 intent 产生到 plan 拆解、action 挂载/卸载、计划推进的完整生命周期。
 
-**设计理念：** 框架管理 wiring（订阅配对、Action 策略插拔、状态机控制流），用户仅提供两个领域映射函数。任何步骤类型（包括 idle、patrol 等）都应实现为独立的 `EntityStrategyBase` Action 策略，通过 `StepToActionIndex` 注册，与框架的其他 action 无差别对待。
+**设计理念：** 框架管理 wiring（订阅配对、Action 策略插拔、状态机控制流），用户仅提供两个领域映射函数。任何步骤类型（包括 idle、patrol 等）都应实现为独立的 `LifecycleStrategyBase` Action 策略，通过 `StepToActionIndex` 注册，与框架的其他 action 无差别对待。
 
 #### 用户必须实现的抽象成员
 
@@ -36,7 +36,7 @@
 
 #### Sealed 生命周期钩子（不可覆写）
 
-基类 `sealed` 了 `EntityStrategyBase` 的全部 8 个生命周期钩子，自动管理：
+基类 `sealed` 了 `LifecycleStrategyBase` 的全部 8 个生命周期钩子，自动管理：
 
 - `AfterSpawn` / `AfterAdd`：订阅信号 + 若 intent 已存在则重启计划 → 调用 `OnAfterSpawn` / `OnAfterAdd`
 - `AfterLoad`：仅订阅信号（存档恢复时计划状态已持久化，不重启）→ 调用 `OnAfterLoad`
@@ -94,7 +94,7 @@ entity.EnsureReplaceableStrategy("character.path_impl", "character.pathfind.asta
    遵循 `Origo.Core.StateMachine` 的先例。`Planning` 是独立的行为子系统，不混入 `Snd.Strategy` 命名空间。
 
 4. **为什么不在基类中内置 idle / 计时器步骤？**
-   idle、patrol、standby 等步骤类型是游戏设计层面的概念，不应进入框架抽象。如果 idle 被内置，则 patrol 同理，框架将无边界膨胀。正确做法：用户将 idle 实现为一个普通的 `EntityStrategyBase` Action 策略，通过 `StepToActionIndex("idle")` 映射到对应的策略索引。框架只做调度编排，不做具体行为。
+   idle、patrol、standby 等步骤类型是游戏设计层面的概念，不应进入框架抽象。如果 idle 被内置，则 patrol 同理，框架将无边界膨胀。正确做法：用户将 idle 实现为一个普通的 `LifecycleStrategyBase` Action 策略，通过 `StepToActionIndex("idle")` 映射到对应的策略索引。框架只做调度编排，不做具体行为。
 
 5. **为什么 `AfterLoad` 不重启计划？**
    Action 策略（如 `character.action.nav_to`）作为动态添加策略，通过 `SndEntity.BuildMetaData()` → `SndStrategyManager.GetStrategyIndices()` 参与实体序列化。读档时 `SndEntity.RecoverForLifecycle()` → `SndStrategyManager.RecoverStrategiesOnly()` 完整恢复全部策略。恢复后的 Action 策略在下一帧的 `Process` 中继续执行，计划从断点自然推进，无需 `AfterLoad` 中由 `PlanExecutionStrategyBase` 显式重启。`AfterLoad` 仅需重新建立 `IntentKey` 和 `ActionStatusKey` 的数据订阅连接——这是运行时非持久化资源的 RAII 恢复。

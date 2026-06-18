@@ -13,7 +13,7 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 | 文件 | 职责 |
 |------|------|
 | `BaseStrategy.cs` | 所有策略的抽象根基类 |
-| `EntityStrategyBase.cs` | 实体策略基类：8 个生命周期虚方法钩子 |
+| `LifecycleStrategyBase.cs` | 实体策略基类：8 个生命周期虚方法钩子 |
 | `ActiveStrategyBase.cs` | 主动策略基类：`Invoke(entity, ctx, input)` — 外部按索引主动调用 |
 | `ObserverStrategyBase.cs` | 观察者策略基类：`OnMounted` / `OnDataChanged` / `OnUnmounted` |
 | `ObserverStrategyManager.cs` | `internal` — 单实体观察者策略管理器：绑定管理 + 接线/拆线 + 序列化 |
@@ -30,7 +30,7 @@ SND 策略系统的完整实现。策略是实体行为逻辑的载体，遵循"
 
 ```
 BaseStrategy
-├── EntityStrategyBase         (被动: Process, AfterSpawn, AfterLoad, AfterAdd, BeforeRemove, BeforeSave, BeforeQuit, BeforeDead)
+├── LifecycleStrategyBase         (被动: Process, AfterSpawn, AfterLoad, AfterAdd, BeforeRemove, BeforeSave, BeforeQuit, BeforeDead)
 ├── ActiveStrategyBase         (主动: Invoke)
 ├── ObserverStrategyBase       (观察: OnMounted, OnDataChanged, OnUnmounted)
 └── StateMachineStrategyBase   (状态机: OnPushRuntime, OnPushAfterLoad, OnPopRuntime, OnPopBeforeQuit)
@@ -92,7 +92,7 @@ BaseStrategy
 | `Add(entity, index, ctx)` | 动态添加策略（触发 AfterAdd） |
 | `Remove(entity, index, ctx)` | 动态移除策略（触发 BeforeRemove） |
 
-- **Recover**：从池获取时进行类型过滤，仅保留 `EntityStrategyBase` 子类，其余立即 `ReleaseStrategy`
+- **Recover**：从池获取时进行类型过滤，仅保留 `LifecycleStrategyBase` 子类，其余立即 `ReleaseStrategy`
 - **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略。五个触发器方法（`TriggerAfterSpawn/Load/Save/Quit/Dead`）统一委托给 `TriggerAll`，消除复制粘贴重复
 
 ### ActiveStrategyManager
@@ -178,7 +178,7 @@ StrategyMetaData
 
 ```csharp
 [StrategyIndex("my_game.player_control", Priority = 100)]
-public class PlayerControlStrategy : EntityStrategyBase { ... }
+public class PlayerControlStrategy : LifecycleStrategyBase { ... }
 ```
 
 - `Index`：必填，策略在池中的唯一索引键

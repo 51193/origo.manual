@@ -16,7 +16,7 @@
 | `StrategyPriorityTests.cs` | 策略按 Priority 升序排列、同优先级按插入顺序、所有生命周期钩子遵循优先级 |
 | `StrategyPoolAndRuntimeTests.cs` | 策略池注册/复用/释放/引用计数、SndRuntime 代理到 SceneHost |
 | `StrategyPoolTypeSafetyAndExtensionTests.cs` | 策略池类型安全、无状态校验、注册与释放的边缘情况 |
-| `EntityStrategyBaseTests.cs` | 默认钩子不改变实体数据；Process 中 RequestKill 对自身和其他实体的影响；多策略 Process 中 Kill 自己的后续策略执行验证 |
+| `LifecycleStrategyBaseTests.cs` | 默认钩子不改变实体数据；Process 中 RequestKill 对自身和其他实体的影响；多策略 Process 中 Kill 自己的后续策略执行验证 |
 | `ActiveStrategyTests.cs` | 主动策略 Invoke 调用、实体 InvokeStrategy 委托链 |
 | `SndStrategyPerformanceTests.cs` | 策略池 Get/Release 吞吐基准、Process 策略数缩放、TriggerAll ToArray 分配 |
 
@@ -83,7 +83,7 @@
 | `SndStrategyPool_ReleaseWithoutAcquire_OrDoubleRelease_ThrowsInvalidOperation` | 未获取或重复释放 | InvalidOperationException |
 | `SndRuntime_SpawnEntity_DuplicateName_ThrowsInvalidOperation` | 重复实体名 | InvalidOperationException |
 
-## EntityStrategyBaseTests 测试详情
+## LifecycleStrategyBaseTests 测试详情
 
 ### 正确路径
 
@@ -103,7 +103,7 @@
 | `RemoveEntityStrategy_LeavesActiveStrategy` | 移除 EntityStrategy 后 ActiveStrategy 仍可 Invoke | snd-entity-model |
 | `RemoveActiveStrategy_LeavesEntityStrategy` | 移除 ActiveStrategy 后 EntityStrategy 仍可 Process | snd-entity-model |
 
-## EntityStrategyBaseTests 测试详情
+## LifecycleStrategyBaseTests 测试详情
 
 ### 正确路径
 
@@ -133,7 +133,7 @@
 | `SMin / SMax` | StrategyPriorityTests.cs | int.MinValue / int.MaxValue 优先级策略 |
 | `DemoStrategy` | StrategyPoolAndRuntimeTests.cs | 简单标记策略，验证池引用计数 |
 | `RecoverSafeStrategy` | StrategyPoolAndRuntimeTests.cs | 验证 Spawn 失败时回滚 |
-| `TestEntityStrategy` | EntityStrategyBaseTests.cs | 不重写任何钩子的空白策略 |
+| `TestEntityStrategy` | LifecycleStrategyBaseTests.cs | 不重写任何钩子的空白策略 |
 | `Rec`（AsyncLocal 记录器） | StrategyPriorityTests.cs | 执行顺序日志收集器（使用 AsyncLocal 实现线程隔离） |
 
 ## 已知覆盖缺口
