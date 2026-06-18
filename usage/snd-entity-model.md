@@ -22,10 +22,56 @@ SND 模型将游戏实体拆分为三个正交维度：
 
 ```
 BaseStrategy (抽象，所有策略的基类)
-├── EntityStrategyBase  → 8 个实体生命周期钩子
+├── EntityStrategyBase     → 8 个实体生命周期钩子
+├── ActiveStrategyBase     → Invoke(entity, ctx, input)
+├── ObserverStrategyBase   → OnMounted / OnDataChanged / OnUnmounted
 └── StateMachineStrategyBase → 4 个状态机钩子
 ```
 
+### 观察者策略
+
+`ObserverStrategyBase` 是 SND 策略体系中与 `EntityStrategyBase`、`ActiveStrategyBase` 平级的第一公民。观察者策略负责响应数据变更和绑定生命周期，框架自动管理接线持久化。
+
+三个虚方法：
+
+| 钩子 | 触发时机 | 典型用途 |
+|------|---------|---------|
+| `OnMounted(entity, ctx, target)` | 绑定建立（挂载/读档恢复） | 基于当前数据初始化派生状态 |
+| `OnDataChanged(entity, ctx, target, dataKey, oldValue, newValue)` | 被观察数据变更 | 响应式逻辑（如 intent 状态变化） |
+| `OnUnmounted(entity, ctx, target)` | 绑定终止（显式卸载/目标死亡/观察者退出） | 清理状态 |
+
+声明需要观察的数据 key：
+
+```csharp
+[StrategyIndex("character.intent_watcher")]
+[ObserveData("character.intent_status")]
+public sealed class IntentWatcher : ObserverStrategyBase
+{
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
+        TypedData oldValue, TypedData newValue)
+    {
+        if (newValue.TryGetString(out var status) && status is "completed" or "failed")
+            entity.SetData("character.intent", "");
+    }
+}
+```
+
+挂载和卸载：
+
+```csharp
+// EntityStrategy 在 AfterSpawn 中建立自观察
+entity.MountObserverStrategy(entity.Name, "character.intent_watcher");
+
+// 在 BeforeDead 中卸载
+entity.UnmountObserverStrategy(entity.Name, "character.intent_watcher");
+```
+
+- 观察策略通过 `MountObserverStrategy(targetName, strategyIndex)` 挂载
+- `entity` = 观察者实体，`target` = 被观察实体；自观察时两者为同一实体
+- `observer_bindings` 将跨实体绑定序列化到存档中，读档时自动恢复接线
+- 自观察和跨实体观察使用同一挂载 API 和同一绑定拓扑格式
+- 与 Data/Strategy 相同，Observer 绑定在存盘时持久化、读档时自动恢复
 ### 实体策略生命周期钩子
 
 钩子按执行顺序排列：
@@ -116,19 +162,33 @@ if (found) { /* 使用 hp */ }
 if (entity.TryGetNumeric("speed", out var speed)) { /* 使用 speed */ }
 ```
 
-### 数据观察者
+### 数据观察
 
-订阅回调接收 `TypedData` 参数，使用强类型访问器读取值：
+数据变更通过 `ObserverStrategyBase` 的 `OnDataChanged` 回调响应，不再使用 `ISndEntity.Subscribe` 方法：
 
 ```csharp
-entity.Subscribe("hp", (target, observer, oldValue, newValue) =>
+[StrategyIndex("my_game.hp_watcher")]
+[ObserveData("hp")]
+public sealed class HpWatcher : ObserverStrategyBase
 {
-    if (newValue.TryGetInt32(out var hp) && hp <= 0)
-        ctx.RequestSaveGame("entity_died");
-});
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
+        TypedData oldValue, TypedData newValue)
+    {
+        if (newValue.TryGetInt32(out var hp) && hp <= 0)
+            ctx.RequestSaveGame("entity_died");
+    }
+}
 ```
 
-订阅在键对应的数据变更时触发。可在回调中增删策略。
+挂载观察者策略后，框架自动管理接线与持久化：
+
+```csharp
+// 在 EntityStrategy 的 AfterSpawn 中挂载
+entity.MountObserverStrategy(entity.Name, "my_game.hp_watcher");
+```
+
+观察者的绑定关系通过 `StrategyMetaData.ObserverBindings` 字段持久化到存档中，读档时自动恢复，无需在 AfterLoad 中手动重新挂载。
 
 ## 策略执行顺序
 
@@ -156,7 +216,11 @@ Priority: 6205 (默认) → Strategy D
     }
   },
   "strategy": {
-    "entity_indices": ["my_game.health", "my_game.movement"]
+    "entity_indices": ["my_game.health", "my_game.movement"],
+    "active_indices": ["my_game.move_to"],
+    "observer_bindings": [
+      { "player": ["my_game.hp_watcher"] }
+    ]
   },
   "data": {
     "pairs": {
