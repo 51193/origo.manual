@@ -7,7 +7,7 @@
 `Origo.SourceGeneration.Tests` 包含两类测试：
 
 - **生成器行为测试**：直接驱动 `TypedDataGenerator`，在内存编译上运行生成器并断言生成的源、生成器诊断以及"原始源 + 生成源"合并编译的结果。它把生成器作为普通库引用（非分析器附加），以便在测试中实例化并运行。
-- **生成产物性能基准**：通过引用 `Origo.Core` 取得生成的 `TypedData`（仅用 public API），对比内联存储/Kind 分发与无优化装箱实现的吞吐，每次 CI 运行并打印比对表格。
+- **生成产物性能基准**：通过引用 `Origo.Core` 取得生成的 `TypedData`（仅用 public API），跨多种值类型与引用类型 `string` 对比内联存储/Kind 分发与无优化装箱实现的吞吐。标记 `[Trait("Category","Benchmark")]`，在独立的 CI 步骤（`scripts/benchmark.sh`）中运行一次并打印比对表格，与受覆盖率门禁约束的测试运行分离。
 
 ## 包含文件
 
@@ -15,7 +15,7 @@
 |------|------|
 | `GeneratorTestHarness.cs` | 构造内存 `CSharpCompilation`，运行 `TypedDataGenerator`，暴露生成源、生成器诊断、合并编译错误 |
 | `TypedDataGeneratorTests.cs` | 生成器行为测试：Home/Adapter 模式输出、两存储模型、`ORIGOSG001`/`ORIGOSG002` 诊断、生成确定性 |
-| `Benchmarks/TypedDataGeneratedBenchmarkTests.cs` | 生成产物性能基准：写/读/混合分发，生成的内联 `TypedData` vs 无优化装箱，宽松阈值 + 比对表格 |
+| `Benchmarks/TypedDataGeneratedBenchmarkTests.cs` | 生成产物性能基准：多值类型 + `string` 的写/读/混合分发，生成的内联 `TypedData` vs 无优化装箱；固定池 + 大迭代 + 多轮取最小降噪，宽松阈值 + 比对表格 |
 | `TestSupport/PerfReporter.cs` | 性能比对表格输出器（同时写控制台与 xUnit 测试输出） |
 
 ## 测试能力
@@ -30,7 +30,7 @@
 | 空输入 | 无 `SndInlineTypes` 特性时不产出任何源 |
 | Kind 编号 | `StartKind` 偏移生效且按声明顺序递增 |
 | 生成确定性 | 相同输入两次运行产出完全一致的源文本 |
-| 生成产物性能基准 | 生成的内联 `TypedData`（写 / 读 Int32 / 混合分发）对比无优化装箱实现，含 warmup、比对表格，并断言生成路径不超过基线 8× 且单基准总时长有上限 |
+| 生成产物性能基准 | 生成的内联 `TypedData` 对比无优化装箱，覆盖值类型（`int`/`long`/`float`/`double`/`bool`/`char`）+ 引用类型 `string` 的写/读，以及混合分发；用固定池 + 位掩码寻址 + 大迭代 + warmup + 多轮取最小耗时抗调度噪声，断言生成路径不超过基线 8× 且单基准有总时长上限，并打印比对表格 |
 
 ## 行覆盖率门禁
 
@@ -50,9 +50,15 @@
 
 生成器通过 `TypedData` 所属程序集判定 Home/Adapter 模式。Adapter 用例将 `TypedData` 定义放入被引用的宿主程序集，使当前编译被识别为适配层；宿主程序集声明 `InternalsVisibleTo` 让生成的适配层代码可访问 `TypedData` 的内部字段，与 Origo.Core/Origo.GodotAdapter 的真实关系一致。
 
-### 为什么性能基准只用 public API 且采用宽松阈值
+### 为什么性能基准只用 public API、采用宽松阈值并独立运行
 
-性能基准引用真实 `Origo.Core` 但仅使用 `TypedData` 的 public API（显式转换运算符、`TryGetXxx`、`Data`、`FromObject`），因此无需向测试项目开放 Core 内部成员。基准是宽松的：不要求生成路径快于无优化装箱基线，只断言其不超过基线的固定倍数（8×，并对极小绝对耗时设逃生阀以避免 CI 抖动 flaky）且单基准总时长有上限，目的是守住"不出现严重性能退化/卡死"，而非锁定绝对性能数字。比对表格在每次 CI 运行中由 `ci.sh` 以 detailed logger 重跑基准过滤集打印。
+性能基准引用真实 `Origo.Core` 但仅使用 `TypedData` 的 public API（显式转换运算符、`TryGetXxx`、`TryGetString`、`Data`、`FromObject`），覆盖多种值类型与引用类型 `string`，因此无需向测试项目开放 Core 内部成员（`TypedDataFactory<T>` 等内部类型不在基准范围内）。
+
+基准是宽松的：不要求生成路径快于无优化装箱基线，只断言其不超过基线的固定倍数（8×，并对低于 1ms 的不可靠基线跳过比率）且单基准有总时长上限，目的是守住"不出现严重性能退化/卡死"，而非锁定绝对性能数字。
+
+为抵抗 OS 时间片轮转与 GC 带来的测量噪声，每个基准使用固定容量池（位掩码寻址，内存恒定）、较大的迭代次数（使单轮耗时跨多个时间片）、一轮 warmup 加多轮计时并对两侧各取最小耗时（剔除被抢占/GC 的离群轮）。
+
+基准标记 `[Trait("Category","Benchmark")]`，从 `ci.sh` 的全量测试运行中以 `--filter "Category!=Benchmark"` 排除，改由独立步骤 `scripts/benchmark.sh`（以 detailed logger）运行一次：既打印比对表格，又执行宽松断言，避免基准被运行两次。
 
 ---
 
