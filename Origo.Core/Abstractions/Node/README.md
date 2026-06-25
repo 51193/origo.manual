@@ -48,7 +48,7 @@
 
 ### 为什么 INodeHandle 不暴露原生节点对象
 
-Core 层通过 `INodeHandle` 的方法（`Free` / `SetVisible`）操作节点，不持有、不暴露任何引擎特定类型。适配层通过 `SndEntityNodeExtensions.GetNativeNode()`（`Origo.GodotAdapter/Snd/`）安全地将 `INodeHandle` 提取为原生 `Godot.Node`，或通过 `GetNodeFromSnd<T>()` 遍历 Godot 场景树。移除 `Native` 属性消除了 Core 被引擎类型通过 `object` 转型污染的最后一个入口——任何 `(Godot.Node)handle.Native` 的代码现在必须通过适配层扩展方法显式声明引擎依赖。
+Core 层通过 `INodeHandle` 的方法（`Free` / `SetVisible`）操作节点，不持有、不暴露任何引擎特定类型。需要原生节点时，适配层 `SndEntityNodeExtensions`（命名空间 `Origo.GodotAdapter.Snd`，文件 `Origo.GodotAdapter/SndEntityNodeExtensions.cs`）提供扩展方法：`GetNativeNode()` 将 `INodeHandle` 提取为 `Godot.Node?`（句柄非 `GodotNodeHandle` 时返回 null），`GetNodeFromSnd<T>()` 遍历 Godot 场景树取强类型节点。引擎节点访问统一经此适配层扩展显式声明引擎依赖，`INodeHandle` 本身不通过 `object` 暴露引擎类型，使 Core 与引擎类型保持隔离。
 
 ---
 [↑ 回到 Abstractions](../README.md)

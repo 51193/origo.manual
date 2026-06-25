@@ -74,7 +74,7 @@ SystemRuntime
 `SwitchForeground(newLevelId)` 是保存-销毁-加载的组合操作：
 1. `PersistForegroundLevelState()` **显式**持久化旧前台关卡数据到 `current/`（调用 `SessionManager.PersistSession`）
 2. `PersistAndDestroyBackgroundIfExists(newLevelId)` 若后台会话持有目标 `levelId`，先持久化再销毁
-3. `ResetForeground(true)` 销毁旧前台（不再隐式持久化）
+3. `ResetForeground(true)` 销毁当前前台（Dispose 不隐式持久化）
 4. `LoadAndMountForeground(newLevelId)` 创建新前台并挂载（`CreateForegroundSession` → 从 `current/` 解析关卡数据）
 5. `PersistProgress()` 将新完整拓扑写入 `current/progress.json`
 
@@ -91,7 +91,7 @@ SystemRuntime
 
 ### 为什么 ProgressRun 使用 partial class 拆分持久化和会话加载
 
-`ProgressRun` 原本体量较大，拆分将持久化逻辑（通过 `SaveCoordinator`）和会话加载逻辑（拓扑编解码、后台会话创建）分离为独立文件，保持主文件聚焦核心编排流程。`SaveCoordinator` 进一步从 `ProgressRun.Persistence.cs` 的嵌套类提取为独立类 `Origo.Core.Save.SaveCoordinator`，使得存档协调逻辑可独立单元测试。
+`ProgressRun` 通过 partial class 将持久化逻辑（`SaveCoordinator`）与会话加载逻辑（拓扑编解码、后台会话创建）分离为独立文件，主文件聚焦核心编排流程。`SaveCoordinator` 是独立类 `Origo.Core.Save.SaveCoordinator`（非 `ProgressRun` 的嵌套类），使存档协调逻辑可独立单元测试。
 
 ### 为什么 Dispose 不自动持久化
 

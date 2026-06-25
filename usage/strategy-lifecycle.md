@@ -9,7 +9,7 @@
 | 闭环 | 获取钩子 | 释放钩子 | 作用域 | 典型资源 |
 |------|----------|----------|--------|----------|
 | **游戏逻辑闭环** | `AfterSpawn` | `BeforeDead` | 实体的整个游戏生命周期（创建→死亡） | 管理器注册/注销、全局事件广播、世界级统计 |
-| **运行期资源闭环** | `AfterLoad` | `BeforeQuit` | 一次运行会话（加载→退出/切换存档） | 数据订阅 `Subscribe`、输入捕获、音频通道、鼠标显隐 |
+| **运行期资源闭环** | `AfterLoad` | `BeforeQuit` | 一次运行会话（加载→退出/切换存档） | 输入捕获、音频通道、鼠标显隐、向运行时管理器订阅 |
 | **策略级闭环** | `AfterAdd` | `BeforeRemove` | 策略挂载期间（动态添加→移除） | 策略专属的临时数据字段、独占引用 |
 | **(特殊)** | `BeforeSave` | 无配对 | 保存时刻触发 | 引擎状态→Data 延迟同步 |
 
@@ -17,18 +17,18 @@
 
 ### 1. 闭环必须配对
 
-在 `AfterLoad` 中 `Subscribe` 的回调，必须在 `BeforeQuit` 中 `Unsubscribe`。不能依赖 `BeforeRemove`——退出时策略不一定被移除。
+在 `AfterLoad` 中获取的运行期非持久化资源，必须在 `BeforeQuit` 中释放。不能依赖 `BeforeRemove`——退出时策略不一定被移除。
 
 ```csharp
-// ✅ 正确：AfterLoad ↔ BeforeQuit 配对
+// ✅ 正确：AfterLoad ↔ BeforeQuit 配对（运行期非持久化资源）
 public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 {
-    entity.Subscribe("status", OnStatusChanged);
+    ctx.FindEntity("InputRouter")?.InvokeStrategy("input.capture_begin", entity.Name);
 }
 
 public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
 {
-    entity.Unsubscribe("status", OnStatusChanged);
+    ctx.FindEntity("InputRouter")?.InvokeStrategy("input.capture_end", entity.Name);
 }
 ```
 
@@ -36,12 +36,12 @@ public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
 // ❌ 错误：AfterLoad 中获取，BeforeRemove 中释放（闭环不匹配）
 public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 {
-    entity.Subscribe("status", OnStatusChanged);
+    ctx.FindEntity("InputRouter")?.InvokeStrategy("input.capture_begin", entity.Name);
 }
 
 public override void BeforeRemove(ISndEntity entity, ISndContext ctx)
 {
-    entity.Unsubscribe("status", OnStatusChanged); // 退出时不触发 BeforeRemove
+    ctx.FindEntity("InputRouter")?.InvokeStrategy("input.capture_end", entity.Name); // 退出时不触发 BeforeRemove
 }
 ```
 
@@ -69,13 +69,13 @@ public override void BeforeDead(ISndEntity entity, ISndContext ctx)
 
 ### 3. AfterLoad 不做业务初始化
 
-存档恢复后实体的所有 Data 已经是正确的持久化状态。`AfterLoad` 只需恢复**运行时非持久化资源**（如重新建立订阅连接），不应重置业务流程或重新启动逻辑。
+存档恢复后实体的所有 Data 已经是正确的持久化状态。`AfterLoad` 只需恢复**运行时非持久化资源**（如向运行时管理器注册、重建运行时缓存等），不应重置业务流程或重新启动逻辑。数据观察由观察者策略承载，其绑定随存档持久化、读档自动恢复，无需在 `AfterLoad` 中重建。
 
 ```csharp
-// ✅ 正确：AfterLoad 只恢复运行时资源
+// ✅ 正确：AfterLoad 只恢复运行时非持久化资源（如向运行时管理器注册）
 public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 {
-    entity.Subscribe("target", OnTargetChanged);
+    ctx.FindEntity("CombatManager")?.InvokeStrategy("combat.register", entity.Name);
 }
 
 // ❌ 错误：AfterLoad 重置业务状态（Data 中已有正确值）
@@ -103,7 +103,7 @@ public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
 }
 ```
 
-> 注意：虽然手动 Unsubscribe/UnobserveLifecycle 在 BeforeQuit 中是安全的，但框架的 `TeardownOnly` 阶段会自动清理所有 outgoing 订阅。对于仅需释放订阅的场景，可省略手动释放。
+> 注意：数据观察由观察者策略承载，其绑定在实体退出/死亡时由框架自动卸载（触发 `OnUnmounted`），无需在 BeforeQuit 中手动退订。BeforeQuit 仅用于释放观察者策略之外的运行时资源（如向外部管理器注销）。
 
 ### 5. BeforeSave 用于延迟同步
 
@@ -112,7 +112,7 @@ public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
 ```csharp
 public override void BeforeSave(ISndEntity entity, ISndContext ctx)
 {
-    var node = entity.GetNode("root")?.Native;
+    var node = entity.GetNode("root")?.GetNativeNode();
     if (node is Node3D node3d)
         entity.SetData("transform", node3d.GlobalTransform);
 }
@@ -147,45 +147,42 @@ public class MoveToActionStrategy : LifecycleStrategyBase
 
 ```csharp
 [StrategyIndex("game.character.core", Priority = 10)]
-public class CharacterCoreStrategy : LifecycleStrategyBase
+public sealed class CharacterCoreStrategy : LifecycleStrategyBase
 {
-    // 游戏逻辑闭环：注册到管理器
+    // 游戏逻辑闭环：注册/注销到管理器（AfterSpawn ↔ BeforeDead 配对）
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
-        var mgr = ctx.FindEntity("CharacterManager");
-        mgr.InvokeStrategy("character.register", entity.Name);
+        ctx.FindEntity("CharacterManager")?.InvokeStrategy("character.register", entity.Name);
+
+        // 观察闭环：挂载 hp 观察者策略（绑定随存档持久化、读档自动恢复、死亡自动卸载）
+        entity.MountObserverStrategy(entity.Name, "game.character.hp_death");
     }
 
     public override void BeforeDead(ISndEntity entity, ISndContext ctx)
     {
-        var mgr = ctx.FindEntity("CharacterManager");
-        mgr.InvokeStrategy("character.unregister", entity.Name);
-    }
-
-    // 运行期资源闭环：订阅数据变更
-    public override void AfterLoad(ISndEntity entity, ISndContext ctx)
-    {
-        entity.Subscribe("hp", OnHpChanged);
-    }
-
-    public override void BeforeQuit(ISndEntity entity, ISndContext ctx)
-    {
-        entity.Unsubscribe("hp", OnHpChanged);
+        ctx.FindEntity("CharacterManager")?.InvokeStrategy("character.unregister", entity.Name);
     }
 
     // 特殊钩子：保存时同步引擎状态
     public override void BeforeSave(ISndEntity entity, ISndContext ctx)
     {
-        var node = entity.GetNode("root")?.Native;
+        var node = entity.GetNode("root")?.GetNativeNode();
         if (node is Node3D n)
             entity.SetData("transform", n.GlobalTransform);
     }
+}
 
-    private static void OnHpChanged(ISndEntity target, ISndEntity observer,
+// 观察者策略：hp 归零时标记死亡
+[StrategyIndex("game.character.hp_death")]
+[ObserveData("hp")]
+public sealed class HpDeathObserver : ObserverStrategyBase
+{
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
         TypedData oldValue, TypedData newValue)
     {
         if (newValue.TryGetInt32(out var hp) && hp <= 0)
-            target.SetData("is_dead", true);
+            entity.SetData("is_dead", true);
     }
 }
 ```
@@ -194,7 +191,7 @@ public class CharacterCoreStrategy : LifecycleStrategyBase
 
 | 错误 | 后果 | 正确做法 |
 |------|------|---------|
-| 在 `AfterLoad` 中 Subscribe，在 `BeforeRemove` 中 Unsubscribe | 退出时订阅泄漏 | 使用 `BeforeQuit` 释放 |
+| 在生命周期钩子里手动订阅/退订数据变更 | 与存档持久化、读档恢复脱节，易泄漏 | 用观察者策略（`ObserverStrategyBase`），绑定自动持久化与卸载 |
 | 在 `AfterSpawn` 中做运行时资源初始化 | 从存档恢复时资源未建立 | 运行时资源在 `AfterLoad` 中初始化 |
 | 在 `AfterLoad` 中重置 Data 值 | 覆盖存档中的正确持久化状态 | `AfterLoad` 只恢复非持久化资源 |
 | 每帧同步引擎状态到 Data | 不必要的写入开销 | 用 `BeforeSave` 延迟同步 |

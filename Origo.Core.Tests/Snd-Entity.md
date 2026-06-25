@@ -16,9 +16,7 @@ AutoInitializer 的策略/数据恢复、批量生命周期（SndEntityLifecycle
 | `MemorySndEntityTests.cs` | SndEntity 的 SetData/GetData/TryGetData/数据隔离 |
 | `SndEntityAfterLoadTests.cs` | AfterLoad 钩子的触发顺序和数据恢复 |
 | `SndEntityAndAutoInitializerTests.cs` | AutoInitializer 从 metadata 恢复策略和数据 |
-| `SndEntityLifecycleBatchTests.cs` | 批量生命周期：SpawnEntity/RecoverFromMetaList/RemoveAllEntities 整体操作，不再逐实体触发钩子；ProcessAll 多实体帧处理 |
-| `SndEntityPerformanceTests.cs` | SetData/GetData 吞吐基准、观察者订阅者数缩放、相同值跳过、filter 开销 |
-| `SndEntityObserverPerformanceTests.cs` | Teardown 自动清理缩放、闭包分配、跨实体矩阵观察 teardown |
+| `SndEntityLifecycleBatchTests.cs` | 批量生命周期：SpawnEntity/RecoverFromMetaList/RemoveAllEntities 整体操作，钩子由上层统一触发；ProcessAll 多实体帧处理 |
 
 ## 测试详情
 

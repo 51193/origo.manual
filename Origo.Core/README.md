@@ -27,7 +27,7 @@
 | [Testing](Testing/README.md) | 测试基础设施 | StrategyTestScenario：策略隔离测试框架 |
 | [Utility](Utility/README.md) | 通用工具 | DiffUtility：集合差异比较 |
 
-> TypedData 源码生成器已提升为独立项目 [Origo.SourceGeneration](../Origo.SourceGeneration/README.md)，不再作为 Core 的子目录。
+> TypedData 源码生成器是独立项目 [Origo.SourceGeneration](../Origo.SourceGeneration/README.md)，不在 Core 内。
 
 ## 本层文件
 

@@ -42,16 +42,16 @@ map.grid_size
 
 ## 策略与节点交互
 
-策略通过 `entity.GetNode("name")?.Native` 获取引擎节点。核心规则：
+策略通过 `entity.GetNode("name")?.GetNativeNode()`（`Origo.GodotAdapter.Snd` 命名空间的扩展方法）获取引擎节点。也可用 `entity.GetNodeFromSnd<TNode>("name")` 直接取强类型节点。核心规则：
 
-1. **永远判空**：后台会话中 `GetNode()` 返回 `NullNodeHandle`，`?.Native` 为 null
+1. **永远判空**：后台会话中 `GetNode()` 返回 `NullNodeHandle`，`?.GetNativeNode()` 为 null
 2. **节点操作封装到 helper 类**：策略不直接操作场景树（`AddChild`、`QueueFree` 等）
 3. **通过节点名映射访问**：使用 Origo 模板定义的节点名，不遍历场景子树
 
 ```csharp
 public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
 {
-    var node = entity.GetNode("root")?.Native;
+    var node = entity.GetNode("root")?.GetNativeNode();
     if (node is Node3D node3d)
     {
         var (fx, gx) = entity.TryGetData<int>("grid_x");
@@ -63,7 +63,7 @@ public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
 
 public override void AfterLoad(ISndEntity entity, ISndContext ctx)
 {
-    var node = entity.GetNode("root")?.Native;
+    var node = entity.GetNode("root")?.GetNativeNode();
     if (node is Node3D node3d)
     {
         var (fx, gx) = entity.TryGetData<int>("grid_x");
@@ -186,14 +186,26 @@ var path = target.InvokeStrategy<GridPos[], List<GridPos>>(
     "traversability.find_path", new[] { start, end });
 ```
 
-### Subscribe：异步数据变更通知
+### 观察者策略：异步数据变更通知
+
+挂载观察者策略（`ObserverStrategyBase` + `[ObserveData]`）响应目标实体的数据变更，绑定随存档持久化、读档自动恢复：
 
 ```csharp
-entity.Subscribe("intent", (target, observer, oldVal, newVal) =>
+[StrategyIndex("schedule.intent_watcher")]
+[ObserveData("intent")]
+public sealed class IntentWatcher : ObserverStrategyBase
 {
-    if (newVal.TryGetString(out var intent) && intent == "idle")
-        ResetSchedule(target);
-});
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
+        TypedData oldValue, TypedData newValue)
+    {
+        if (newValue.TryGetString(out var intent) && intent == "idle")
+            ResetSchedule(entity);
+    }
+}
+
+// 挂载（自观察或经 FindByName 解析的跨实体目标）
+entity.MountObserverStrategy(entity.Name, "schedule.intent_watcher");
 ```
 
 ### 规则
@@ -201,7 +213,7 @@ entity.Subscribe("intent", (target, observer, oldVal, newVal) =>
 - **禁止持有实体直接引用**（实体可能随时被销毁）
 - 通过 `ctx.FindEntity(name)` 按需查找
 - 通过 `InvokeStrategy` 实现同步请求/响应
-- 通过 `Subscribe` / `ObserveData` 实现异步通知
+- 通过观察者策略（`MountObserverStrategy` + `[ObserveData]`）实现异步数据变更通知
 
 ---
 
@@ -216,7 +228,7 @@ public class MainMenuStrategy : LifecycleStrategyBase
 {
     public override void AfterLoad(ISndEntity entity, ISndContext ctx)
     {
-        var container = entity.GetNode("root")?.Native;
+        var container = entity.GetNode("root")?.GetNativeNode();
         if (container is Control ctrl)
             MenuBuilder.BuildMainMenu(ctrl, ctx);
     }
@@ -292,7 +304,7 @@ public sealed class MySchedulingStrategy : PlanExecutionStrategyBase
 
 ### 模板必须包含策略所需的全部 data 键
 
-策略运行时通过 `TryGetData<T>("key")` 读取数据。虽然接口层面不再抛异常（返回 `found=false`），但模板缺失必需键会导致策略逻辑静默跳过或走 fallback 路径，难以调试。
+策略运行时通过 `TryGetData<T>("key")` 读取数据。接口层面不抛异常（缺失时返回 `found=false`），但模板缺失必需键会导致策略逻辑静默跳过或走 fallback 路径，难以调试。
 
 ```json
 {
@@ -341,7 +353,7 @@ public sealed class MySchedulingStrategy : PlanExecutionStrategyBase
 后台会话中创建的实体没有引擎节点（`GetNode()` 返回 `NullNodeHandle`）。策略的 `AfterSpawn` 和 `AfterLoad` 中访问节点必须判空：
 
 ```csharp
-var node = entity.GetNode("root")?.Native;
+var node = entity.GetNode("root")?.GetNativeNode();
 if (node is Node3D n)
 {
     // 有节点时的操作（前台会话）

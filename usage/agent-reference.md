@@ -12,7 +12,7 @@
 
 ```csharp
 public interface ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess,
-    ISndActiveStrategyAccess, ISndEntityLifecycleAccess, ISndObservation
+    ISndActiveStrategyAccess, ISndObserverStrategyAccess
 {
     string Name { get; }
     bool IsPendingKill { get; }
@@ -22,9 +22,6 @@ public interface ISndDataAccess
 {
     void SetData<T>(string name, T value);
     (bool found, T? value) TryGetData<T>(string name);
-    void Subscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback,
-        Func<ISndEntity, ISndEntity, TypedData, TypedData, bool>? filter = null);
-    void Unsubscribe(string name, Action<ISndEntity, ISndEntity, TypedData, TypedData> callback);
 }
 
 // TryGetNumeric 扩展方法（Origo.Core.Snd.TryGetNumericExtensions）：
@@ -32,23 +29,14 @@ public interface ISndDataAccess
 // float entity.GetNumeric(string key, float fallback = 0f)
 // 按 float → int → long → double 顺序尝试读取，桥接类型不匹配。
 
-public interface ISndEntityLifecycleAccess
+public interface ISndObserverStrategyAccess
 {
-    void SubscribeLifecycle(Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
-    void UnsubscribeLifecycle(Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
-}
-
-public interface ISndObservation
-{
-    void ObserveData(ISndEntity target, string dataName,
-        Action<ISndEntity, ISndEntity, TypedData, TypedData> callback,
-        Func<ISndEntity, ISndEntity, TypedData, TypedData, bool>? filter = null);
-    void UnobserveData(ISndEntity target, string dataName,
-        Action<ISndEntity, ISndEntity, TypedData, TypedData> callback);
-    void ObserveLifecycle(ISndEntity target,
-        Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
-    void UnobserveLifecycle(ISndEntity target,
-        Action<ISndEntity, ISndEntity, EntityLifecycleEvent> callback);
+    // 挂载/卸载观察者策略（ObserverStrategyBase）。
+    // targetName == 自身 Name 为自观察；跨实体名称解析需场景宿主，应改用 ISndEntity 重载。
+    void MountObserverStrategy(string targetName, string observerIndex);
+    void UnmountObserverStrategy(string targetName, string observerIndex);
+    void MountObserverStrategy(ISndEntity target, string observerIndex);
+    void UnmountObserverStrategy(ISndEntity target, string observerIndex);
 }
 
 public interface ISndNodeAccess
@@ -74,11 +62,6 @@ public interface ISndActiveStrategyAccess
 // TOutput? entity.InvokeStrategy<TOutput>(string strategyIndex)
 // TOutput? entity.InvokeStrategy<TInput, TOutput>(string strategyIndex, TInput input)
 // 透明处理 JSON 序列化/反序列化，消除调用侧样板代码。
-
-public enum EntityLifecycleEvent
-{
-    AfterSpawn, AfterLoad, BeforeSave, BeforeQuit, BeforeDead
-}
 ```
 
 ### IBlackboard
@@ -303,16 +286,17 @@ using Origo.Core.Abstractions.Entity;
 using Origo.Core.Snd.Metadata;
 using Origo.Core.Snd.Strategy;
 
+// 实体策略：初始化数据，并挂载一个观察者策略响应 hp 变化
 [StrategyIndex("example.simple_health", Priority = 6205)]
-public class SimpleHealthStrategy : LifecycleStrategyBase
+public sealed class SimpleHealthStrategy : LifecycleStrategyBase
 {
     public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
         entity.SetData("hp", 100);
         entity.SetData("max_hp", 100);
 
-        entity.Subscribe("hp", OnHpChanged,
-            filter: (t, obs, old, @new) => @new.TryGetInt32(out var n) && n <= 0);
+        // 挂载自观察策略（绑定随实体持久化，读档自动恢复，无需手动重连/退订）
+        entity.MountObserverStrategy(entity.Name, "example.hp_watcher");
     }
 
     public override void Process(ISndEntity entity, double delta, ISndContext ctx)
@@ -322,10 +306,19 @@ public class SimpleHealthStrategy : LifecycleStrategyBase
 
         entity.SetData("hp", hp - 1);
     }
+}
 
-    private static void OnHpChanged(ISndEntity target, ISndEntity observer,
+// 观察者策略：响应 hp 数据变更
+[StrategyIndex("example.hp_watcher")]
+[ObserveData("hp")]
+public sealed class HpWatcherStrategy : ObserverStrategyBase
+{
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
         TypedData oldValue, TypedData newValue)
     {
+        if (newValue.TryGetInt32(out var hp) && hp <= 0)
+            ctx.RequestSaveGame("entity_died");
     }
 }
 ```
@@ -359,40 +352,40 @@ public class ConfigLoadStrategy : LifecycleStrategyBase
 
 ## 跨实体观察示例
 
+观察者策略可挂载到**其他**实体，响应目标的数据变更与卸载：
+
 ```csharp
+// 观察者策略：观察 boss 的 hp
+[StrategyIndex("enemy.boss_hp_watcher")]
+[ObserveData("hp")]
+public sealed class BossHpWatcherStrategy : ObserverStrategyBase
+{
+    public override void OnDataChanged(ISndEntity entity, ISndContext ctx,
+        ISndEntity target, string dataKey,
+        TypedData oldValue, TypedData newValue)
+    {
+        // entity = 观察者，target = 被观察的 boss
+        entity.SetData("boss_hp", newValue.AsInt32());
+    }
+
+    public override void OnUnmounted(ISndEntity entity, ISndContext ctx, ISndEntity target)
+    {
+        // 目标死亡或显式卸载时触发
+        entity.SetData("boss_alive", false);
+    }
+}
+
+// 实体策略：解析 boss 并挂载跨实体观察
 [StrategyIndex("enemy.watcher")]
 public sealed class EnemyWatcherStrategy : LifecycleStrategyBase
 {
-    private static void OnBossHpChanged(ISndEntity target, ISndEntity observer,
-        TypedData oldVal, TypedData newVal)
-    {
-        observer.SetData("boss_hp", newVal.AsInt32());
-    }
-
-    private static void OnBossLifecycle(ISndEntity target, ISndEntity observer,
-        EntityLifecycleEvent evt)
-    {
-        if (evt == EntityLifecycleEvent.BeforeDead)
-            observer.SetData("boss_alive", false);
-    }
-
-    public override void AfterLoad(ISndEntity entity, ISndContext ctx)
+    public override void AfterSpawn(ISndEntity entity, ISndContext ctx)
     {
         var boss = ctx.CurrentSession?.SceneHost.FindByName("boss");
         if (boss is null) return;
 
-        entity.ObserveData(boss, "hp", OnBossHpChanged);
-        entity.ObserveLifecycle(boss, OnBossLifecycle);
-    }
-
-    // 提前取消观察（如不再需要）。框架在 entity Teardown 时自动清理传出订阅，通常无需手动调用。
-    public override void BeforeRemove(ISndEntity entity, ISndContext ctx)
-    {
-        var boss = ctx.CurrentSession?.SceneHost.FindByName("boss");
-        if (boss is null) return;
-
-        entity.UnobserveData(boss, "hp", OnBossHpChanged);
-        entity.UnobserveLifecycle(boss, OnBossLifecycle);
+        // 跨实体观察：绑定随实体持久化、读档自动恢复；boss 死亡或本实体死亡时自动卸载
+        entity.MountObserverStrategy(boss, "enemy.boss_hp_watcher");
     }
 }
 ```
@@ -487,9 +480,9 @@ public interface IConsoleOutputChannel
 4. **BeforeSave 中修改数据会被写入存档** — 这是设计意图，用于刷新
 5. **延迟动作在 Process 后自动执行** — RunFrame 中已经处理
 6. **后台会话无渲染节点** — 不做依赖节点的操作
-7. **Subscribe / Unsubscribe 须传相同委托实例** — 方法引用（method group）保证一致性。lambda 每次编译产生不同实例，会导致退订失败
-8. **ObserveData / ObserveLifecycle 也须传相同委托实例** — 同理。策略中建议定义为 `static` 方法并用方法引用
-9. **观察方 Teardown 自动清理传出订阅** — 策略通常无需手动调用 Unobserve，框架在实体死亡时统一处理
+7. **观察数据变更用观察者策略** — 实现 `ObserverStrategyBase` + `[ObserveData("key")]`，经 `MountObserverStrategy` 挂载，而非在实体上订阅委托
+8. **观察者绑定随实体持久化** — `ObserverBindings` 写入存档，读档自动恢复接线，无需在 `AfterLoad` 手动重挂
+9. **观察者绑定在死亡时自动卸载** — 实体退出/死亡时框架统一触发 `OnUnmounted` 并卸载绑定，策略通常无需手动 `UnmountObserverStrategy`
 10. **文件 I/O 必须通过 ISndFileAccess，不要直接使用 IFileSystem** — 所有文件内容读写统一通过 `IDataSourceIoGateway` 边界，后缀路由和解析由框架处理。`ISndFileAccess.ReadFile` / `ReadObject<T>` 已包含解析，策略不应自行解析原始文本
 
 ## 相关文档

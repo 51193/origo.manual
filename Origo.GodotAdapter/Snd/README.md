@@ -59,9 +59,9 @@ Core `SndEntity` 的 Godot 包装器（`[GlobalClass]`）：
 
 ## 设计决策
 
-### 为什么 GodotSndManager 不再拥有 _Process 循环
+### 为什么 GodotSndManager 不拥有 _Process 循环
 
-实体帧处理是 Core 编排职责。`GodotSndManager._Process` 直接遍历实体调用 `ProcessSnd(delta)`，重复了 `SndRuntime.ProcessAll` 的逻辑，绕过了 Core 的正式处理管线。帧处理现在统一由 Core 的 `SndRuntime.ProcessAll(delta)` 通过 `IOrigoFrameDriver.DriveFrame(delta)` 执行。`ProcessTickCount` 和 `ProcessDeltaSum` 移至 `ProcessAll` 中维护。
+实体帧处理是 Core 编排职责。若 `GodotSndManager` 自持 `_Process` 循环遍历实体调用 `ProcessSnd(delta)`，会重复 `SndRuntime.ProcessAll` 的逻辑并绕过 Core 的正式处理管线。因此帧处理统一由 Core 的 `SndRuntime.ProcessAll(delta)` 通过 `IOrigoFrameDriver.DriveFrame(delta)` 执行，`ProcessTickCount` 和 `ProcessDeltaSum` 也在 `ProcessAll` 中维护。
 
 ### 为什么 GodotSndEntity 使用延迟创建 Core Entity
 
@@ -69,7 +69,7 @@ Core `SndEntity` 需要 `INodeFactory` 注入，而 `INodeFactory` 需要 GodotS
 
 ### 为什么 StableName 独立于 Godot Node.Name
 
-Godot 场景树中如果存在同名节点，Godot 会自动在 Name 后追加 `@2`、`@3` 等后缀。SND 的实体查找依赖稳定名称，不能使用被 Godot 篡改的 Name。`StableName` 在 Spawn/Load 时设置后不再被 Godot 影响。
+Godot 场景树中如果存在同名节点，Godot 会自动在 Name 后追加 `@2`、`@3` 等后缀。SND 的实体查找依赖稳定名称，不能使用被 Godot 篡改的 Name。`StableName` 在 Spawn/Load 时设置，不受 Godot 对 `Node.Name` 自动改名的影响。
 
 ### 为什么 LoadFromMetaList 使用回滚机制
 

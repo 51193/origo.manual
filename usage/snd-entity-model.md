@@ -164,7 +164,7 @@ if (entity.TryGetNumeric("speed", out var speed)) { /* 使用 speed */ }
 
 ### 数据观察
 
-数据变更通过 `ObserverStrategyBase` 的 `OnDataChanged` 回调响应，不再使用 `ISndEntity.Subscribe` 方法：
+数据变更通过 `ObserverStrategyBase` 的 `OnDataChanged` 回调响应：
 
 ```csharp
 [StrategyIndex("my_game.hp_watcher")]

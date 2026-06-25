@@ -73,7 +73,7 @@
 
 ### 为什么 SaveFileHandle 统一封装 I/O 依赖
 
-SavePayloadReader/SavePayloadWriter/SaveStorageFacade 的所有方法原本需要逐层传递 `(IFileSystem, IDataSourceIoGateway, string saveRootPath, ISavePathPolicy)` 四件套，导致每个公共方法产生三级重载链（~36 个签名派生 11 个实际实现）。引入 `SaveFileHandle` 后，这四个依赖封装为单一参数对象，方法与实现一对一映射（~36 → ~16 个签名），`DefaultSaveStorageService` 内部从 4 个字段简化为 1 个字段。`SaveFileHandle` 同时合并了原 `SavePathResolver` 的路径工具方法和 `SaveStorageGatewayFactory` 的网关创建逻辑，消除了独立辅助类的碎片化。
+`SaveFileHandle` 将 `(IFileSystem, IDataSourceIoGateway, string saveRootPath, ISavePathPolicy)` 四个 I/O 依赖封装为单一参数对象，使 SavePayloadReader/SavePayloadWriter/SaveStorageFacade 的方法与实现一对一映射，避免四件套逐层传递所需的多级重载链，`DefaultSaveStorageService` 内部仅持有一个字段。它同时承载路径工具方法与网关创建逻辑，无需独立的辅助类。
 
 ### 为什么通过 SHA 摘要实现幂等去重
 

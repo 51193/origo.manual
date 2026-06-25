@@ -78,7 +78,7 @@ bg.SessionBlackboard.SetValue("data", value);
 ctx.RequestSwitchForegroundLevel("game");
 ctx.FlushDeferredActionsForCurrentFrame();
 
-// 方式二：手动控制——与旧版行为兼容，调用方显式保存和销毁
+// 方式二：手动控制——调用方显式逐步保存和销毁，获得更细粒度控制
 var bg = ctx.SessionManager.CreateBackgroundSession("gen", "game", false);
 bg.SceneHost.CreateEntity(...);
 
@@ -144,7 +144,7 @@ public interface IStateMachineContext : ISndBlackboardAccess, ISndDeferredAction
      → 系统延迟队列 FIFO 执行（排在 Save 之后）
      → PersistForegroundLevelState（显式持久化旧前台关卡数据到 current/）
      → PersistAndDestroyBackgroundIfExists（若后台会话持有目标 levelId，先保存再销毁）
-     → ResetForeground(true)（销毁旧前台，Dispose 不再隐式持久化）
+     → ResetForeground(true)（销毁当前前台，Dispose 不隐式持久化）
      → LoadAndMountForeground（创建新前台，从 current/ 解析新关卡数据）
      → PersistProgress（写完整会话拓扑到 current/）
 

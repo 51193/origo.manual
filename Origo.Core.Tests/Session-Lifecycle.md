@@ -11,7 +11,7 @@ ProgressRun 的 LoadFromPayload/SwitchForeground/PersistProgress、
 前后台会话的接口和行为一致性、会话拓扑编解码、前台唯一性约束。
 
 > **批量生命周期：** SessionRun 在创建/销毁/切换时通过整体操作（SpawnEntity/RecoverFromMetaList/RemoveAllEntities）管理实体，
-> AfterSpawn/AfterLoad/BeforeDead 钩子由 SessionRun/ProgressRun 生命周期在批量操作完成后集中触发，不再逐实体执行。
+> AfterSpawn/AfterLoad/BeforeDead 钩子由 SessionRun/ProgressRun 生命周期在批量操作完成后集中触发，而非逐实体执行。
 
 ## 测试文件清单
 

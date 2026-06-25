@@ -4,21 +4,19 @@
 
 ## 概述
 
-定义 SND 实体的抽象接口体系。所有接口遵循接口隔离原则（ISP），将实体的数据、节点、策略、生命周期、观察五种能力拆分为独立接口，再由 `ISndEntity` 组合统一入口。`IEntityLifecycle` 单独定义，供框架与适配层实体共同实现。
+定义 SND 实体的抽象接口体系。所有接口遵循接口隔离原则（ISP），将实体的数据、节点、被动策略、主动策略、观察者策略五种能力拆分为独立接口，再由 `ISndEntity` 组合统一入口。`IEntityLifecycle` 单独定义，供框架与适配层实体共同实现。
 
 ## 包含文件
 
 | 文件 | 职责 |
 |------|------|
-| `ISndDataAccess.cs` | 数据存取与变更订阅 |
+| `ISndDataAccess.cs` | 数据写入与安全读取 |
 | `ISndNodeAccess.cs` | 节点查询与枚举 |
-| `ISndStrategyAccess.cs` | 策略动态添加/移除 |
+| `ISndStrategyAccess.cs` | 被动策略动态添加/移除 |
 | `ISndActiveStrategyAccess.cs` | 主动策略：添加/移除/调用 |
-| `ISndEntityLifecycleAccess.cs` | 实体生命周期事件订阅 |
-| `ISndObservation.cs` | 跨实体观察：数据 + 生命周期的统一观察入口 |
-| `ISndEntity.cs` | 组合接口：继承上述六个接口 + `Name` 属性 + `IsPendingKill` |
+| `ISndObserverStrategyAccess.cs` | 观察者策略的挂载/卸载（自观察与跨实体观察） |
+| `ISndEntity.cs` | 组合接口：继承上述五个能力接口 + `Name` 属性 + `IsPendingKill` |
 | `IEntityLifecycle.cs` | 框架内部生命周期接口：分阶段恢复/钩子/拆卸方法。实现者：`SndEntity`（Core 内存实体）、适配层实体（桥接委托给内部 `SndEntity`） |
-| `EntityLifecycleEvent.cs` | 实体生命周期事件枚举 |
 
 ## 接口详细
 
@@ -26,10 +24,10 @@
 
 | 成员 | 说明 |
 |------|------|
-| `SetData<T>(name, value)` | 写入命名数据 |
+| `SetData<T>(name, value)` | 写入命名数据。值与旧值相同则跳过变更通知 |
 | `TryGetData<T>(name)` | 安全读取，返回 `(found, value?)` —— **唯一的接口级读取方法** |
-| `Subscribe(name, callback, filter?)` | 订阅本实体数据变更。等价于 `ObserveData(this, ...)`，走统一内部链路。回调签名 `(target, observer, oldValue, newValue)`，`oldValue` 和 `newValue` 为 `TypedData` 结构体 |
-| `Unsubscribe(name, callback)` | 取消数据订阅。`callback` 必须与 `Subscribe` 调用时的委托实例相同（方法引用），lambda 表达式每次编译产生不同实例，会导致退订失败 |
+
+> 数据变更的观察不在此接口上。响应数据变更通过 `ObserverStrategyBase` 的 `OnDataChanged` 钩子实现，由 `ISndObserverStrategyAccess` 挂载。详见 [Snd/Strategy](../../Snd/Strategy/README.md)。
 
 ### ISndNodeAccess
 
@@ -53,37 +51,20 @@
 | `RemoveActiveStrategy(index)` | 从实体移除主动策略 |
 | `InvokeStrategy(strategyIndex, input?)` | 主动调用策略并返回结果 |
 
-### ISndEntityLifecycleAccess
+### ISndObserverStrategyAccess
+
+实体观察的统一入口。观察者策略（`ObserverStrategyBase`）通过策略索引挂载到目标实体，框架自动接线目标实体的数据变更并在挂载/卸载时回调 `OnMounted` / `OnUnmounted`。自观察（`targetName == entity.Name`）与跨实体观察使用同一套 API 和同一绑定拓扑格式；绑定关系通过 `StrategyMetaData.ObserverBindings` 持久化，读档时自动恢复。
 
 | 成员 | 说明 |
 |------|------|
-| `SubscribeLifecycle(callback)` | 订阅本实体的生命周期事件。回调签名 `(target, observer, lifecycleEvent)` |
-| `UnsubscribeLifecycle(callback)` | 取消生命周期订阅。`callback` 必须与订阅时相同的委托实例 |
-
-### ISndObservation
-
-实体观察的统一入口。自身订阅（`Subscribe` / `SubscribeLifecycle`）等价于 `ObserveData(this, ...)` / `ObserveLifecycle(this, ...)`，走统一内部链路。所有订阅均在观察方实体 Teardown 时自动清理。
-
-| 成员 | 说明 |
-|------|------|
-| `ObserveData(target, dataName, callback, filter?)` | 观察目标实体的数据变更。回调签名 `(target, observer, oldValue, newValue)`，`oldValue` 和 `newValue` 为 `TypedData` 结构体 |
-| `UnobserveData(target, dataName, callback)` | 取消对目标实体的数据观察。`callback` 必须与 `ObserveData` 相同的委托实例 |
-| `ObserveLifecycle(target, callback)` | 观察目标实体的生命周期事件。回调签名 `(target, observer, lifecycleEvent)` |
-| `UnobserveLifecycle(target, callback)` | 取消对目标实体的生命周期观察。`callback` 必须与 `ObserveLifecycle` 相同的委托实例 |
-
-### EntityLifecycleEvent
-
-```
-enum EntityLifecycleEvent {
-    AfterSpawn, AfterLoad, BeforeSave, BeforeQuit, BeforeDead
-}
-```
-
-暴露策略代码关心的五个实体生命周期事件。`AfterAdd` / `BeforeRemove` 是策略级别事件，不在此枚举中。
+| `MountObserverStrategy(targetName, observerIndex)` | 按名称挂载观察者策略。`targetName == 自身 Name` 为自观察；跨实体名称解析需场景宿主，应改用 `ISndEntity` 重载 |
+| `UnmountObserverStrategy(targetName, observerIndex)` | 按名称卸载，触发 `OnUnmounted` |
+| `MountObserverStrategy(target, observerIndex)` | 以已解析的目标实体挂载（跨实体观察首选；目标由 `SceneHost.FindByName` 获得） |
+| `UnmountObserverStrategy(target, observerIndex)` | 以目标实体卸载，触发 `OnUnmounted` |
 
 ### ISndEntity
 
-`ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess, ISndEntityLifecycleAccess, ISndObservation`
+`ISndEntity : ISndDataAccess, ISndNodeAccess, ISndStrategyAccess, ISndActiveStrategyAccess, ISndObserverStrategyAccess`
 
 组合后自有的成员：
 
@@ -99,28 +80,32 @@ enum EntityLifecycleEvent {
 | 方法 | 阶段 | 说明 |
 |------|------|------|
 | `RecoverForLifecycle(meta)` | Phase 1 | 恢复 Name + Data + Node + EntityStrategy + ActiveStrategy，不触发任何钩子 |
-| `FireAfterSpawnHooks()` | Phase 2 | 先通知生命周期观察者 AfterSpawn，再触发策略 AfterSpawn |
-| `FireAfterLoadHooks()` | Phase 2 | 先通知生命周期观察者 AfterLoad，再触发策略 AfterLoad |
-| `FireBeforeSaveHooks()` | Phase 2 | 先通知生命周期观察者 BeforeSave，再触发策略 BeforeSave |
-| `FireBeforeQuitHooks()` | Phase 2 | 先通知生命周期观察者 BeforeQuit，再触发策略 BeforeQuit |
-| `FireBeforeDeadHooks()` | Phase 2 | 先通知生命周期观察者 BeforeDead，再触发策略 BeforeDead |
-| `ReleaseStrategiesOnly()` | Phase 3 | 释放 EntityStrategy + ActiveStrategy 引用 |
-| `TeardownOnly()` | Phase 3 | 清理全部传出订阅、清空生命周期观察者、释放 Node + Data 资源 |
+| `FireAfterSpawnHooks()` | Phase 2 | 触发策略 AfterSpawn |
+| `FireAfterLoadHooks()` | Phase 2 | 触发策略 AfterLoad |
+| `FireBeforeSaveHooks()` | Phase 2 | 触发策略 BeforeSave |
+| `FireBeforeQuitHooks()` | Phase 2 | 触发策略 BeforeQuit |
+| `FireBeforeDeadHooks()` | Phase 2 | 触发策略 BeforeDead |
+| `ReleaseStrategiesOnly()` | Phase 3 | 释放 EntityStrategy + ActiveStrategy + ObserverStrategy 引用 |
+| `TeardownOnly()` | Phase 3 | 释放 Node + Data 资源 |
 | `BuildMetaData()` | 序列化 | 构建元数据（不触发 BeforeSave） |
 
 实现者：`SndEntity`（Core 内存实体）、适配层实体（如 `GodotSndEntity`，桥接委托给内部 `SndEntity`）。
 
-`ISndEntityRawSubscription`（`Origo.Core/Snd/Entity/`）提供原始的 `TypedData` 级订阅接口——`SubscribeDataRaw`、`UnsubscribeDataRaw`、`SubscribeLifecycleRaw`、`UnsubscribeLifecycleRaw`。供框架内部和适配层使用，不暴露给业务策略代码。
+`ISndEntityRawSubscription`（`Origo.Core/Snd/Entity/`）提供原始的 `TypedData` 级数据订阅接口——`SubscribeDataRaw`、`UnsubscribeDataRaw`。供框架内部的 `ObserverStrategyManager` 将观察者策略接入目标实体的数据变更，不暴露给业务策略代码。
 
 ## 设计决策
 
-### 为什么拆分为六个访问接口
+### 为什么拆分为五个访问接口
 
-六个子接口（`ISndDataAccess`、`ISndNodeAccess`、`ISndStrategyAccess`、`ISndActiveStrategyAccess`、`ISndEntityLifecycleAccess`、`ISndObservation`）是 `ISndEntity` 的组合契约，旨在实现清晰的职责划分和内部可测试性。外部代码应直接依赖 `ISndEntity` 统一使用，无需分别引用各子接口。子接口的 ISP 拆分服务于框架内部实现清晰度和测试 mock 的细粒度控制。
+五个子接口（`ISndDataAccess`、`ISndNodeAccess`、`ISndStrategyAccess`、`ISndActiveStrategyAccess`、`ISndObserverStrategyAccess`）是 `ISndEntity` 的组合契约，旨在实现清晰的职责划分和内部可测试性。外部代码应直接依赖 `ISndEntity` 统一使用，无需分别引用各子接口。子接口的 ISP 拆分服务于框架内部实现清晰度和测试 mock 的细粒度控制。
 
 ### 为什么主动策略独立为 ISndActiveStrategyAccess
 
 主动策略与被动实体策略共享 `BaseStrategy` 和 `SndStrategyPool` 基础设施，但容器完全独立：主动策略使用 Dictionary 实现 O(1) 按索引查找，不参与帧遍历；被动策略使用排序列表，每帧按优先级迭代。接口分离避免消费者耦合到不必要的策略类型。
+
+### 为什么观察统一为观察者策略
+
+数据变更响应与生命周期观察统一收敛到 `ObserverStrategyBase` 一种第一公民策略类型，通过 `ISndObserverStrategyAccess` 以策略索引挂载，而非在实体上暴露委托订阅 API。好处：观察逻辑与策略一样无状态、可池化复用；绑定拓扑可随实体一同序列化（`ObserverBindings`）并在读档时自动恢复，无需业务代码在 `AfterLoad` 中手动重连；接线、拆线和持久化由 `ObserverStrategyManager` 统一治理，消除委托实例匹配、手动退订等易错点。
 
 ### 为什么 IEntityLifecycle 单独定义
 
@@ -133,21 +118,9 @@ enum EntityLifecycleEvent {
 
 参考 [Blackboard 的相同设计决策](../Blackboard/README.md#为什么是泛型tryget而非object)。
 
-### 为什么订阅回调签名包含 observer 参数
+### 为什么观察者钩子签名包含 target 参数
 
-策略实例通过 `SndStrategyPool` 在多个实体间共享，禁止持有实例字段存储实体引用。回调需要知道观察方实体是谁才能修改其数据，因此统一将 `observer` 作为回调的第二参数传入。自订阅时 `target == observer`。
-
-### 为什么 Subscribe 与 ObserveData 走统一内部链路
-
-自身数据订阅（`Subscribe`）等价于 `ObserveData(this, ...)`，自身生命周期订阅（`SubscribeLifecycle`）等价于 `ObserveLifecycle(this, ...)`。统一链路保证所有订阅——无论自观察还是跨实体观察——均通过相同的传出追踪和 Teardown 自动清理机制处理，避免代码路径分歧带来的遗漏和 bug。
-
-### 为什么 Observe / Unobserve 要求相同的委托实例
-
-内部匹配依赖委托引用比对（`==`）。方法引用（method group）在 C# 中每次编译生成相同的委托实例，可以正确匹配。lambda 表达式每次出现都是新的委托实例，导致退订匹配失败。此约束由 API 签名自然强制。
-
-### 为什么生命周期观察者通知在策略钩子之前
-
-外部观察者先收到通知（例如 `BeforeDead`），然后被观察实体的策略钩子才执行。这确保观察者可以在目标实体拆卸前做出反应（如设置数据标志），且被观察实体仍处于完整状态（`FindByName` 可查找，策略未释放）。
+策略实例通过 `SndStrategyPool` 在多个实体间共享，禁止持有实例字段存储实体引用。`OnMounted` / `OnDataChanged` / `OnUnmounted` 的回调同时接收 `entity`（观察者实体）和 `target`（被观察实体），使无状态策略能够在不持有引用的前提下区分二者。自观察时 `entity == target`。
 
 ---
 

@@ -41,7 +41,7 @@
 
 ### 为什么 ISessionRun/ISessionManager 放在 Abstractions 层
 
-这两个接口原本位于 `Runtime.Lifecycle` 命名空间，导致 `ISndSessionAccess`（Abstractions 层）依赖 Runtime 层——违反了依赖方向。移至 Abstractions 层后：
+这两个接口定义在 Abstractions 层。若放在 Runtime 层，会导致 `ISndSessionAccess`（Abstractions 层）依赖 Runtime 层、违反依赖方向。定义在 Abstractions 层：
 
 - `ISndSessionAccess` 可直接引用同层的 `ISessionManager`/`ISessionRun`
 - 策略层通过 `ISndContext` 访问会话能力，不感知 Runtime 层具体实现

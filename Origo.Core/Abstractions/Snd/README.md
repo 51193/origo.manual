@@ -62,11 +62,11 @@ IStateMachineContext : ISndBlackboardAccess + ISndDeferredActions
 
 ### 为什么 IStateMachineContext 也继承了角色接口
 
-`IStateMachineContext` 原有 5 个成员，其中 `SystemBlackboard`、`ProgressBlackboard`、`EnqueueBusinessDeferred` 与 `ISndContext` 中的语义完全一致。通过继承 `ISndBlackboardAccess` + `ISndDeferredActions`，消除了跨接口的重复定义，同时保持 IStateMachineContext 的独立语义（SessionBlackboard + SceneAccess 为状态机特有）。
+`IStateMachineContext` 的 `SystemBlackboard`、`ProgressBlackboard`、`EnqueueBusinessDeferred` 与 `ISndContext` 语义完全一致，故通过继承 `ISndBlackboardAccess` + `ISndDeferredActions` 复用，避免跨接口重复定义；`SessionBlackboard` + `SceneAccess` 为状态机特有成员。
 
 ### 为什么 RequestKill 独立为 ISndEntityOperations
 
-`RequestKillEntity` 和 `RequestKillAll` 原本放在 `ISndSaveOperations` 中，但实体销毁是运行时生命周期操作，与存档读写在职责上不应混在一起。拆分为独立角色接口后：
+`RequestKillEntity` 和 `RequestKillAll` 是实体运行时生命周期操作，与存档读写在职责上不应混在一起，因此独立为 `ISndEntityOperations` 角色接口：
 
 - `ISndSaveOperations` 聚焦纯持久化操作（存档/读档/关卡切换/continue）
 - `ISndEntityOperations` 聚焦实体运行时操作（标记销毁/批量清空）
