@@ -36,7 +36,8 @@ Root (this file)
   ├── 我需要了解"测试覆盖了什么能力"
   │   ├── Origo.Core.Tests/README.md → 按能力查看 Core 测试
   │   ├── Origo.GodotAdapter.Tests/README.md → 适配层 6 个能力测试
-  │   └── Origo.ConsoleBridge.Tests/README.md → TCP 桥接测试
+  │   ├── Origo.ConsoleBridge.Tests/README.md → TCP 桥接测试
+  │   └── Origo.SourceGeneration.Tests/README.md → 源码生成器测试
   │
   └── 我需要了解"这个手册本身怎么维护"
       └── META.md
@@ -57,8 +58,9 @@ Root (this file)
 | **Origo.ConsoleBridge** | [README](Origo.ConsoleBridge/README.md) | TCP 远程控制台桥接（端口 9876） |
 | **使用文档** | [README](usage/README.md) | 从快速入门到深度参考的使用指南 |
 | **测试: Core** | [README](Origo.Core.Tests/README.md) | Core 层 24 个能力的行为测试文档 |
-| **测试: GodotAdapter** | [README](Origo.GodotAdapter.Tests/README.md) | 适配层 6 个能力的行为测试文档 |
+| **测试: GodotAdapter** | [README](Origo.GodotAdapter.Tests/README.md) | 适配层 6 个能力测试文档 |
 | **测试: ConsoleBridge** | [README](Origo.ConsoleBridge.Tests/README.md) | TCP 桥接服务器行为测试文档 |
+| **测试: SourceGeneration** | [README](Origo.SourceGeneration.Tests/README.md) | TypedData 源码生成器的驱动器行为测试文档 |
 | **手册元指令** | [META.md](META.md) | 本手册的编写与维护规范 |
 | **Agent 工作流** | [AGENTS.md](AGENTS.md) | 强制四步闭环：代码→Changelog→文档→测试 |
 
@@ -103,7 +105,7 @@ Root (this file)
 
 ## 版本
 
-当前同步 Origo 框架版本：**0.0.8-nightly.20260618**。本文档与 Origo 代码库同步。代码目录结构变更时，手册应同步更新目录镜像和索引。
+当前同步 Origo 框架版本：**0.0.8-nightly.20260625**。本文档与 Origo 代码库同步。代码目录结构变更时，手册应同步更新目录镜像和索引。
 
 - 框架源码：[origo](https://github.com/51193/origo.stable)
 - 示例项目：[origo.demo](https://github.com/51193/origo.stable)（参见 `origo.demo/` 子目录）
