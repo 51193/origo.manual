@@ -108,6 +108,10 @@ SystemRuntime
 
 这确保了每条持久化路径都有明确的语义和可追溯的调用链。
 
+### 为什么读档失败后不回滚 ProgressRun 的内存状态
+
+`ProgressRun.LoadFromPayload` 作用于 `SndContext` 刚创建的全新 `ProgressRun`（先 `CreateProgressRun` 再 `LoadFromPayload`），且磁盘 `current/` 在反序列化之前已写入完整 payload。因此若反序列化或会话挂载中途失败，留下的半反序列化状态属于一个尚未投入使用的 `ProgressRun`，不污染既有运行状态，磁盘数据也保持完整。失败后该 `ProgressRun` 没有前台会话，任何后续 `PersistProgress`/`BuildSavePayload` 都会因缺少前台会话立即抛 `InvalidOperationException`（fail-fast），不会把半状态静默落盘；`LoadFromPayload` 本身幂等，可重新加载覆盖。基于这三点，读档失败路径不额外回滚内存状态。
+
 ### 为什么前台会话键固定为 `__foreground__`
 
 前/后台会话共享同一接口 `ISessionRun`，差异仅在于注入的 `ISndSceneHost` 和键名。固定键名消除了"查找前台"的逻辑分支——直接从 SessionManager 中按常量键取值。

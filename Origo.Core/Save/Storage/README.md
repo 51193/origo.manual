@@ -43,13 +43,14 @@
 
 ## 两阶段写入流程
 
-1. **幂等检查**：若目标快照 `save_{id}/.payload.sha` 存在且 hash 相同，直接返回（跳过写入）
-2. **写入标记**：在 `current/` 下创建 `.write_in_progress`
-3. **写入 payload**：写入 progress.json、各关卡三件套、meta.map、`.payload.sha`
-4. **清除第一阶段标记**：`WriteToCurrent` 完成后删除 marker
-5. **重新创建标记**：为快照阶段重建 marker
-6. **快照**：复制 `current/` 到 `save_{id}.tmp/` → 删除旧的 `save_{id}/` → 重命名 `.tmp` 为正式目录
-7. **清除标记**：删除 marker
+1. **幂等检查**（仅 `WriteSavePayloadToCurrentThenSnapshot` 入口）：若目标快照 `save_{id}/.payload.sha` 存在且 hash 相同，直接返回（跳过写入）
+2. **完整性校验**：写入任何文件前校验 payload——active level 必须存在于 `Levels` 中、progress 节点非空。校验失败立即抛异常，不产生半写的 `current/`
+3. **写入标记**：在 `current/` 下创建 `.write_in_progress`
+4. **写入 payload**：写入 progress.json、各关卡三件套、meta.map、`.payload.sha`（全部在 marker 保护下完成）
+5. **清除第一阶段标记**：`current/` 完整写入（含 `.payload.sha`）后删除 marker
+6. **重新创建标记**：为快照阶段重建 marker；若快照失败则保留，使后续读取拒绝这个"已更新但未快照"的 `current/`
+7. **快照（备份-替换）**：复制 `current/` 到 `save_{id}.tmp/` → 将已存在的 `save_{id}/` 改名为 `save_{id}.bak/` → 重命名 `.tmp` 为正式 `save_{id}/` → 删除 `.bak`。旧数据在新数据就位前不被删除
+8. **清除标记**：删除 marker
 
 ## 严格读取规则
 
