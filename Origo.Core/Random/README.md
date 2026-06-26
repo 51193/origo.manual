@@ -37,7 +37,7 @@
 - 包装 `IBlackboard`，将随机状态（两个 `ulong`）存储为黑板键值对
 - **InitSeed(seed)**：字符串种子 → FNV-1a散列 → XorShift128+ 状态对 → 写入黑板
 - **TryNextInt32**：原子读取状态 → 推进 → 写回黑板。未初始化时返回 false
-- **NextInt32(min, max)**：范围整数随机（含安全包装）。未初始化时抛出 `InvalidOperationException`
+- **NextInt32(min, max)**：返回 `[min, max)` 区间整数。`max <= min` 抛 `ArgumentOutOfRangeException`；未初始化时抛 `InvalidOperationException`
 - **NextFloat**：返回 `[0, 1)` 区间浮点。未初始化时抛出异常
 - 构造函数接受可选的自定义状态键名（默认 `"rand.state1"`、`"rand.state2"`）
 
