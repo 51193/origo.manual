@@ -38,7 +38,7 @@
 ### GodotPathResolver
 
 - **Combine**：`$"{base.TrimEnd('/')}/{relative.TrimStart('/')}"`，含路径遍历（`..`）拒绝
-- **GetParentDirectory**：截取最后一个 `/` 之前的部分
+- **GetParentDirectory**：截取最后一个 `/` 之前的部分。若路径已在根目录（无父级路径），抛出 `InvalidOperationException`。
 
 ## 设计决策
 

@@ -45,11 +45,13 @@ Core `SndEntity` 的 Godot 包装器（`[GlobalClass]`）：
 
 - **Create**：`ResourceLoader.Load<PackedScene>(resourceId)` → `Instantiate<Node>()` → `parent.AddChild(node)` → 返回 GodotNodeHandle
 - resourceId 通过 `SndMappings.ResolveSceneAlias` 解析（支持别名），因此可以是原始 `res://` 路径或别名
+- 已加载的 `PackedScene` 实例会缓存，避免同一资源多次实例化时的重复磁盘 I/O
 
 ### GodotNodeHandle
 
-- **Free()** → `_node.Free()`（Godot 即时释放）
-- **SetVisible(bool)** → 根据节点类型（`CanvasItem` 或 `Node3D`）设置对应的 Visible 属性
+- **Name**：构造时缓存的节点名称，不受 Godot 释放原节点的影响
+- **Free()** → 检查 `IsInstanceValid(_node)` 后在有效时调用 `_node.Free()`
+- **SetVisible(bool)** → 先检查 `IsInstanceValid(_node)`，再根据节点类型（`CanvasItem` 或 `Node3D`）设置对应的 Visible 属性
 - **UnsafeGetNode()** → `internal` — 返回底层 `Godot.Node` 引用，仅供 `SndEntityNodeExtensions.GetNativeNode()` 使用
 
 ### SndEntityNodeExtensions
