@@ -44,8 +44,10 @@ BaseStrategy
 - **Unmount(entity, target, observerIndex)**：拆线 `UnsubscribeDataRaw` → 触发 `OnUnmounted` → 释放池引用 → 移除绑定记录
 - **RecoverBindings(entity, bindings, resolveTarget)**：从存档恢复 observer_bindings 拓扑，按名解析目标实体，重新接线并触发 `OnMounted`
 - **BuildObserverBindings()**：序列化当前所有绑定为 `List<ObserverBinding>` 写入 `StrategyMetaData`
-- **TeardownOutgoingBindings(entity, resolveTarget)**：实体死亡前清理自身所有 outgoing 绑定
-- **Observer 双向清理**：`KillPendingEntities` 中同时处理 outgoing（自身→别人）和 incoming（别人→自身），通过快照防止 OnUnmounted 回调中的重入修改
+- **TeardownOutgoingBindings(entity, resolveTarget)**：实体死亡前通过场景宿主的 `FindByName` 解析目标并执行完整 `Unmount`
+- **TeardownAllBindings(entity)**：`DeadSingle`/`QuitSingle` 调用的自包含清理路径。枚举所有绑定，调用 `FullCleanup`（取消数据订阅 + 触发 `OnUnmounted` + 释放策略）。不依赖场景宿主——绑定条目内已存储 `TargetEntity` 引用
+- **ObserverBindingEntry.FullCleanup(entity, ctx, pool)**：取消所有通过 `TargetRawSubscription` 注册的数据订阅，调用 `OnUnmounted`，释放策略回池。替代原来仅处理自指绑定的 `TeardownObserverBindingsForDeath`
+- **Observer 双向清理**：`KillPendingEntities` 中同时处理 outgoing（自身→别人）和 incoming（别人→自身），通过快照防止 OnUnmounted 回调中的重入修改。`RemoveAllBindingsTargeting` 现在也执行完整 `FullCleanup`，不再是仅从列表中移除条目
 
 ### 观察者策略持久化
 
@@ -92,7 +94,7 @@ BaseStrategy
 | `Add(entity, index, ctx)` | 动态添加策略（触发 AfterAdd） |
 | `Remove(entity, index, ctx)` | 动态移除策略（触发 BeforeRemove） |
 
-- **Recover**：从池获取时进行类型过滤，仅保留 `LifecycleStrategyBase` 子类，其余立即 `ReleaseStrategy`
+- **Recover**：从池获取时进行类型过滤，仅保留 `LifecycleStrategyBase` 子类；非 `LifecycleStrategyBase` 类型（如 `ActiveStrategyBase`、`ObserverStrategyBase`）立即抛 `InvalidOperationException`
 - **生命周期钩子触发**：全部基于 `ToArray()` 快照迭代——因为钩子内可增删策略。五个触发器方法（`TriggerAfterSpawn/Load/Save/Quit/Dead`）统一委托给 `TriggerAll`，消除复制粘贴重复
 
 ### ActiveStrategyManager
