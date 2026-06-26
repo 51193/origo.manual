@@ -55,6 +55,7 @@ Origo.Core 的测试遵循"**面向行为、面向文档契约**"原则：
 | 持久化：元数据 | [Save-Meta.md](Save-Meta.md) | ISaveMetaContributor、SaveMetaMerger、meta.map 编解码 |
 | SND 实体 | [Snd-Entity.md](Snd-Entity.md) | SndEntity CRUD、AfterLoad 钩子、AutoInitializer 恢复、批量生命周期、性能基准 |
 | SND 元数据 | [Snd-Metadata.md](Snd-Metadata.md) | TypedData struct 值语义、SndMetaData 深拷贝、SG 输出验证、零分配基准 + SG 工厂性能对比 |
+| 真实模拟性能基准 | [Benchmarks.md](Benchmarks.md) | `[Category=Benchmark]` 套件（`benchmark.sh` 独立运行）：字典查找/插入、数值强转链、观察者通知、异构字典迭代，生成 `TypedData` vs 装箱字典 |
 | SND 场景 | [Snd-Scene.md](Snd-Scene.md) | SndSceneHost、FullMemorySndSceneHost 直接测试、NullNodeFactory、ProcessAll/Spawn/Kill 批量缩放性能 |
 | SND 策略 | [Snd-Strategy.md](Snd-Strategy.md) | 策略优先级排序、池引用计数/回收、实体策略生命周期钩子、主动策略 Invoke、策略池与 Manager 性能基准 |
 | SND 上下文 | [Snd-Context.md](Snd-Context.md) | SndContext save/load/continue 工作流、NullSndContext、LevelBuilder、模板解析、Archetype 加载 |

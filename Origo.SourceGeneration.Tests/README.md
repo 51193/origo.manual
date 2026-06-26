@@ -15,7 +15,7 @@
 |------|------|
 | `GeneratorTestHarness.cs` | 构造内存 `CSharpCompilation`，运行 `TypedDataGenerator`，暴露生成源、生成器诊断、合并编译错误 |
 | `TypedDataGeneratorTests.cs` | 生成器行为测试：Home/Adapter 模式输出、两存储模型、`ORIGOSG001`/`ORIGOSG002` 诊断、生成确定性 |
-| `Benchmarks/TypedDataGeneratedBenchmarkTests.cs` | 生成产物性能基准：多值类型 + `string` 的写/读/混合分发，生成的内联 `TypedData` vs 无优化装箱；固定池 + 大迭代 + 多轮取最小降噪，宽松阈值 + 比对表格 |
+| `Benchmarks/TypedDataGeneratedBenchmarkTests.cs` | 生成产物性能基准：多值类型 + `string` 的写/读/混合分发，生成的内联 `TypedData` vs 无优化装箱；固定池 + 大迭代 + 多轮取最小降噪，宽松阈值 + 比对表格，并对每侧实测分配（`GC.GetAllocatedBytesForCurrentThread`，置于独立 `NoInlining` 方法以免污染计时） |
 | `TestSupport/PerfReporter.cs` | 性能比对表格输出器（同时写控制台与 xUnit 测试输出） |
 
 ## 测试能力
@@ -58,7 +58,7 @@
 
 为抵抗 OS 时间片轮转与 GC 带来的测量噪声，每个基准使用固定容量池（位掩码寻址，内存恒定）、较大的迭代次数（使单轮耗时跨多个时间片）、一轮 warmup 加多轮计时并对两侧各取最小耗时（剔除被抢占/GC 的离群轮）。
 
-基准标记 `[Trait("Category","Benchmark")]`，从 `ci.sh` 的全量测试运行中以 `--filter "Category!=Benchmark"` 排除，改由独立步骤 `scripts/benchmark.sh`（以 detailed logger）运行一次：既打印比对表格，又执行宽松断言，避免基准被运行两次。
+基准标记 `[Trait("Category","Benchmark")]`，从 `ci.sh` 的全量测试运行中以 `--filter "Category!=Benchmark"` 排除，改由独立步骤 `scripts/benchmark.sh`（以 detailed logger）运行一次：既打印比对表格，又执行宽松断言，避免基准被运行两次。`scripts/benchmark.sh` 在同一步骤中还运行 Core 的[真实模拟性能基准](../Origo.Core.Tests/Benchmarks.md)（字典查找/插入、观察者通知、异构字典迭代等贴近使用的场景）。
 
 ---
 
