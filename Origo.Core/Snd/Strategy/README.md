@@ -40,7 +40,7 @@ BaseStrategy
 
 每个 `SndEntity` 持有一个 manager 实例，管理观察者策略的完整生命周期：
 
-- **Mount(entity, target, observerIndex)**：获取策略实例 → 按 `[ObserveData]` 属性为每个 key 建立 `SubscribeDataRaw` 接线 → 记录绑定 → 触发 `OnMounted`
+- **Mount(entity, target, observerIndex)**：获取策略实例 → 按 `[ObserveData]` 属性为每个 key 建立 `SubscribeDataRaw` 接线 → 记录绑定 → 触发 `OnMounted`。挂载是原子的：若接线或 `OnMounted` 抛异常，已建立的订阅全部取消、半加入的绑定被移除、策略引用归还池后异常再传播，不残留订阅或绑定
 - **Unmount(entity, target, observerIndex)**：拆线 `UnsubscribeDataRaw` → 触发 `OnUnmounted` → 释放池引用 → 移除绑定记录
 - **RecoverBindings(entity, bindings, resolveTarget)**：从存档恢复 observer_bindings 拓扑，按名解析目标实体，重新接线并触发 `OnMounted`
 - **BuildObserverBindings()**：序列化当前所有绑定为 `List<ObserverBinding>` 写入 `StrategyMetaData`
@@ -91,7 +91,7 @@ BaseStrategy
 | `TriggerBeforeDead(entity, ctx)` | 快照迭代触发 BeforeDead |
 | `GetStrategyIndices()` | 返回当前持有的所有策略索引 |
 | `Process(entity, delta, ctx)` | 帧更新（快照迭代） |
-| `Add(entity, index, ctx)` | 动态添加策略（触发 AfterAdd） |
+| `Add(entity, index, ctx)` | 动态添加策略并触发 `AfterAdd`；若 `AfterAdd` 抛异常，回滚插入并归还池引用后再传播（添加是原子的） |
 | `Remove(entity, index, ctx)` | 动态移除策略（触发 BeforeRemove） |
 
 - **Recover**：从池获取时进行类型过滤，仅保留 `LifecycleStrategyBase` 子类；非 `LifecycleStrategyBase` 类型（如 `ActiveStrategyBase`、`ObserverStrategyBase`）立即抛 `InvalidOperationException`
