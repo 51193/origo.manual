@@ -41,6 +41,7 @@
 - `AfterSpawn` / `AfterAdd`：订阅信号 + 若 intent 已存在则重启计划 → 调用 `OnAfterSpawn` / `OnAfterAdd`
 - `AfterLoad`：仅订阅信号（存档恢复时计划状态已持久化，不重启）→ 调用 `OnAfterLoad`
 - `BeforeRemove` / `BeforeQuit` / `BeforeDead`：移除当前 Action 策略 → 调用对应的 `OnBefore*` → 取消订阅
+- `BeforeSave`：直接委托给 `OnBeforeSave`（保存时无需操作计划状态）
 - `Process`：直接调用 `OnProcess`
 
 #### 用户扩展钩子（虚方法）
@@ -53,6 +54,7 @@
 | `OnBeforeRemove(entity, ctx)` | 移除 Action 后、取消订阅前 |
 | `OnBeforeQuit(entity, ctx)` | 移除 Action 后、取消订阅前 |
 | `OnBeforeDead(entity, ctx)` | 移除 Action 后、取消订阅前 |
+| `OnBeforeSave(entity, ctx)` | BeforeSave 密封钩子中 |
 | `OnProcess(entity, delta, ctx)` | Process 帧中 |
 | `OnIntentStarted(entity, intent)` | 新意图开始执行时 |
 | `OnStepStarted(entity, stepType)` | 新步骤开始执行时 |
