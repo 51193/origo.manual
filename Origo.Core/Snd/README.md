@@ -77,7 +77,7 @@ SND 的观察统一由观察者策略（`ObserverStrategyBase`）承载，自观
 - **自观察**：`entity.MountObserverStrategy(entity.Name, "my_game.hp_watcher")`
 - **跨实体观察**：先 `SceneHost.FindByName` 解析目标，再 `observer.MountObserverStrategy(target, "...")`
 
-观察者绑定拓扑通过 `StrategyMetaData.ObserverBindings` 随实体序列化，读档时由 `ObserverStrategyManager` 自动恢复接线，无需在 `AfterLoad` 中手动重连；目标或观察方死亡时自动卸载。公开接口见 [ISndObserverStrategyAccess](../Abstractions/Entity/README.md#isndobserverstrategyaccess)，策略类型见 [Strategy](Strategy/README.md)，实现细节见 [SndEntity](Entity/README.md#sndentity聚合根)。
+观察者绑定拓扑通过 `StrategyMetaData.ObserverIndices` 随实体序列化，读档时由 `ObserverStrategyManager` 自动恢复接线，无需在 `AfterLoad` 中手动重连；目标或观察方死亡时自动卸载。公开接口见 [ISndObserverStrategyAccess](../Abstractions/Entity/README.md#isndobserverstrategyaccess)，策略类型见 [Strategy](Strategy/README.md)，实现细节见 [SndEntity](Entity/README.md#sndentity聚合根)。
 
 ## 核心原则
 

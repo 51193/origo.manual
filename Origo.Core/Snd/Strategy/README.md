@@ -42,7 +42,7 @@ BaseStrategy
 
 - **Mount(entity, target, observerIndex)**：获取策略实例 → 按 `[ObserveData]` 属性为每个 key 建立 `SubscribeDataRaw` 接线 → 记录绑定 → 触发 `OnMounted`。挂载是原子的：若接线或 `OnMounted` 抛异常，已建立的订阅全部取消、半加入的绑定被移除、策略引用归还池后异常再传播，不残留订阅或绑定
 - **Unmount(entity, target, observerIndex)**：拆线 `UnsubscribeDataRaw` → 触发 `OnUnmounted` → 释放池引用 → 移除绑定记录
-- **RecoverBindings(entity, bindings, resolveTarget)**：从存档恢复 observer_bindings 拓扑，按名解析目标实体，重新接线并触发 `OnMounted`
+- **RecoverBindings(entity, bindings, resolveTarget)**：从存档恢复 observer_indices 拓扑，按名解析目标实体，重新接线并触发 `OnMounted`
 - **BuildObserverBindings()**：序列化当前所有绑定为 `List<ObserverBinding>` 写入 `StrategyMetaData`
 - **TeardownOutgoingBindings(entity, resolveTarget)**：实体死亡前通过场景宿主的 `FindByName` 解析目标并执行完整 `Unmount`
 - **TeardownAllBindings(entity)**：`DeadSingle`/`QuitSingle` 调用的自包含清理路径。枚举所有绑定，调用 `FullCleanup`（取消数据订阅 + 触发 `OnUnmounted` + 释放策略）。不依赖场景宿主——绑定条目内已存储 `TargetEntity` 引用
@@ -55,7 +55,7 @@ BaseStrategy
 
 ```json
 {
-  "observer_bindings": [
+  "observer_indices": [
     { "player_1": ["hp_watcher", "intent_watcher"] },
     { "goblin_3": ["threat_watcher"] }
   ]
@@ -141,7 +141,7 @@ Phase 2 (Trigger hooks):
   5. 触发实体策略钩子 (TriggerAfterSpawn/AfterLoad/etc.，由 IEntityLifecycle 的 internal 方法驱动)
 
 Phase 2.5 (Observer recovery):
-  6. 恢复 Observer 跨实体绑定（从 StrategyMetaData.ObserverBindings 重新接线 + 触发 OnMounted）
+  6. 恢复 Observer 跨实体绑定（从 StrategyMetaData.ObserverIndices 重新接线 + 触发 OnMounted）
 
 Phase 3 (Teardown):
   7. Observer 绑定清理（outgoing + incoming，触发 OnUnmounted）
@@ -158,17 +158,17 @@ Observer 绑定在 Phase 2.5 恢复（实体策略 AfterLoad 之后），在 Pha
 
 ```
 StrategyMetaData
-├── EntityIndices: List<string>          (被动实体策略)
+├── LifecycleIndices: List<string>          (被动实体策略)
 ├── ActiveIndices: List<string>          (主动策略)
-└── ObserverBindings: List<ObserverBinding>  (观察者绑定，每个 binding 含 Target 和 ObserverIndices)
+└── ObserverIndices: List<ObserverBinding>  (观察者绑定，每个 binding 含 Target 和 ObserverIndices)
 ```
 
 序列化后 JSON 格式：
 ```json
 {
-  "entity_indices": ["patrol", "idle"],
+  "lifecycle_indices": ["patrol", "idle"],
   "active_indices": ["query.hp"],
-  "observer_bindings": [
+  "observer_indices": [
     { "player_1": ["hp_watcher"] }
   ]
 }

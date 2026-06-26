@@ -481,7 +481,7 @@ public interface IConsoleOutputChannel
 5. **延迟动作在 Process 后自动执行** — RunFrame 中已经处理
 6. **后台会话无渲染节点** — 不做依赖节点的操作
 7. **观察数据变更用观察者策略** — 实现 `ObserverStrategyBase` + `[ObserveData("key")]`，经 `MountObserverStrategy` 挂载，而非在实体上订阅委托
-8. **观察者绑定随实体持久化** — `ObserverBindings` 写入存档，读档自动恢复接线，无需在 `AfterLoad` 手动重挂
+8. **观察者绑定随实体持久化** — `ObserverIndices` 写入存档，读档自动恢复接线，无需在 `AfterLoad` 手动重挂
 9. **观察者绑定在死亡时自动卸载** — 实体退出/死亡时框架统一触发 `OnUnmounted` 并卸载绑定，策略通常无需手动 `UnmountObserverStrategy`
 10. **文件 I/O 必须通过 ISndFileAccess，不要直接使用 IFileSystem** — 所有文件内容读写统一通过 `IDataSourceIoGateway` 边界，后缀路由和解析由框架处理。`ISndFileAccess.ReadFile` / `ReadObject<T>` 已包含解析，策略不应自行解析原始文本
 

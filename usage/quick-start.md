@@ -88,7 +88,7 @@ public class HealthInitStrategy : LifecycleStrategyBase
   {
     "name": "player",
     "strategy": {
-      "entity_indices": ["my_game.health"]
+      "lifecycle_indices": ["my_game.health"]
     },
     "data": {
       "pairs": {

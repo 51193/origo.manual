@@ -69,7 +69,7 @@ entity.UnmountObserverStrategy(entity.Name, "character.intent_watcher");
 
 - 观察策略通过 `MountObserverStrategy(targetName, strategyIndex)` 挂载
 - `entity` = 观察者实体，`target` = 被观察实体；自观察时两者为同一实体
-- `observer_bindings` 将跨实体绑定序列化到存档中，读档时自动恢复接线
+- `observer_indices` 将跨实体绑定序列化到存档中，读档时自动恢复接线
 - 自观察和跨实体观察使用同一挂载 API 和同一绑定拓扑格式
 - 与 Data/Strategy 相同，Observer 绑定在存盘时持久化、读档时自动恢复
 ### 实体策略生命周期钩子
@@ -188,7 +188,7 @@ public sealed class HpWatcher : ObserverStrategyBase
 entity.MountObserverStrategy(entity.Name, "my_game.hp_watcher");
 ```
 
-观察者的绑定关系通过 `StrategyMetaData.ObserverBindings` 字段持久化到存档中，读档时自动恢复，无需在 AfterLoad 中手动重新挂载。
+观察者的绑定关系通过 `StrategyMetaData.ObserverIndices` 字段持久化到存档中，读档时自动恢复，无需在 AfterLoad 中手动重新挂载。
 
 ## 策略执行顺序
 
@@ -216,9 +216,9 @@ Priority: 6205 (默认) → Strategy D
     }
   },
   "strategy": {
-    "entity_indices": ["my_game.health", "my_game.movement"],
+    "lifecycle_indices": ["my_game.health", "my_game.movement"],
     "active_indices": ["my_game.move_to"],
-    "observer_bindings": [
+    "observer_indices": [
       { "player": ["my_game.hp_watcher"] }
     ]
   },

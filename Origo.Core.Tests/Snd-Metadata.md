@@ -57,10 +57,10 @@
 | `DefaultValues` | Name 为空串、NodeMetaData/StrategyMetaData 为 null、DataMetaData 非 null | snd-entity-model: 实体元数据 |
 | `DeepClone_CopiesName` | DeepClone 复制 Name | SndMetaData |
 | `DeepClone_CopiesNodeMetaData` | NodeMetaData 深复制（Pairs 独立） | SndMetaData |
-| `DeepClone_CopiesStrategyMetaData` | StrategyMetaData 深复制（EntityIndices 独立） | SndMetaData |
+| `DeepClone_CopiesStrategyMetaData` | StrategyMetaData 深复制（LifecycleIndices 独立） | SndMetaData |
 | `DeepClone_CopiesDataMetaData` | DataMetaData 深复制（Pairs 独立，TypedData 值保留） | SndMetaData |
 | `DeepClone_NullNodeMetaData_RemainsNull` | null NodeMetaData 克隆后仍为 null | SndMetaData |
-| `DeepClone_ModifyCloneDoesNotAffectOriginal` | 修改克隆不影响原对象（Name + EntityIndices） | SndMetaData |
+| `DeepClone_ModifyCloneDoesNotAffectOriginal` | 修改克隆不影响原对象（Name + LifecycleIndices） | SndMetaData |
 | `WithActiveStrategyIndices_DeepClones` | ActiveIndices 正确深复制 | SndMetaData |
 
 ### 边界路径

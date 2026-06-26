@@ -308,7 +308,7 @@ public sealed class MySchedulingStrategy : PlanExecutionStrategyBase
 
 ```json
 {
-  "strategy": { "entity_indices": ["game.camera.zoom"] },
+  "strategy": { "lifecycle_indices": ["game.camera.zoom"] },
   "data": {
     "pairs": {
       "camera.zoom_level": { "type": "Single", "data": 0.5 },
@@ -327,7 +327,7 @@ public sealed class MySchedulingStrategy : PlanExecutionStrategyBase
 
 ```json
 {
-  "strategy": { "entity_indices": ["item.food"] },
+  "strategy": { "lifecycle_indices": ["item.food"] },
   "data": {
     "pairs": {
       "food.archetype": { "type": "String", "data": "berry" }
