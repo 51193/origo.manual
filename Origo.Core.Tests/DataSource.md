@@ -10,7 +10,7 @@
 值访问（AsInt/AsLong/AsString 等）、懒展开（Lazy 延迟求值 + 失败可重试）、
 JSON 编解码往返（嵌套对象/顶层数组、懒展开保护）、Map 编解码（注释/冒号值/空值跳过）、
 ConverterRegistry（14 种基本类型 + 14 种数组类型 + 领域类型）完整往返、
-TypedData 转换器、SndMetaData 转换器、IDisposable 递归释放。
+TypedData 转换器、SndMetaData 转换器、IDisposable 迭代释放。
 
 ## 测试文件清单
 
