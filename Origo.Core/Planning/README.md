@@ -1,6 +1,6 @@
 # Planning
 
-> [↑ 回到 Origo.Core](README.md)
+> [↑ 回到 Origo.Core](../README.md)
 
 规划（Planning）子系统提供意图驱动的实体级计划执行基础设施。
 

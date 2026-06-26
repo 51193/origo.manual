@@ -10,7 +10,7 @@
 
 - Godot 4.6 项目（.NET 版本）
 - .NET 8.0 SDK
-- 项目中已引用 Origo（当前版本：0.0.8-nightly.20260616，NuGet 包或 ProjectReference）
+- 项目中已引用 Origo（当前版本：0.0.8-nightly.20260626，NuGet 包或 ProjectReference）
 
 ## 步骤
 
