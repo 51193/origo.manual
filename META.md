@@ -163,6 +163,8 @@ origo.manual/
 ├── usage/                       # 系统使用文档
 │   ├── README.md               # 使用文档索引
 │   └── *.md                    # 按使用场景组织的文档
+├── benchmarks/                  # 性能基线（TypedData 现状快照）
+│   └── baseline.md
 ├── Origo.Core/                  # 镜像 src/Origo.Core/ 的目录结构
 │   ├── README.md               # 模块根文档
 │   └── 子目录/README.md        # 逐级下钻

@@ -9,7 +9,7 @@
 
 基准标记 `[Trait("Category","Benchmark")]`，从 `ci.sh` 的全量测试运行中以 `--filter "Category!=Benchmark"` 排除，改由独立步骤 `scripts/benchmark.sh` 运行一次。该脚本同时运行本套件与 [SG 纯净微基准](../Origo.SourceGeneration.Tests/README.md)。
 
-> **性能数值不记录在本文档。** 易变的绝对吞吐与倍率快照见源码仓的权威基线 `origo/docs/benchmarks/baseline.md`，本文档只描述被测能力与设计意图。
+> **性能数值不记录在本文档。** 易变的绝对吞吐与倍率快照见权威基线 [benchmarks/baseline.md](../benchmarks/baseline.md)，本文档只描述被测能力与设计意图。
 
 ## 包含文件
 
@@ -41,7 +41,7 @@
 | 不覆盖 GodotAdapter 注册类型（`Vector2`/`Vector3` 等）的真实场景吞吐 | 适配层多层分派性能不在本套件验证 | 由 [Origo.GodotAdapter.Tests/Serialization](../Origo.GodotAdapter.Tests/Serialization.md) 的 `GodotTypedDataPerformanceTests` 单独覆盖 |
 | 不覆盖并发/多线程读写 | 多线程下的争用与可见性未测 | 框架采用单线程帧模型（见 [手册根 README — 设计原则](../README.md)） |
 | 不覆盖按 Kind 直接分派的异构迭代替代路径 | 仅测 `.Data`（`ToObject`）这一条迭代路径 | [Snd/Metadata](../Origo.Core/Snd/Metadata/README.md) 的 Kind 分派 |
-| 绝对吞吐/倍率/分配均不作断言（仅打印 + 单基准时间上限） | 性能退化无法自动捕获，需人工对照基线 | `origo/docs/benchmarks/baseline.md` |
+| 绝对吞吐/倍率/分配均不作断言（仅打印 + 单基准时间上限） | 性能退化无法自动捕获，需人工对照基线 | [benchmarks/baseline.md](../benchmarks/baseline.md) |
 
 ## 设计决策
 
