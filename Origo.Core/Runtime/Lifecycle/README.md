@@ -85,6 +85,8 @@ SystemRuntime
 
 - `Dispose` 级联：SessionRun → SessionManager → ProgressRun → SystemRun
 - `SessionRun.Dispose` 使用两阶段标志：先设 `_disposing`（防重入），执行 BeforeQuit 钩子（此时会话资源仍可访问）和释放策略，再通过 `try/finally` 保证场景集合清空和黑板清除必定执行，最后设 `_disposed`（外部访问正式禁止）
+- Dispose 中的清理操作不捕获异常：若 `StateMachines.Clear()`、`ReleaseAllEntities`、`RemoveAllEntities` 或 `Blackboard.Clear()` 抛出异常，异常直接传播到调用方。不再累积 `firstError` 或包装为 `AggregateException`。
+- `ProgressRun.Dispose` 中 `SessionManager.Clear()` 和 `DeleteCurrentDirectory()` 的异常同样直接传播，不被静默吞掉。
 - 退出前的数据保存应由应用层显式调用 `RequestSaveGame` 完成；`current/` 目录作为临时工作区，在退出时被安全清理
 
 ## 设计决策

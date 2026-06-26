@@ -49,6 +49,7 @@ OrigoConsole.ProcessPending()
 - **命名参数支持**：除位置参数外，支持 `key=value` 命名参数（如 `spawn name=x template=y`）。两种模式不可混用
 - **参数校验前置**：`ConsoleCommandHandlerBase.TryExecute` 在执行前校验参数数量，失败时返回清晰错误
 - **线程安全输入**：`ConsoleInputBuffer` 使用 `lock` 保护，支持 TCP 桥接线程并发入队
+- **命令处理器异常立即传播**：`ProcessPending()` 不捕获命令处理器抛出的异常。若处理器执行中抛出异常（如 `InvalidOperationException`），异常直接传播到调用方，不降级为日志或错误消息。这确保开发阶段尽早暴露 bug。
 
 ---
 [↑ 回到 Runtime](../README.md)
